@@ -4,7 +4,6 @@ import { ChevronDown, ChevronRight, Menu, X, Zap, cpu, Layers, Users, BarChart, 
 import Link from "next/link";
 import { RegisterLink, LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-
 export default function Navbar() {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -169,7 +168,11 @@ console.log(user);
                                     </div>
                                 )}
                             </li>
-
+                            <li>
+                                <Link className="px-4 py-2 text-gray-700 font-medium transition hover:text-blue-600 rounded-lg hover:bg-blue-50" href="/jobs">
+                                    Jobs
+                                </Link>
+                            </li>
                             <li>
                                 <Link className="px-4 py-2 text-gray-700 font-medium transition hover:text-blue-600 rounded-lg hover:bg-blue-50" href="/Contact">
                                     Contact
@@ -182,11 +185,7 @@ console.log(user);
                                 </Link>
                             </li>
 
-                            <li>
-                                <Link className="px-4 py-2 text-gray-700 font-medium transition hover:text-blue-600 rounded-lg hover:bg-blue-50" href="/Blog">
-                                    Blog
-                                </Link>
-                            </li>
+                      
                         </ul>
                     </nav>
 
@@ -277,28 +276,9 @@ console.log(user);
                                             </div>
 
                                             <div className="p-2">
-                                                <Link
-                                                    href="/profile"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all group"
-                                                    onClick={() => setProfileOpen(false)}
-                                                >
-                                                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                                                        <Users className="w-4 h-4 text-blue-600" />
-                                                    </div>
-                                                    <span className="font-medium">My Profile</span>
-                                                </Link>
+                                               
 
-                                                <Link
-                                                    href="/dashboard"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all group"
-                                                    onClick={() => setProfileOpen(false)}
-                                                >
-                                                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                                                        <BarChart className="w-4 h-4 text-purple-600" />
-                                                    </div>
-                                                    <span className="font-medium">Dashboard</span>
-                                                </Link>
-
+                                             
                                                 <div className="my-2 border-t border-gray-100"></div>
 
                                                 <LogoutLink className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all group w-full">
@@ -444,15 +424,16 @@ console.log(user);
                                 )}
                             </div>
 
+                            <a href="/jobs" className="block px-4 py-3 text-gray-700 font-medium rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">
+                                Jobs
+                            </a>
                             <a href="/Contact" className="block px-4 py-3 text-gray-700 font-medium rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">
                                 Contact
                             </a>
                             <a href="/About" className="block px-4 py-3 text-gray-700 font-medium rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">
                                 About
                             </a>
-                            <a href="/Blog" className="block px-4 py-3 text-gray-700 font-medium rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">
-                                Blog
-                            </a>
+                           
 
                             <div className="pt-4 space-y-2 border-t border-gray-100 mt-4">
                                 {isAuthenticated ? (
@@ -483,24 +464,7 @@ console.log(user);
                                             </div>
 
                                             <div className="space-y-1">
-                                                <Link
-                                                    href="/profile"
-                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition backdrop-blur-sm"
-                                                    onClick={() => setMobileMenuOpen(false)}
-                                                >
-                                                    <Users className="w-4 h-4" />
-                                                    <span className="font-medium text-sm">My Profile</span>
-                                                </Link>
-
-                                                <Link
-                                                    href="/dashboard"
-                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition backdrop-blur-sm"
-                                                    onClick={() => setMobileMenuOpen(false)}
-                                                >
-                                                    <BarChart className="w-4 h-4" />
-                                                    <span className="font-medium text-sm">Dashboard</span>
-                                                </Link>
-
+                                               
                                                 <LogoutLink className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-500/80 hover:bg-red-600 transition backdrop-blur-sm w-full">
                                                     <X className="w-4 h-4" />
                                                     <span className="font-medium text-sm">Logout</span>

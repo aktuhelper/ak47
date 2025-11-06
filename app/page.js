@@ -1,3 +1,4 @@
+
 import FAQSection from "./_HomePage_Components/Faq";
 import FeaturesHighlight from "./_HomePage_Components/FeatureHighLight";
 import HeroSection from "./_HomePage_Components/Hero";
@@ -7,7 +8,9 @@ import StatisticsSection from "./_HomePage_Components/Statics";
 
 
 
+
 export default function Home() {
+
   return (
     <div>
   
