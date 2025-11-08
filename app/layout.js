@@ -1,11 +1,7 @@
-
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import Navbar from "./_HomePage_Components/Navbar";
 import Footer from "./_HomePage_Components/Footer";
-
-
-
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -19,19 +15,17 @@ export const metadata = {
   icons: {
     icon: "/logoxxx.svg",
   },
+  other: {
+    "algolia-site-verification": "6C788F7C6ADC5113",
+  },
 };
 
 export default function RootLayout({ children }) {
- 
   return (
     <html lang="en">
       <body className={`${outfit.variable} antialiased`}>
-
         <Navbar />
-        <main>
-         
-          {children}
-        </main>
+        <main>{children}</main>
         <Footer />
       </body>
     </html>
