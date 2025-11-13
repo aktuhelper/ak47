@@ -1,7 +1,9 @@
 import { Outfit } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "./_HomePage_Components/Navbar";
 import Footer from "./_HomePage_Components/Footer";
+import AktuheperChatbot from "./_HomePage_Components/AktuheperChatbot";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -27,6 +29,7 @@ export default function RootLayout({ children }) {
         <Navbar />
         <main>{children}</main>
         <Footer />
+        <AktuheperChatbot />
       </body>
     </html>
   );

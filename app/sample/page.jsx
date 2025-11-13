@@ -1,402 +1,739 @@
-'use client';
+"use client"
+import React, { useState, useEffect } from 'react';
+import { BookOpen, FileText, Download, Search, Calendar, Star, TrendingUp, CheckCircle, Clock, FileQuestion, Lightbulb, BookMarked, GraduationCap, Code, X, ChevronRight, Loader2 } from 'lucide-react';
+import { getStudyMaterials } from '../_utils/GlobalApi';
+export default function StudyMaterialsPage() {
+    const [selectedSemester, setSelectedSemester] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [showMaterialModal, setShowMaterialModal] = useState(false);
+    const [selectedMaterial, setSelectedMaterial] = useState(null);
+    const [apiMaterials, setApiMaterials] = useState({});
+    const [loading, setLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPaymentSubject, setSelectedPaymentSubject] = useState(null);
+    // Hardcoded subject names and codes for SEO
+    const hardcodedSubjects = {
+        1: [
+            { subject: 'Engineering Chemistry', code: 'BAS102', icon: Code },
+            { subject: 'Engineering Mathematics-I', code: 'BAS103', icon: BookOpen },
+            { subject: 'Fundamentals of Electrical Engineering', code: 'BEE101', icon: Lightbulb },
+            { subject: 'Fundamentals of Electronics Engineering', code: 'BEC101', icon: FileText },
+            { subject: 'Programming for Problem Solving', code: 'BCS101', icon: BookMarked },
+            { subject: 'Fundamentals of Mechanical Engineering', code: 'BME101 ', icon: BookMarked },
+            { subject: 'Environment and Ecology', code: 'BAS104', icon: BookMarked },
+            { subject: 'Soft Skills', code: 'BAS105', icon: BookMarked },
 
-import { useState, useEffect } from 'react';
-import { Brain, Calculator, Target, Clock, BookOpen, ChevronRight, Award, TrendingUp, RotateCcw, Loader2, AlertCircle } from 'lucide-react';
 
-export default function AptitudePage() {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [practiceSets, setPracticeSets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [questionCounts, setQuestionCounts] = useState({});
+        ],
+        2: [
+            { subject: 'Data Structures', code: 'CS201', icon: Code },
+            { subject: 'Mathematics-II', code: 'MA201', icon: BookOpen },
+            { subject: 'Chemistry', code: 'CH201', icon: Lightbulb },
+            { subject: 'Digital Electronics', code: 'EC201', icon: FileText },
+            { subject: 'Engineering Mechanics', code: 'ME201', icon: BookMarked },
+            { subject: 'English Communication', code: 'EN201', icon: GraduationCap }
+        ],
+        3: [
+            { subject: 'Object Oriented Programming', code: 'CS301', icon: Code },
+            { subject: 'Discrete Mathematics', code: 'MA301', icon: BookOpen },
+            { subject: 'Computer Organization', code: 'CS302', icon: FileText },
+            { subject: 'Database Management Systems', code: 'CS303', icon: BookMarked },
+            { subject: 'Operating Systems', code: 'CS304', icon: Lightbulb },
+            { subject: 'Software Engineering', code: 'CS305', icon: GraduationCap }
+        ],
+        4: [
+            { subject: 'Computer Networks', code: 'CS401', icon: Code },
+            { subject: 'Theory of Computation', code: 'CS402', icon: BookOpen },
+            { subject: 'Microprocessors', code: 'CS403', icon: FileText },
+            { subject: 'Web Technologies', code: 'CS404', icon: BookMarked },
+            { subject: 'Computer Graphics', code: 'CS405', icon: Lightbulb },
+            { subject: 'Design & Analysis of Algorithms', code: 'CS406', icon: GraduationCap }
+        ],
+        5: [
+            { subject: 'Artificial Intelligence', code: 'CS501', icon: Code },
+            { subject: 'Machine Learning', code: 'CS502', icon: BookOpen },
+            { subject: 'Compiler Design', code: 'CS503', icon: FileText },
+            { subject: 'Information Security', code: 'CS504', icon: BookMarked },
+            { subject: 'Cloud Computing', code: 'CS505', icon: Lightbulb },
+            { subject: 'Mobile Application Development', code: 'CS506', icon: GraduationCap },
+            { subject: 'Big Data Analytics', code: 'CS507', icon: Star }
+        ],
+        6: [
+            { subject: 'Deep Learning', code: 'CS601', icon: Code },
+            { subject: 'Natural Language Processing', code: 'CS602', icon: BookOpen },
+            { subject: 'Blockchain Technology', code: 'CS603', icon: FileText },
+            { subject: 'Internet of Things', code: 'CS604', icon: BookMarked },
+            { subject: 'Cyber Security', code: 'CS605', icon: Lightbulb },
+            { subject: 'Data Mining', code: 'CS606', icon: GraduationCap },
+            { subject: 'Distributed Systems', code: 'CS607', icon: Star }
+        ],
+        7: [
+            { subject: 'Project Management', code: 'CS701', icon: Code },
+            { subject: 'Software Testing', code: 'CS702', icon: BookOpen },
+            { subject: 'Elective I', code: 'CS703', icon: FileText },
+            { subject: 'Elective II', code: 'CS704', icon: BookMarked },
+            { subject: 'Industry Internship', code: 'CS705', icon: Lightbulb },
+            { subject: 'Mini Project', code: 'CS706', icon: GraduationCap }
+        ],
+        8: [
+            { subject: 'Major Project', code: 'CS801', icon: Code },
+            { subject: 'Elective III', code: 'CS802', icon: BookOpen },
+            { subject: 'Elective IV', code: 'CS803', icon: FileText },
+            { subject: 'Seminar', code: 'CS804', icon: BookMarked },
+            { subject: 'Professional Ethics', code: 'CS805', icon: GraduationCap }
+        ]
+  };
+    useEffect(() => {
+          document.title = "Btech Computer Science Study Materials | AKTU Helper";
+    }, []);
+    useEffect(() => {
+          async function fetchAllSemesters() {
+              setLoading(true);
+              try {
+                  const materialsData = {};
+  
+                  for (let sem = 1; sem <= 8; sem++) {
+                      const data = await getStudyMaterials({
+                          courseName: "btech",
+                          branchName: "cse",
+                          semester: sem,
+                      });
+                      console.log("Fetching data for semester:", sem);
+  
+                      if (data && data.length > 0) {
+                          materialsData[sem] = data.map(subject => ({
+                              id: subject.id,
+                              subject_name: subject.subject_name,
+                              subject_code: subject.subject_code,
+                              materials: organizeMaterials(subject.materials)
+                          }));
+                      }
+                  }
+  
+                  setApiMaterials(materialsData);
+              } catch (err) {
+                  console.error('Error fetching materials:', err);
+              } finally {
+                  setLoading(false);
+              }
+          }
+  
+          fetchAllSemesters();
+      }, []);
+ useEffect(() => {
+    if (showPaymentModal) {
+        const timer = setTimeout(() => {
+            const container = document.getElementById('razorpay-button-container');
+            if (container) {
+                // Clear existing content
+                container.innerHTML = '';
+                
+                // Create form element (Required by Razorpay)
+                const form = document.createElement('form');
+                
+                // Create script element
+                const script = document.createElement('script');
+                script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
+                script.setAttribute('data-payment_button_id', 'pl_Re3Ztu5oznteM4');
+                script.async = true;
+                
+                // Append script inside form
+                form.appendChild(script);
+                
+                // Append form to container
+                container.appendChild(form);
+            }
+        }, 300);
 
-  const STRAPI_URL = typeof window !== 'undefined' && window.ENV?.NEXT_PUBLIC_STRAPI_URL
-    ? window.ENV.NEXT_PUBLIC_STRAPI_URL
-    : 'http://localhost:1337';
+        return () => clearTimeout(timer);
+    }
+}, [showPaymentModal]);
+  const organizeMaterials = (materials) => {
+    const organized = {
+      syllabus: { available: false, items: [] },
+      pyq: { available: false, hasYears: false, items: [] },
+      books: { available: false, items: [] },
+      notes: { available: false, items: [] }
+    };
 
-  useEffect(() => {
-    fetchPracticeSets();
-  }, []);
+    console.log('organizeMaterials received:', materials);
 
-  const fetchQuestionCount = async (category) => {
-    try {
-      // Try multiple variations including trimmed versions to handle spaces
-      const variations = [
-        category,
-        category.toLowerCase(),
-        category.toUpperCase(),
-        category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
-        category.trim(),
-        category.toLowerCase().trim(),
-        ' ' + category.toLowerCase(),
-      ];
+    materials?.forEach(material => {
+      console.log('Processing material:', material);
 
-      for (const variant of variations) {
-        const url = `${STRAPI_URL}/api/apti-questions?filters[category][$eq]=${variant}&pagination[limit]=1`;
+      // Try both 'type' and 'material_type' fields
+      let type = (material.type || material.material_type || '').toLowerCase().trim();
 
-        const response = await fetch(url);
-        const data = await response.json();
-        const count = data.meta?.pagination?.total || 0;
+      console.log('Extracted type:', type);
 
-        if (count > 0) {
-          return count;
+      // Map 'book' to 'books' to match our organized structure
+      if (type === 'book') {
+        type = 'books';
+      }
+
+      if (organized[type]) {
+        organized[type].available = true;
+        organized[type].items.push({
+          id: material.id,
+          year: material.year,
+          link: material.link,
+          file: material.file
+        });
+
+        if (material.year && type === 'pyq') {
+          organized[type].hasYears = true;
         }
+      } else {
+        console.log('Type not found in organized:', type);
+      }
+    });
+
+    console.log('Organized result:', organized);
+    return organized;
+  };
+  const handleQuantumBookClick = (subjectName, subjectCode) => {
+    setSelectedPaymentSubject({
+      name: subjectName,
+      code: subjectCode
+    });
+    setShowPaymentModal(true);
+  };
+  const getMergedMaterials = () => {
+    // Hardcoded syllabus links for CSE branch
+    const syllabusLinks = {
+      1: "https://aktu.ac.in/pdf/syllabus/syllabus2223/Syllabus_BTech_First_Yr_Common_other_than_AG_&_BT_effective_from_2022_23_R.pdf",
+      2: "https://aktu.ac.in/pdf/syllabus/syllabus2223/Syllabus_BTech_First_Yr_Common_other_than_AG_&_BT_effective_from_2022_23_R.pdf",
+      3: "https://drive.google.com/file/d/1dTQ4kS0R1eoCIf0uYd74mNnC1y6gE3v1/view",
+      4: "https://drive.google.com/file/d/1mR7sEmTtSRz3lKpDPm6TH1UqLLQyeoAW/view",
+      5: "https://drive.google.com/file/d/1z0T4K8oZib6trE3A7z_VXxkRz4H8RcX7/view",
+      6: "https://drive.google.com/file/d/1XnCJtObAWoz5K1PQHg6K1Vxcz4l2zq7M/view",
+      7: "https://drive.google.com/file/d/1dpR0HT2HQzX1zyQ1m5vE2hKPYvZJSkci/view",
+      8: "https://drive.google.com/file/d/1S7c4VZxMo2bEVoHuAQ0tH0AfLrFlZbRr/view",
+    };
+    const hardcoded = hardcodedSubjects[selectedSemester] || [];
+    const apiData = apiMaterials[selectedSemester] || [];
+
+    return hardcoded.map(hardSubject => {
+      const apiSubject = apiData.find(api =>
+        api.subject_code === hardSubject.code ||
+        api.subject_name.toLowerCase() === hardSubject.subject.toLowerCase()
+      );
+
+      const materials = apiSubject?.materials || {
+        syllabus: { available: false, items: [] },
+        pyq: { available: false, hasYears: false, items: [] },
+        books: { available: false, items: [] },
+        notes: { available: false, items: [] }
+      };
+
+      // ✅ Inject hardcoded syllabus link if missing
+      if (!materials.syllabus.available && syllabusLinks[selectedSemester]) {
+        materials.syllabus.available = true;
+        materials.syllabus.items.push({
+          id: `syllabus-${selectedSemester}`,
+          link: syllabusLinks[selectedSemester],
+        });
       }
 
-      return 0;
-    } catch (err) {
-      console.error(`Error fetching question count for ${category}:`, err);
-      return 0;
-    }
+      return {
+        id: hardSubject.code,
+        subject: hardSubject.subject,
+        code: hardSubject.code,
+        icon: hardSubject.icon,
+        materials,
+      };
+    });
   };
 
-  const fetchPracticeSets = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch(`${STRAPI_URL}/api/practice-sets`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch practice sets');
-      }
-
-      const data = await response.json();
-
-      const transformedSets = data.data.map((item) => ({
-        id: item.id,
-        documentId: item.documentId,
-        title: item.title,
-        category: item.category,
-        questions: item.question,
-        duration: item.duraton,
-        difficulty: item.difficulty || 'medium',
-        marksScored: item.marksScored || null,
-        totalMarks: item.total_marks,
-        attempted: item.attempted || 0,
-        isAttempted: item.isAttempted || false
-      }));
-
-      console.log('📋 Transformed practice sets:', transformedSets);
-      setPracticeSets(transformedSets);
-
-      // Fetch question counts for each category
-      const categories = ['numerical', 'reasoning', 'verbal'];
-      const counts = {};
-
-      for (const cat of categories) {
-        counts[cat] = await fetchQuestionCount(cat);
-      }
-
-      setQuestionCounts(counts);
-
-    } catch (err) {
-      console.error('Error fetching practice sets:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const categories = [
-    { id: 'all', name: 'All Categories', icon: BookOpen, color: 'bg-gradient-to-br from-indigo-500 to-purple-500' },
-    { id: 'numerical', name: 'Numerical Ability', icon: Calculator, color: 'bg-gradient-to-br from-blue-500 to-cyan-500' },
-    { id: 'reasoning', name: 'Reasoning Ability', icon: Brain, color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
-    { id: 'verbal', name: 'Verbal Ability', icon: BookOpen, color: 'bg-gradient-to-br from-green-500 to-emerald-500' },
+  const semesters = [
+    { id: 1, name: 'Semester 1', subjects: hardcodedSubjects[1]?.length || 0 },
+    { id: 2, name: 'Semester 2', subjects: hardcodedSubjects[2]?.length || 0 },
+    { id: 3, name: 'Semester 3', subjects: hardcodedSubjects[3]?.length || 0 },
+    { id: 4, name: 'Semester 4', subjects: hardcodedSubjects[4]?.length || 0 },
+    { id: 5, name: 'Semester 5', subjects: hardcodedSubjects[5]?.length || 0 },
+    { id: 6, name: 'Semester 6', subjects: hardcodedSubjects[6]?.length || 0 },
+    { id: 7, name: 'Semester 7', subjects: hardcodedSubjects[7]?.length || 0 },
+    { id: 8, name: 'Semester 8', subjects: hardcodedSubjects[8]?.length || 0 }
   ];
-
-  const filteredSets = selectedCategory === 'all'
-    ? practiceSets
-    : practiceSets.filter(set => set.category === selectedCategory);
-
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'easy': return 'text-green-600 bg-green-50 border-green-200';
-      case 'medium': return 'text-amber-600 bg-amber-50 border-amber-200';
-      case 'hard': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-
-  const getCategoryInfo = (categoryId) => {
-    return categories.find(c => c.id === categoryId) || categories[0];
-  };
-
-  const getScoreColor = (marks, total) => {
-    const percentage = (marks / total) * 100;
-    if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-amber-600';
-    return 'text-red-600';
-  };
-
-  const isSetAvailable = (set) => {
-    const count = questionCounts[set.category] || 0;
-    return count > 0;
-  };
-
-  const handleStartPractice = (set) => {
-    if (!isSetAvailable(set)) {
-      alert(`No questions available for ${set.category} category yet. Please try another practice set.`);
+   const categories = ['All', 'Syllabus', 'PYQ', 'Quantum Books', 'Notes'];
+  
+      const currentMaterials = getMergedMaterials();
+  
+      const filteredMaterials = currentMaterials.filter(material => {
+          const matchesSearch = material.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              material.code.toLowerCase().includes(searchQuery.toLowerCase());
+  
+          if (selectedCategory === 'All') return matchesSearch;
+  
+          // Map display names to internal keys
+          const categoryMap = {
+              'Syllabus': 'syllabus',
+              'PYQ': 'pyq',
+              'Quantum Books': 'books',
+              'Notes': 'notes'
+          };
+  
+          const categoryKey = categoryMap[selectedCategory];
+          return matchesSearch && material.materials[categoryKey]?.available;
+      });
+  
+      // Updated material icon mapping and display names
+      const getMaterialIcon = (type) => {
+          const icons = {
+              syllabus: FileText,
+              pyq: FileQuestion,
+              books: BookMarked,
+              notes: BookOpen
+          };
+          return icons[type] || FileText;
+      };
+  
+      const getMaterialDisplayName = (type) => {
+          const names = {
+              syllabus: 'Syllabus',
+              pyq: 'PYQ',
+              books: 'Quantum Books',
+              notes: 'Notes'
+          };
+          return names[type] || type;
+      };
+  const handleMaterialClick = (materialCode, materialType, materialData, subjectName) => {
+    // NEW: If it's a Quantum Book (books), show payment modal instead
+    if (materialType === 'books') {
+      handleQuantumBookClick(subjectName, materialCode);
       return;
     }
 
-    sessionStorage.setItem('currentTest', JSON.stringify({
-      id: set.id,
-      documentId: set.documentId,
-      title: set.title,
-      category: set.category,
-      questions: set.questions,
-      duration: parseInt(set.duration),
-      totalMarks: set.totalMarks
-    }));
+    // Existing logic for other materials (PYQ with years)
+    if (materialData.hasYears && materialData.items.length > 0) {
+      const yearGroups = {};
+      materialData.items.forEach(item => {
+        const key = item.year || 'Unknown';
+        if (!yearGroups[key]) {
+          yearGroups[key] = [];
+        }
+        yearGroups[key].push(item);
+      });
 
-    window.location.href = `/aptitude/${set.id}`;
-  };
+      const years = Object.entries(yearGroups).map(([year, items]) => ({
+        year: year,
+        items: items,
+        type: items.length > 1 ? 'Multiple' : 'Paper',
+        size: '2.5 MB',
+        downloads: Math.floor(Math.random() * 500) + 200
+      })).sort((a, b) => b.year.localeCompare(a.year));
 
-  const handleReattempt = (set) => {
-    if (!isSetAvailable(set)) {
-      alert(`No questions available for ${set.category} category yet. Please try another practice set.`);
-      return;
+      setSelectedMaterial({
+        code: materialCode,
+        type: materialType,
+        subject: subjectName,
+        data: { years }
+      });
+      setShowMaterialModal(true);
+    } else if (materialData.available && materialData.items.length > 0) {
+      // Direct download for non-year based materials (Syllabus, Notes)
+      window.open(materialData.items[0].link, '_blank');
     }
-
-    sessionStorage.setItem('currentTest', JSON.stringify({
-      id: set.id,
-      documentId: set.documentId,
-      title: set.title,
-      category: set.category,
-      questions: set.questions,
-      duration: parseInt(set.duration),
-      totalMarks: set.totalMarks,
-      attempted: set.attempted,
-      reattempt: true
-    }));
-
-    window.location.href = `/aptitude/${set.id}`;
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading practice sets...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl p-8 max-w-md w-full border border-red-200 shadow-lg">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">⚠️</span>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={fetchPracticeSets}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  const handleDownload = (link) => {
+          if (link) {
+              window.open(link, '_blank');
+          }
+      };
+  
+      if (loading) {
+          return (
+              <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+                  <div className="text-center">
+                      <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                      <p className="text-slate-600">Loading study materials...</p>
+                  </div>
+              </div>
+          );
+      }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg">
-              <Target className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">Aptitude Practice</h1>
-          </div>
-          <p className="text-gray-600">Master aptitude with comprehensive practice sets</p>
-        </div>
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+              {/* Animated Background */}
+              <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                  <div className="absolute top-20 right-20 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
+                  <div className="absolute bottom-20 left-20 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              </div>
+  
+              {/* Header */}
+              <div className="relative pt-12 sm:pt-20 pb-8 sm:pb-12 px-4 sm:px-6">
+                  <div className="max-w-7xl mx-auto">
+                      <div className="text-center mb-8 sm:mb-12">
+                          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 mb-4 sm:mb-6">
+                              <GraduationCap className="w-4 h-4 text-blue-600" />
+                              <span className="text-xs sm:text-sm text-blue-700">Computer Science & Engineering</span>
+                          </div>
+  
+                          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight px-4">
+                              Study Materials Portal
+                          </h1>
+  
+                          <p className="text-sm sm:text-base md:text-lg text-slate-600 max-w-2xl mx-auto px-4">
+                              Access semester-wise syllabus, notes, PYQs, and Quantum books all in one place
+                          </p>
+                      </div>
+  
+                      {/* Search Bar */}
+                      <div className="max-w-2xl mx-auto mb-6 sm:mb-8">
+                          <div className="relative">
+                              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                              <input
+                                  type="text"
+                                  placeholder="Search subjects or codes..."
+                                  value={searchQuery}
+                                  onChange={(e) => setSearchQuery(e.target.value)}
+                                  className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base rounded-xl sm:rounded-2xl border-2 border-slate-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 outline-none transition-all duration-300 bg-white"
+                              />
+                          </div>
+                      </div>
+  
+                      {/* Category Filter */}
+                      <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-6 sm:mb-8">
+                          {categories.map((cat) => (
+                              <button
+                                  key={cat}
+                                  onClick={() => setSelectedCategory(cat)}
+                                  className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 transform hover:scale-105 ${selectedCategory === cat
+                                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30'
+                                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                      }`}
+                              >
+                                  {cat}
+                              </button>
+                          ))}
+                      </div>
+                  </div>
+              </div>
+  
+              {/* Main Content */}
+              <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
+                  <div className="max-w-7xl mx-auto">
+                      <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
+                          {/* Sidebar - Semester Selection */}
+                          <div className="lg:col-span-1">
+                              <div className="bg-white border-2 border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 sticky top-6 shadow-lg">
+                                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                                      <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                                      Semesters
+                                  </h2>
+                                  <div className="space-y-2">
+                                      {semesters.map((sem) => (
+                                          <button
+                                              key={sem.id}
+                                              onClick={() => setSelectedSemester(sem.id)}
+                                              className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-medium transition-all duration-300 transform hover:scale-105 ${selectedSemester === sem.id
+                                                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30'
+                                                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                                                  }`}
+                                          >
+                                              <div className="flex items-center justify-between">
+                                                  <span className="text-sm sm:text-base">{sem.name}</span>
+                                                  <span className={`text-xs sm:text-sm px-2 py-0.5 rounded-full ${selectedSemester === sem.id
+                                                      ? 'bg-white/20 text-white'
+                                                      : 'bg-slate-200 text-slate-600'
+                                                      }`}>
+                                                      {sem.subjects} subjects
+                                                  </span>
+                                              </div>
+                                          </button>
+                                      ))}
+                                  </div>
+                              </div>
+                          </div>
+  
+                          {/* Main Content - Subject Cards */}
+                          <div className="lg:col-span-3">
+                              <div className="mb-4 sm:mb-6">
+                                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+                                      Semester {selectedSemester} - Study Materials
+                                  </h2>
+                                  <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                                      {filteredMaterials.length} subject{filteredMaterials.length !== 1 ? 's' : ''} found
+                                  </p>
+                              </div>
+  
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                  {filteredMaterials.map((material, index) => {
+                                      const Icon = material.icon;
+                                      // Define the order of materials
+                                      const materialOrder = ['syllabus', 'pyq', 'books', 'notes'];
+  
+                                      return (
+                                          <div
+                                              key={material.id}
+                                              className="relative group"
+                                              style={{ animationDelay: `${index * 50}ms` }}
+                                          >
+                                              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                                              <div className="relative bg-white border-2 border-slate-200 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
+                                                  {/* Subject Header */}
+                                                  <div className="bg-slate-50 border-b-2 border-slate-100 p-4">
+                                                      <div className="flex items-center gap-3">
+                                                          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                              <Icon className="w-6 h-6 text-white" />
+                                                          </div>
+                                                          <div className="flex-grow min-w-0">
+                                                              <h3 className="text-base font-bold text-slate-900 truncate">{material.subject}</h3>
+                                                              <p className="text-xs text-slate-600">{material.code}</p>
+                                                          </div>
+                                                          <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md flex-shrink-0">
+                                                              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                                              <span className="text-xs font-semibold text-amber-700">Popular</span>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+  
+                                                  {/* Materials Grid - Updated to show in new order */}
+                                                  <div className="p-4">
+                                                      <div className="grid grid-cols-2 gap-2">
+                                                          {materialOrder.map((type) => {
+                                                              const data = material.materials[type];
+                                                              const MaterialIcon = getMaterialIcon(type);
+                                                              const displayName = getMaterialDisplayName(type);
+  
+                                                              return (
+                                                                  <button
+                                                                      key={type}
+                                                                      disabled={!data.available}
+                                                                      onClick={() => handleMaterialClick(material.code, type, data, material.subject)}
+                                                                      className={`relative p-3 rounded-lg border-2 transition-all duration-300 text-left ${data.available
+                                                                          ? 'border-slate-200 hover:border-blue-400 hover:shadow-md bg-white cursor-pointer transform hover:scale-105'
+                                                                          : 'border-slate-100 bg-slate-50 cursor-not-allowed opacity-50'
+                                                                          }`}
+                                                                  >
+                                                                      <div className="flex flex-col items-center text-center gap-2">
+                                                                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${data.available
+                                                                              ? 'bg-blue-50 text-blue-600'
+                                                                              : 'bg-slate-100 text-slate-400'
+                                                                              }`}>
+                                                                              <MaterialIcon className="w-5 h-5" />
+                                                                          </div>
+                                                                          <div className="w-full">
+                                                                              <h4 className="text-xs font-semibold text-slate-900 mb-1 truncate">
+                                                                                  {displayName}
+                                                                              </h4>
+                                                                              {data.available ? (
+                                                                                  <div className="flex items-center justify-center gap-1 text-xs text-green-600">
+                                                                                      <CheckCircle className="w-3 h-3" />
+                                                                                      <span>Available</span>
+                                                                                  </div>
+                                                                              ) : (
+                                                                                  <p className="text-xs text-slate-400">N/A</p>
+                                                                              )}
+                                                                          </div>
+                                                                      </div>
+                                                                  </button>
+                                                              );
+                                                          })}
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      );
+                                  })}
+                              </div>
+  
+                              {filteredMaterials.length === 0 && (
+                                  <div className="text-center py-12 sm:py-20">
+                                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                                          <Search className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" />
+                                      </div>
+                                      <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No materials found</h3>
+                                      <p className="text-sm sm:text-base text-slate-600">Try adjusting your search or filters</p>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+                  </div>
+              </div>
+  
 
-        <div className="mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {categories.map((category) => {
-              const Icon = category.icon;
-              return (
+
+      {/* Razorpay Payment Modal - COMPACT */}
+      {showPaymentModal && selectedPaymentSubject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            {/* Modal Header - Compact */}
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold">Download Book</h2>
+                  <p className="text-sm text-white/90 mt-0.5">{selectedPaymentSubject.name}</p>
+                </div>
                 <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`p-4 rounded-xl transition-all duration-300 ${selectedCategory === category.id
-                    ? `${category.color} text-white shadow-lg scale-105`
-                    : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
-                    }`}
+                  onClick={() => setShowPaymentModal(false)}
+                  className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
                 >
-                  <Icon className={`w-6 h-6 mx-auto mb-2 ${selectedCategory === category.id ? 'text-white' : 'text-gray-600'}`} />
-                  <div className="text-sm font-medium text-center">
-                    {category.name}
-                  </div>
-                  {category.id !== 'all' && questionCounts[category.id] !== undefined && (
-                    <div className={`text-xs mt-1 ${selectedCategory === category.id ? 'text-white/80' : 'text-gray-500'}`}>
-                      {questionCounts[category.id]} questions
-                    </div>
-                  )}
+                  <X className="w-4 h-4" />
                 </button>
-              );
-            })}
-          </div>
-        </div>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <BookOpen className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{filteredSets.length}</div>
-                <div className="text-sm text-gray-600">Practice Sets</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Award className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {filteredSets.filter(set => set.isAttempted).length}
+            {/* Modal Content - Compact */}
+            <div className="p-5">
+
+              {/* Features List - Compact */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                    <span>Complete PDF with Solutions</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                    <span>Previous Year Questions</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                    <span>Instant Download Access</span>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">Completed</div>
               </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+
+              {/* Razorpay Payment Button */}
+              <div className="flex justify-center mb-4">
+                <div id="razorpay-button-container"></div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {filteredSets.reduce((acc, set) => acc + set.attempted, 0).toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600">Total Attempts</div>
+
+              {/* Security Note - Compact */}
+              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <Lightbulb className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <p className="text-xs text-slate-600">
+                  Secure payment via Razorpay. Instant access after payment.
+                </p>
               </div>
             </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredSets.map((set) => {
-            const categoryInfo = getCategoryInfo(set.category);
-            const CategoryIcon = categoryInfo.icon;
-            const available = isSetAvailable(set);
-
-            return (
-              <div
-                key={set.id}
-                className={`bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group hover:-translate-y-1 ${!available ? 'opacity-75' : ''}`}
-              >
-                <div className="p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`px-3 py-1.5 rounded-lg text-xs font-medium text-white ${categoryInfo.color} flex items-center gap-1.5`}>
-                      <CategoryIcon className="w-3.5 h-3.5" />
-                      {categoryInfo.name}
-                    </span>
-                    {!available && (
-                      <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-semibold text-lg line-clamp-2 text-gray-900 mb-4">
-                    {set.title}
-                  </h3>
-
-                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <BookOpen className="w-4 h-4" />
-                      <span>{set.questions} Qs</span>
+      )}
+    {/* Material Modal - Year-wise View */}
+                {showMaterialModal && selectedMaterial && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+                            {/* Modal Header */}
+                            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h2 className="text-2xl font-bold capitalize">
+                                        {getMaterialDisplayName(selectedMaterial.type)} Papers
+                                    </h2>
+                                    <button
+                                        onClick={() => setShowMaterialModal(false)}
+                                        className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <p className="text-white/90">{selectedMaterial.subject}</p>
+                                <p className="text-white/70 text-sm">{selectedMaterial.code}</p>
+                            </div>
+    
+                            {/* Modal Content */}
+                            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                                <div className="mb-4">
+                                    <p className="text-sm text-slate-600">
+                                        Select a year to download {selectedMaterial.type === 'pyq' ? 'previous year question papers' : getMaterialDisplayName(selectedMaterial.type).toLowerCase()}
+                                    </p>
+                                </div>
+    
+                                {/* Year-wise Papers Grid */}
+                                <div className="space-y-3">
+                                    {selectedMaterial.data?.years.map((yearData, index) => (
+                                        <div key={index} className="relative group">
+                                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                                            <div className="relative bg-white border-2 border-slate-200 rounded-xl p-4 hover:border-blue-400 transition-all duration-300">
+                                                <div className="flex items-center justify-between gap-4 flex-wrap">
+                                                    <div className="flex items-center gap-4 flex-grow">
+                                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                            <Calendar className="w-6 h-6 text-white" />
+                                                        </div>
+                                                        <div className="flex-grow">
+                                                            <h3 className="text-lg font-bold text-slate-900">
+                                                                {yearData.year} - {yearData.type}
+                                                            </h3>
+                                                            <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                                                <span className="text-sm text-slate-600">Size: {yearData.size}</span>
+                                                                <span className="text-sm text-slate-400">•</span>
+                                                                <span className="text-sm text-slate-600 flex items-center gap-1">
+                                                                    <Download className="w-3 h-3" />
+                                                                    {yearData.downloads} downloads
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2 flex-shrink-0">
+                                                        {yearData.items.map((item, idx) => (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => handleDownload(item.link)}
+                                                                className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg shadow-blue-500/30 flex items-center gap-2"
+                                                            >
+                                                                <Download className="w-4 h-4" />
+                                                                <span>Download</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+    
+                                {/* Info Box */}
+                                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <Lightbulb className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold text-slate-900 mb-1">Study Tip</h4>
+                                            <p className="text-sm text-slate-600">
+                                                Practice with at least 3-4 years of previous papers to understand the exam pattern and important topics.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{set.duration}</span>
+                )}
+    
+                {/* Quick Tips Section */}
+                <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-white shadow-2xl">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0">
+                                    <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8" />
+                                </div>
+                                <div className="flex-grow">
+                                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Study Smart, Not Hard!</h3>
+                                    <p className="text-sm sm:text-base text-white/90 mb-4">
+                                        Download materials early, make notes, solve PYQs regularly, and refer to Quantum books for comprehensive preparation.
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 sm:gap-3">
+                                        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
+                                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span>Regular Updates</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
+                                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span>Quality Content</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
+                                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span>Free Access</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-
-                  {set.isAttempted ? (
-                    <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 font-medium">Your Score</span>
-                        <span className={`text-lg font-bold ${getScoreColor(set.marksScored ?? 0, set.totalMarks)}`}>
-                          {set.marksScored ?? 0}/{set.totalMarks}
-                        </span>
-                      </div>
-                      <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${((set.marksScored ?? 0) / set.totalMarks) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 font-medium">Total Marks</span>
-                        <span className="text-lg font-bold text-gray-900">
-                          {set.totalMarks}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="text-xs text-gray-500 mb-4">
-                    {set.attempted.toLocaleString()} students attempted
-                  </div>
-
-                  {set.isAttempted ? (
-                    <button
-                      onClick={() => handleReattempt(set)}
-                      disabled={!available}
-                      className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all shadow-md flex items-center justify-center gap-2 ${available
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white hover:shadow-lg'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      {available ? 'Reattempt' : 'Not Available'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleStartPractice(set)}
-                      disabled={!available}
-                      className={`w-full px-4 py-2.5 rounded-lg font-medium transition-all shadow-md flex items-center justify-center gap-2 ${available
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white hover:shadow-lg'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
-                    >
-                      {available ? 'Start Practice' : 'Not Available'}
-                      {available && <ChevronRight className="w-4 h-4" />}
-                    </button>
-                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {filteredSets.length === 0 && (
-          <div className="text-center py-16">
-            <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No practice sets found</h3>
-            <p className="text-gray-500">Try selecting a different category</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+            </div>
+        );
+    }
