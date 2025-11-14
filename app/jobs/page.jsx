@@ -16,7 +16,21 @@ const StudentJobBoard = () => {
             try {
                 const res = await fetch("https://aktuhelperserver-production.up.railway.app/api/jobs?populate=*");
                 const data = await res.json();
-                   console.log("Fetched jobs data:", data);
+                console.log("Fetched jobs data:", data);
+
+                // ADD THESE LINES HERE:
+                if (data.error) {
+                    console.error("API Error Details:", data.error);
+                    console.error("Error Status:", data.error.status);
+                    console.error("Error Message:", data.error.message);
+                    throw new Error(data.error.message || "API returned an error");
+                }
+
+                // Check if data exists before mapping
+                if (!data.data) {
+                    throw new Error("No data returned from API");
+                }
+
                 // Map the API response to match your component structure
                 const fetchedJobs = data.data.map((job) => ({
                     id: job.documentId,
@@ -34,24 +48,7 @@ const StudentJobBoard = () => {
                 console.error("Error fetching jobs:", error);
                 // Fallback to demo data if API fails
                 setJobs([
-                    {
-                        id: 1,
-                        title: "Frontend Developer Intern",
-                        company: "Tech Innovators",
-                        location: "Remote",
-                        type: "Internship",
-                        deadline: "2025-12-30",
-                        link: "https://forms.gle/demoFrontend",
-                    },
-                    {
-                        id: 2,
-                        title: "Software Engineer Trainee",
-                        company: "CodeNest",
-                        location: "Lucknow, India",
-                        type: "Full-Time",
-                        deadline: "2025-11-30",
-                        link: "https://forms.gle/demoSoftware",
-                    },
+                    // ... your fallback data
                 ]);
             }
             setTimeout(() => setIsLoading(false), 800);
