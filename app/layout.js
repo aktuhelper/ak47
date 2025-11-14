@@ -25,6 +25,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* ✅ Global Google AdSense Script */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2119897152920774"
+          crossOrigin="anonymous"
+        />
+      </head>
+
       <body className={`${outfit.variable} antialiased`}>
         <Navbar />
         <main>{children}</main>

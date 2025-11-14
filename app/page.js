@@ -1,4 +1,4 @@
-
+import AdBanner from "./_HomePage_Components/AdBanner";
 import FAQSection from "./_HomePage_Components/Faq";
 import FeaturesHighlight from "./_HomePage_Components/FeatureHighLight";
 import HeroSection from "./_HomePage_Components/Hero";
@@ -7,19 +7,20 @@ import StatisticsSection from "./_HomePage_Components/Statics";
 
 
 
-
-
 export default function Home() {
-
   return (
     <div>
-  
-      <HeroSection/>
-      <ServicesSection/>
+
+      <HeroSection />
+      <div className="my-6">
+        <AdBanner slot="5734157535" />
+      </div>
+
+      <ServicesSection />
       <StatisticsSection />
       <FeaturesHighlight />
       <FAQSection />
-      
-   </div>
+
+    </div>
   );
 }
