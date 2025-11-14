@@ -24,7 +24,7 @@ export default function AuthCallback() {
             } else {
                 // Default redirect if no return URL
                 console.log('🏠 No return URL, redirecting to dashboard');
-                router.push('/dashboard'); // or your default page
+                router.push('/'); // or your default page
             }
         }
     }, [user, isLoading, router]);
