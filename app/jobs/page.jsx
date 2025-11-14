@@ -14,7 +14,7 @@ const StudentJobBoard = () => {
         const fetchJobs = async () => {
             setIsLoading(true);
             try {
-                const res = await fetch("http://localhost:1337/api/jobs?populate=*");
+                const res = await fetch("https://aktuhelperserver-production.up.railway.app/api/jobs?populate=*");
                 const data = await res.json();
                    console.log("Fetched jobs data:", data);
                 // Map the API response to match your component structure

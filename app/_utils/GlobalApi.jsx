@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || "http://localhost:1337/api";
+const API_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || "https://aktuhelperserver-production.up.railway.app/api";
 const TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
 export const axiosClient = axios.create({

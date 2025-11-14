@@ -19,7 +19,7 @@ export default function AptitudePage() {
 
   const STRAPI_URL = typeof window !== 'undefined' && window.ENV?.NEXT_PUBLIC_STRAPI_URL
     ? window.ENV.NEXT_PUBLIC_STRAPI_URL
-    : 'http://localhost:1337';
+    : 'https://aktuhelperserver-production.up.railway.app';
 
   useEffect(() => {
     fetchPracticeSets();

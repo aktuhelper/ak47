@@ -9,7 +9,7 @@ export default function TestAttemptPage() {
 
     const STRAPI_URL = typeof window !== 'undefined' && window.ENV?.NEXT_PUBLIC_STRAPI_URL
         ? window.ENV.NEXT_PUBLIC_STRAPI_URL
-        : 'http://localhost:1337';
+        : 'https://aktuhelperserver-production.up.railway.app';
 
     const getTestIdFromUrl = () => {
         if (typeof window !== 'undefined') {

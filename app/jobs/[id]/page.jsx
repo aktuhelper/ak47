@@ -25,7 +25,7 @@ export default function JobDetailPage() {
     const [isApplying, setIsApplying] = useState(false);
     const [countdown, setCountdown] = useState(15);
 
-    const STRAPI_API_URL = `http://localhost:1337/api/jobs/${jobId}?populate=*`;
+    const STRAPI_API_URL = `https://aktuhelperserver-production.up.railway.app/api/jobs/${jobId}?populate=*`;
 
     useEffect(() => {
         fetchJobDetails();

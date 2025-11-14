@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Users, Code, ChevronDown, ChevronUp, Search, Briefcase, Lightbulb, BookOpen, Star, Loader2 } from 'lucide-react';
 
 // API Configuration - Update these values with your actual Strapi API URL and token
-const API_URL = "http://localhost:1337/api";
+const API_URL = "https://aktuhelperserver-production.up.railway.app/api";
 const TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
 // API Functions
