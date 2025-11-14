@@ -25,7 +25,7 @@ export async function getStudyMaterials({ courseName, branchName = null, semeste
 
         if (normalizedBranch) {
             subjectFilters.branch = { branch_name: { $eq: normalizedBranch } };
-        }
+        } 
 
         const resSubjects = await axiosClient.get("/subjects", {
             params: {
