@@ -153,7 +153,7 @@ export default function StudyMaterialsPage() {
     const organized = {
       syllabus: { available: false, items: [] },
       pyq: { available: false, hasYears: false, items: [] },
-      books: { available: false, items: [] },
+      books: { available: true, items: [] },
       notes: { available: false, items: [] }
     };
 
@@ -223,7 +223,7 @@ export default function StudyMaterialsPage() {
       const materials = apiSubject?.materials || {
         syllabus: { available: false, items: [] },
         pyq: { available: false, hasYears: false, items: [] },
-        books: { available: false, items: [] },
+        books: { available: true, items: [] },
         notes: { available: false, items: [] }
       };
 
@@ -270,7 +270,7 @@ export default function StudyMaterialsPage() {
           const categoryMap = {
               'Syllabus': 'syllabus',
               'PYQ': 'pyq',
-              'Quantum Books': 'books',
+              'Books': 'books',
               'Notes': 'notes'
           };
   
