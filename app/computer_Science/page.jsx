@@ -293,7 +293,7 @@ export default function StudyMaterialsPage() {
           const names = {
               syllabus: 'Syllabus',
               pyq: 'PYQ',
-              books: 'Quantum Books',
+              books: 'Books',
               notes: 'Notes'
           };
           return names[type] || type;
