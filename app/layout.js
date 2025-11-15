@@ -5,6 +5,7 @@ import Navbar from "./_HomePage_Components/Navbar";
 import Footer from "./_HomePage_Components/Footer";
 import AktuheperChatbot from "./_HomePage_Components/AktuheperChatbot";
 import { Analytics } from "@vercel/analytics/next";
+import { ThemeProvider } from "./providers/ThemeProvider";
 
 
 const outfit = Outfit({
@@ -37,11 +38,12 @@ export default function RootLayout({ children }) {
       </head>
 
       <body className={`${outfit.variable} antialiased`}>
+        <ThemeProvider>
         <Navbar />
         <main>{children}</main>
         <Footer />
         <AktuheperChatbot />
-
+      </ThemeProvider>
         {/* ✅ Vercel Analytics */}
         <Analytics />
       </body>

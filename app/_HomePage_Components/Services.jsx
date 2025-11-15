@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+
 export default function ServicesSection() {
-       const { user, isAuthenticated } = useKindeBrowserClient();
+    const { user, isAuthenticated } = useKindeBrowserClient();
     const [activeService, setActiveService] = useState(null);
     const username = isAuthenticated ? user?.given_name || user?.email : null;
+
     const services = [
         {
             icon: (
@@ -50,7 +52,7 @@ export default function ServicesSection() {
             ),
             title: "Placement Support",
             description: "Get access to placement resources, interview prep and company insights",
-            features: ["Coding Questions", "Aptitude Prepartion", "Interview Questions","Project Ideas with Github Links"],
+            features: ["Coding Questions", "Aptitude Prepartion", "Interview Questions", "Project Ideas with Github Links"],
             color: "from-green-500 to-emerald-500",
             link: "/lectures",
         },
@@ -81,28 +83,31 @@ export default function ServicesSection() {
     ];
 
     return (
-        <section className="relative bg-gradient-to-b from-white to-gray-50 py-16 overflow-hidden">
+        <section className="relative bg-theme-gradient-light py-16 overflow-hidden">
+            {/* Floating Blobs */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-0 w-72 h-72 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-                <div className="absolute bottom-1/4 right-0 w-72 h-72 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse animation-delay-1000"></div>
+                <div className="absolute top-1/4 left-0 w-72 h-72 bg-blue-100 dark:bg-blue-500/10 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-30 dark:opacity-40 animate-pulse"></div>
+                <div className="absolute bottom-1/4 right-0 w-72 h-72 bg-purple-100 dark:bg-purple-500/10 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-30 dark:opacity-40 animate-pulse animation-delay-1000"></div>
             </div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
                 <div className="text-center mb-12">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full mb-4">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="badge-theme inline-flex items-center gap-2 mb-4">
+                        <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        <span className="text-sm font-semibold text-gray-700">Everything You Need in One Place</span>
+                        <span className="text-sm font-semibold">Everything You Need in One Place</span>
                     </div>
-                    <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
-                        Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Services</span>
+                    <h2 className="text-3xl sm:text-4xl font-bold text-theme-primary mb-3">
+                        Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500">Services</span>
                     </h2>
-                    <p className="text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-theme-secondary max-w-2xl mx-auto">
                         Comprehensive tools and resources designed to help you succeed in your AKTU journey
                     </p>
                 </div>
 
+                {/* Services Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {services.map((service, index) => {
                         const isActive = activeService === index;
@@ -115,14 +120,14 @@ export default function ServicesSection() {
                                 className="group relative"
                             >
                                 <div
-                                    className={`relative h-full p-5 bg-white rounded-xl border-2 transition-all duration-300 cursor-pointer ${isActive
-                                        ? "border-transparent shadow-2xl -translate-y-2"
-                                        : "border-gray-100 shadow-md hover:shadow-xl hover:-translate-y-1"
+                                    className={`card-theme relative h-full p-5 transition-all duration-300 cursor-pointer ${isActive
+                                        ? "border-transparent shadow-2xl dark:shadow-blue-500/20 -translate-y-2"
+                                        : "shadow-md hover:shadow-xl hover:-translate-y-1"
                                         }`}
                                 >
                                     {isActive && (
                                         <div
-                                            className={`absolute inset-0 rounded-xl bg-gradient-to-r ${service.color} opacity-20 blur-sm`}
+                                            className={`absolute inset-0 rounded-xl bg-gradient-to-r ${service.color} opacity-20 dark:opacity-10 blur-sm`}
                                         ></div>
                                     )}
 
@@ -134,16 +139,16 @@ export default function ServicesSection() {
                                             <div className="text-white">{service.icon}</div>
                                         </div>
 
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                        <h3 className="text-lg font-bold text-theme-primary mb-2">
                                             {service.title}
                                         </h3>
-                                        <p className="text-gray-600 text-xs mb-3 leading-relaxed">
+                                        <p className="text-theme-secondary text-xs mb-3 leading-relaxed">
                                             {service.description}
                                         </p>
 
                                         <ul className="space-y-1.5 mb-4">
                                             {service.features.map((feature, idx) => (
-                                                <li key={idx} className="flex items-center gap-2 text-xs text-gray-700">
+                                                <li key={idx} className="flex items-center gap-2 text-xs text-theme-secondary">
                                                     <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${service.color}`}></div>
                                                     {feature}
                                                 </li>
@@ -152,10 +157,10 @@ export default function ServicesSection() {
 
                                         <a
                                             href={service.link}
-                                            className={`inline-flex items-center gap-2 text-xs font-semibold transition-all duration-300 ${isActive ? "text-blue-600" : "text-gray-700 group-hover:text-blue-600"
+                                            className={`inline-flex items-center gap-2 text-xs font-semibold transition-all duration-300 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-theme-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400"
                                                 }`}
                                         >
-                                           
+                                            {/* Optional: Add arrow icon or text */}
                                         </a>
                                     </div>
                                 </div>
@@ -164,15 +169,16 @@ export default function ServicesSection() {
                     })}
                 </div>
 
+                {/* CTA Section */}
                 <div className="mt-12 text-center">
-                    <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-xl">
+                    <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-5 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-600 rounded-xl shadow-xl">
                         <div className="text-white text-left">
                             <h3 className="text-lg font-bold mb-1">Ready to excel in your exams?</h3>
-                            <p className="text-blue-100 text-sm">Join thousands of successful students today</p>
+                            <p className="text-blue-100 dark:text-blue-200 text-sm">Join thousands of successful students today</p>
                         </div>
                         <a
                             href="/"
-                            className="px-6 py-2.5 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-50 transition-all hover:scale-105 whitespace-nowrap text-sm"
+                            className="px-6 py-2.5 bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all hover:scale-105 whitespace-nowrap text-sm"
                         >
                             Get Started {username || null}
                         </a>
@@ -181,13 +187,13 @@ export default function ServicesSection() {
             </div>
 
             <style jsx>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.5; }
-        }
-        .animate-pulse { animation: pulse 3s ease-in-out infinite; }
-        .animation-delay-1000 { animation-delay: 1s; }
-      `}</style>
+                @keyframes pulse {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 0.5; }
+                }
+                .animate-pulse { animation: pulse 3s ease-in-out infinite; }
+                .animation-delay-1000 { animation-delay: 1s; }
+            `}</style>
         </section>
     );
 }

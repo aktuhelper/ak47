@@ -111,7 +111,7 @@ export default function AktuheperChatbot() {
             {/* Floating Chat Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`fixed bottom-5 right-5 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white shadow-2xl hover:shadow-purple-500/50 transform hover:scale-110 transition-all duration-300 flex items-center justify-center z-[9999] group ${isOpen ? 'rotate-90 scale-95' : ''
+                className={`fixed bottom-5 right-5 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500 text-white shadow-2xl hover:shadow-purple-500/50 dark:hover:shadow-purple-400/30 transform hover:scale-110 transition-all duration-300 flex items-center justify-center z-[9999] group ${isOpen ? 'rotate-90 scale-95' : ''
                     }`}
                 aria-label="Toggle chat"
             >
@@ -121,17 +121,17 @@ export default function AktuheperChatbot() {
                     ) : (
                         <>
                             <MessageCircle size={24} className="sm:w-7 sm:h-7" />
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
+                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 dark:bg-green-500 rounded-full animate-pulse"></span>
                         </>
                     )}
                 </div>
             </button>
 
-            {/* Chat Window - Fixed positioning with proper constraints */}
+            {/* Chat Window */}
             <div
                 className={`fixed z-[9998] transition-all duration-300 ease-out ${isOpen
-                        ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
-                        : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
+                    ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+                    : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
                     }
         bottom-20 right-5
         w-[calc(100vw-2.5rem)] max-w-md
@@ -140,10 +140,10 @@ export default function AktuheperChatbot() {
         lg:max-w-lg
         `}
             >
-                <div className="w-full h-full bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
+                <div className="w-full h-full bg-theme-card rounded-3xl shadow-2xl dark:shadow-zinc-900/50 flex flex-col overflow-hidden border border-theme">
 
-                    {/* Header - Enhanced Design */}
-                    <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white p-4 sm:p-5 rounded-t-3xl">
+                    {/* Header */}
+                    <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500 text-white p-4 sm:p-5 rounded-t-3xl">
                         {/* Background Pattern */}
                         <div className="absolute inset-0 opacity-10">
                             <div className="absolute inset-0" style={{
@@ -155,12 +155,12 @@ export default function AktuheperChatbot() {
                         <div className="relative flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                                 <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                                    <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300" />
+                                    <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300 dark:text-yellow-200" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base sm:text-lg">Aktuheper AI</h3>
                                     <p className="text-xs text-white/90 flex items-center gap-1">
-                                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                        <span className="w-2 h-2 bg-green-400 dark:bg-green-500 rounded-full animate-pulse"></span>
                                         Online • Ready to help
                                     </p>
                                 </div>
@@ -176,8 +176,8 @@ export default function AktuheperChatbot() {
                         </div>
                     </div>
 
-                    {/* Messages Area - Improved scrolling */}
-                    <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gradient-to-b from-gray-50 to-white space-y-4 scroll-smooth">
+                    {/* Messages Area */}
+                    <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gradient-to-b from-gray-50 to-white dark:from-zinc-950 dark:to-zinc-900 space-y-4 scroll-smooth">
                         {messages.map((message, index) => (
                             <div
                                 key={index}
@@ -186,8 +186,8 @@ export default function AktuheperChatbot() {
                             >
                                 {/* Avatar */}
                                 <div className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-sm sm:text-base ${message.sender === 'user'
-                                        ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md'
-                                        : 'bg-gradient-to-br from-purple-100 to-pink-100 text-purple-600 shadow-sm'
+                                    ? 'bg-gradient-to-br from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600 text-white shadow-md'
+                                    : 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 text-purple-600 dark:text-purple-300 shadow-sm'
                                     }`}>
                                     {message.sender === 'user' ? '👤' : '🤖'}
                                 </div>
@@ -197,15 +197,15 @@ export default function AktuheperChatbot() {
                                     } flex flex-col gap-1`}>
                                     <div
                                         className={`rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-md ${message.sender === 'user'
-                                                ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-br-md'
-                                                : 'bg-white text-gray-800 border border-gray-100 rounded-bl-md'
+                                            ? 'bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 text-white rounded-br-md'
+                                            : 'bg-theme-card text-theme-primary border border-theme rounded-bl-md'
                                             }`}
                                     >
                                         <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
                                             {message.text}
                                         </p>
                                     </div>
-                                    <span className={`text-[10px] sm:text-xs px-2 ${message.sender === 'user' ? 'text-gray-500' : 'text-gray-400'
+                                    <span className={`text-[10px] sm:text-xs px-2 ${message.sender === 'user' ? 'text-theme-muted' : 'text-theme-muted'
                                         }`}>
                                         {message.timestamp.toLocaleTimeString([], {
                                             hour: '2-digit',
@@ -219,14 +219,14 @@ export default function AktuheperChatbot() {
                         {/* Typing Indicator */}
                         {isLoading && (
                             <div className="flex gap-3 animate-fadeIn">
-                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 text-purple-600 flex items-center justify-center shadow-sm">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/40 dark:to-pink-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center shadow-sm">
                                     🤖
                                 </div>
-                                <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-5 py-4 shadow-md">
+                                <div className="bg-theme-card border border-theme rounded-2xl rounded-bl-md px-5 py-4 shadow-md">
                                     <div className="flex space-x-2">
-                                        <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-bounce"></div>
-                                        <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
-                                        <div className="w-2 h-2 bg-gradient-to-r from-pink-500 to-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                                        <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:to-purple-400 rounded-full animate-bounce"></div>
+                                        <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-400 dark:to-pink-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
+                                        <div className="w-2 h-2 bg-gradient-to-r from-pink-500 to-indigo-500 dark:from-pink-400 dark:to-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
                                     </div>
                                 </div>
                             </div>
@@ -235,16 +235,16 @@ export default function AktuheperChatbot() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Quick Actions - Show only when no loading */}
+                    {/* Quick Actions */}
                     {!isLoading && messages.length === 1 && (
-                        <div className="px-3 sm:px-4 pb-2 bg-white border-t border-gray-100">
-                            <p className="text-xs text-gray-500 mb-2 font-medium">Quick Actions:</p>
+                        <div className="px-3 sm:px-4 pb-2 bg-theme-card border-t border-theme">
+                            <p className="text-xs text-theme-muted mb-2 font-medium">Quick Actions:</p>
                             <div className="flex flex-wrap gap-2">
                                 {quickActions.map((action, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => handleQuickAction(action.query)}
-                                        className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 text-indigo-700 rounded-xl text-xs font-medium transition-all hover:shadow-md border border-indigo-100"
+                                        className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/50 dark:hover:to-purple-900/50 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-medium transition-all hover:shadow-md border border-indigo-100 dark:border-indigo-800"
                                     >
                                         <action.icon size={14} />
                                         <span>{action.text}</span>
@@ -254,8 +254,8 @@ export default function AktuheperChatbot() {
                         </div>
                     )}
 
-                    {/* Input Area - Enhanced */}
-                    <div className="p-3 sm:p-4 bg-white border-t border-gray-200 rounded-b-3xl">
+                    {/* Input Area */}
+                    <div className="p-3 sm:p-4 bg-theme-card border-t border-theme rounded-b-3xl">
                         <div className="flex items-end gap-2">
                             <div className="flex-1 relative">
                                 <textarea
@@ -266,7 +266,7 @@ export default function AktuheperChatbot() {
                                     placeholder="Ask me anything..."
                                     rows="1"
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-purple-400 text-sm resize-none transition-all bg-gray-50 focus:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full px-4 py-3 pr-12 border-2 border-theme rounded-2xl focus:outline-none focus:border-purple-400 dark:focus:border-purple-500 text-sm resize-none transition-all bg-gray-50 dark:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-900 text-theme-primary disabled:opacity-50 disabled:cursor-not-allowed"
                                     style={{ maxHeight: '100px', minHeight: '44px' }}
                                 />
                             </div>
@@ -274,14 +274,14 @@ export default function AktuheperChatbot() {
                             <button
                                 onClick={sendMessage}
                                 disabled={isLoading || !inputValue.trim()}
-                                className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white flex items-center justify-center hover:shadow-lg hover:shadow-purple-500/50 transform hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                                className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 text-white flex items-center justify-center hover:shadow-lg hover:shadow-purple-500/50 dark:hover:shadow-purple-400/30 transform hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                                 aria-label="Send message"
                             >
                                 <Send size={18} className="sm:w-5 sm:h-5" />
                             </button>
                         </div>
 
-                        <p className="text-[10px] text-gray-400 mt-2 text-center">
+                        <p className="text-[10px] text-theme-muted mt-2 text-center">
                             Powered by Gemini AI • Press Enter to send
                         </p>
                     </div>
@@ -305,7 +305,7 @@ export default function AktuheperChatbot() {
           animation: fadeIn 0.4s ease-out;
         }
 
-        /* Custom scrollbar */
+        /* Custom scrollbar - Light mode */
         .overflow-y-auto::-webkit-scrollbar {
           width: 6px;
         }
@@ -321,6 +321,15 @@ export default function AktuheperChatbot() {
 
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
           background: linear-gradient(to bottom, #9333ea, #db2777);
+        }
+
+        /* Custom scrollbar - Dark mode */
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #8b5cf6, #d946ef);
+        }
+
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #7c3aed, #c026d3);
         }
 
         /* Smooth scroll behavior */

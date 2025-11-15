@@ -12,9 +12,7 @@ export default function Home() {
     <div>
 
       <HeroSection />
-      <div className="my-6">
-        <AdBanner slot="5734157535" />
-      </div>
+     
 
       <ServicesSection />
       <StatisticsSection />

@@ -88,26 +88,26 @@ export default function StatisticsSection() {
     };
 
     return (
-        <section className="relative py-20 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+        <section className="relative py-20 bg-theme-gradient-light overflow-hidden">
             {/* Decorative Elements */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float animation-delay-2000"></div>
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100 dark:bg-blue-500/10 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 dark:opacity-40 animate-float"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-100 dark:bg-purple-500/10 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 dark:opacity-40 animate-float animation-delay-2000"></div>
             </div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full mb-4">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="badge-theme inline-flex items-center gap-2 mb-4">
+                        <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
-                        <span className="text-sm font-semibold text-gray-700">Trusted by Thousands</span>
+                        <span className="text-sm font-semibold">Trusted by Thousands</span>
                     </div>
-                    <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-                        Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Impact</span> in Numbers
+                    <h2 className="text-4xl sm:text-5xl font-bold text-theme-primary mb-4">
+                        Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500">Impact</span> in Numbers
                     </h2>
-                    <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                    <p className="text-theme-secondary text-lg max-w-2xl mx-auto">
                         Join a thriving community of AKTU students achieving academic excellence
                     </p>
                 </div>
@@ -123,9 +123,9 @@ export default function StatisticsSection() {
                             }}
                         >
                             {/* Card */}
-                            <div className="relative p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100">
+                            <div className="card-theme relative p-6 hover:shadow-2xl dark:hover:shadow-blue-500/20 transition-all duration-300 hover:-translate-y-2">
                                 {/* Gradient Glow on Hover */}
-                                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300 blur-xl`}></div>
+                                <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-10 dark:group-hover:opacity-5 transition-opacity duration-300 blur-xl`}></div>
 
                                 {/* Content */}
                                 <div className="relative">
@@ -142,57 +142,54 @@ export default function StatisticsSection() {
                                     </div>
 
                                     {/* Label */}
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                    <h3 className="text-lg font-bold text-theme-primary mb-1">
                                         {stat.label}
                                     </h3>
-                                    <p className="text-gray-600 text-xs">
+                                    <p className="text-theme-secondary text-xs">
                                         {stat.description}
                                     </p>
                                 </div>
 
                                 {/* Decorative Corner */}
-                                <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${stat.color} opacity-5 rounded-bl-full rounded-tr-xl`}></div>
+                                <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${stat.color} opacity-5 dark:opacity-10 rounded-bl-full rounded-tr-xl`}></div>
                             </div>
                         </div>
                     ))}
                 </div>
-
-                {/* Bottom Banner */}
-               
             </div>
 
             <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes float {
-          0%, 100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -30px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-        }
-        
-        .animate-float {
-          animation: float 8s ease-in-out infinite;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-      `}</style>
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                @keyframes float {
+                    0%, 100% {
+                        transform: translate(0px, 0px) scale(1);
+                    }
+                    33% {
+                        transform: translate(30px, -30px) scale(1.1);
+                    }
+                    66% {
+                        transform: translate(-20px, 20px) scale(0.9);
+                    }
+                }
+                
+                .animate-float {
+                    animation: float 8s ease-in-out infinite;
+                }
+                
+                .animation-delay-2000 {
+                    animation-delay: 2s;
+                }
+            `}</style>
         </section>
     );
 }

@@ -352,10 +352,10 @@ export default function TestAttemptPage() {
     // Show loading while auth is loading
     if (authLoading || loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-black dark:via-zinc-950 dark:to-black flex items-center justify-center">
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-                    <p className="text-gray-600">{authLoading ? 'Authenticating...' : 'Loading questions...'}</p>
+                    <Loader2 className="w-12 h-12 text-purple-600 dark:text-purple-400 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-zinc-400">{authLoading ? 'Authenticating...' : 'Loading questions...'}</p>
                 </div>
             </div>
         );
@@ -363,16 +363,16 @@ export default function TestAttemptPage() {
 
     if (error || questions.length === 0) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl p-8 max-w-md w-full border border-red-200 shadow-lg">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-black dark:via-zinc-950 dark:to-black flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl p-8 max-w-md w-full border border-red-200 dark:border-red-900 shadow-lg">
                     <div className="text-center">
-                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span className="text-2xl">⚠️</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                             {error?.includes('log in') ? 'Authentication Required' : 'Failed to Load Questions'}
                         </h3>
-                        <p className="text-gray-600 mb-4">{error || 'No questions available'}</p>
+                        <p className="text-gray-600 dark:text-zinc-400 mb-4">{error || 'No questions available'}</p>
                         <button
                             onClick={handleReturnToHome}
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
@@ -391,58 +391,58 @@ export default function TestAttemptPage() {
         const unattempted = questions.length - Object.keys(answers).length;
 
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-black dark:via-zinc-950 dark:to-black flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 max-w-md w-full">
                     {/* User Info Header */}
                     {user && (
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b">
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800">
                             {user.picture ? (
                                 <img
                                     src={user.picture}
                                     alt={`${user.given_name} ${user.family_name}`}
-                                    className="w-12 h-12 rounded-full border-2 border-purple-200"
+                                    className="w-12 h-12 rounded-full border-2 border-purple-200 dark:border-purple-800"
                                 />
                             ) : (
-                                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                                    <User className="w-6 h-6 text-purple-600" />
+                                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                    <User className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                                 </div>
                             )}
                             <div className="text-left">
-                                <div className="font-semibold text-gray-900">{user.given_name} {user.family_name}</div>
-                                <div className="text-sm text-gray-500">{user.email}</div>
+                                <div className="font-semibold text-gray-900 dark:text-white">{user.given_name} {user.family_name}</div>
+                                <div className="text-sm text-gray-500 dark:text-zinc-400">{user.email}</div>
                             </div>
                         </div>
                     )}
 
                     <div className="text-center">
                         <div className="mb-6">
-                            <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center ${percentage >= 70 ? 'bg-green-100' : percentage >= 50 ? 'bg-amber-100' : 'bg-red-100'
+                            <div className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center ${percentage >= 70 ? 'bg-green-100 dark:bg-green-900/30' : percentage >= 50 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-red-100 dark:bg-red-900/30'
                                 }`}>
-                                <Award className={`w-12 h-12 ${percentage >= 70 ? 'text-green-600' : percentage >= 50 ? 'text-amber-600' : 'text-red-600'
+                                <Award className={`w-12 h-12 ${percentage >= 70 ? 'text-green-600 dark:text-green-400' : percentage >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
                                     }`} />
                             </div>
                         </div>
 
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">Test Completed!</h2>
-                        <p className="text-gray-600 mb-6">Here's how you performed</p>
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Test Completed!</h2>
+                        <p className="text-gray-600 dark:text-zinc-400 mb-6">Here's how you performed</p>
 
-                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-6">
-                            <div className="text-5xl font-bold text-purple-600 mb-2">{score}/{testData.totalMarks}</div>
-                            <div className="text-lg text-gray-700 font-medium">{percentage}% Score</div>
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 mb-6 border border-purple-100 dark:border-purple-900">
+                            <div className="text-5xl font-bold text-purple-600 dark:text-purple-400 mb-2">{score}/{testData.totalMarks}</div>
+                            <div className="text-lg text-gray-700 dark:text-zinc-300 font-medium">{percentage}% Score</div>
                         </div>
 
                         <div className="space-y-3 mb-6">
-                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                                <span className="text-sm text-gray-700 font-medium">Correct Answers</span>
-                                <span className="text-lg font-bold text-green-600">{correctAnswers}</span>
+                            <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-900">
+                                <span className="text-sm text-gray-700 dark:text-zinc-300 font-medium">Correct Answers</span>
+                                <span className="text-lg font-bold text-green-600 dark:text-green-400">{correctAnswers}</span>
                             </div>
-                            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                                <span className="text-sm text-gray-700 font-medium">Wrong Answers</span>
-                                <span className="text-lg font-bold text-red-600">{wrongAnswers}</span>
+                            <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900">
+                                <span className="text-sm text-gray-700 dark:text-zinc-300 font-medium">Wrong Answers</span>
+                                <span className="text-lg font-bold text-red-600 dark:text-red-400">{wrongAnswers}</span>
                             </div>
-                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                <span className="text-sm text-gray-700 font-medium">Unattempted</span>
-                                <span className="text-lg font-bold text-gray-600">{unattempted}</span>
+                            <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-100 dark:border-zinc-700">
+                                <span className="text-sm text-gray-700 dark:text-zinc-300 font-medium">Unattempted</span>
+                                <span className="text-lg font-bold text-gray-600 dark:text-zinc-400">{unattempted}</span>
                             </div>
                         </div>
 
@@ -459,29 +459,29 @@ export default function TestAttemptPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 p-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-black dark:via-zinc-950 dark:to-black p-4">
             <div className="max-w-4xl mx-auto">
                 {/* Header with User Info */}
-                <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-4 mb-6 border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div className="flex items-center gap-3">
                             {user?.picture ? (
                                 <img
                                     src={user.picture}
                                     alt={`${user.given_name} ${user.family_name}`}
-                                    className="w-10 h-10 rounded-full border-2 border-purple-200"
+                                    className="w-10 h-10 rounded-full border-2 border-purple-200 dark:border-purple-800"
                                 />
                             ) : (
-                                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                    <User className="w-5 h-5 text-purple-600" />
+                                <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                    <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                                 </div>
                             )}
                             <div>
-                                <div className="font-semibold text-gray-900">{getCategoryName(testData.category)} Ability</div>
-                                <div className="text-sm text-gray-600">{testData.title}</div>
+                                <div className="font-semibold text-gray-900 dark:text-white">{getCategoryName(testData.category)} Ability</div>
+                                <div className="text-sm text-gray-600 dark:text-zinc-400">{testData.title}</div>
                             </div>
                         </div>
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold ${timeLeft < 300 ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
+                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold ${timeLeft < 300 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                             }`}>
                             <Clock className="w-5 h-5" />
                             <span>{formatTime(timeLeft)}</span>
@@ -490,20 +490,20 @@ export default function TestAttemptPage() {
                 </div>
 
                 {/* Question Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-6">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-lg p-6 md:p-8 mb-6 border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center justify-between mb-6">
-                        <span className="text-sm font-medium text-gray-500">
+                        <span className="text-sm font-medium text-gray-500 dark:text-zinc-400">
                             Question {currentQuestion + 1} of {questions.length}
                         </span>
                         {answers[questions[currentQuestion].id] !== undefined && (
-                            <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                            <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400 font-medium">
                                 <CheckCircle className="w-4 h-4" />
                                 Answered
                             </span>
                         )}
                     </div>
 
-                    <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-6">
+                    <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-6">
                         {questions[currentQuestion].question}
                     </h2>
 
@@ -513,20 +513,20 @@ export default function TestAttemptPage() {
                                 key={index}
                                 onClick={() => handleAnswer(questions[currentQuestion].id, index)}
                                 className={`w-full p-4 text-left rounded-lg border-2 transition-all ${answers[questions[currentQuestion].id] === index
-                                        ? 'border-purple-500 bg-purple-50 text-purple-900'
-                                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-900 dark:text-purple-100'
+                                    : 'border-gray-200 dark:border-zinc-700 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
                                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${answers[questions[currentQuestion].id] === index
-                                            ? 'border-purple-500 bg-purple-500'
-                                            : 'border-gray-300'
+                                        ? 'border-purple-500 bg-purple-500'
+                                        : 'border-gray-300 dark:border-zinc-600'
                                         }`}>
                                         {answers[questions[currentQuestion].id] === index && (
                                             <div className="w-2 h-2 bg-white rounded-full"></div>
                                         )}
                                     </div>
-                                    <span className="font-medium">{option}</span>
+                                    <span className="font-medium dark:text-zinc-200">{option}</span>
                                 </div>
                             </button>
                         ))}
@@ -538,7 +538,7 @@ export default function TestAttemptPage() {
                     <button
                         onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
                         disabled={currentQuestion === 0}
-                        className="px-6 py-3 bg-white text-gray-700 rounded-lg font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-6 py-3 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 rounded-lg font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border border-gray-200 dark:border-zinc-800"
                     >
                         <ChevronLeft className="w-5 h-5" />
                         Previous
@@ -550,10 +550,10 @@ export default function TestAttemptPage() {
                                 key={index}
                                 onClick={() => setCurrentQuestion(index)}
                                 className={`min-w-[40px] h-10 rounded-lg font-medium transition-all ${currentQuestion === index
-                                        ? 'bg-purple-600 text-white'
-                                        : answers[questions[index].id] !== undefined
-                                            ? 'bg-green-100 text-green-600'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-purple-600 text-white'
+                                    : answers[questions[index].id] !== undefined
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700'
                                     }`}
                             >
                                 {index + 1}
@@ -591,17 +591,17 @@ export default function TestAttemptPage() {
                 </div>
 
                 {/* Question Overview */}
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold text-gray-900">Question Overview</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">Question Overview</h3>
                         <div className="flex gap-4 text-sm">
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 rounded bg-green-100 border border-green-600"></div>
-                                <span className="text-gray-600">Answered ({Object.keys(answers).length})</span>
+                                <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30 border border-green-600 dark:border-green-700"></div>
+                                <span className="text-gray-600 dark:text-zinc-400">Answered ({Object.keys(answers).length})</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 rounded bg-gray-100 border border-gray-300"></div>
-                                <span className="text-gray-600">Unanswered ({questions.length - Object.keys(answers).length})</span>
+                                <div className="w-4 h-4 rounded bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700"></div>
+                                <span className="text-gray-600 dark:text-zinc-400">Unanswered ({questions.length - Object.keys(answers).length})</span>
                             </div>
                         </div>
                     </div>
@@ -611,10 +611,10 @@ export default function TestAttemptPage() {
                                 key={index}
                                 onClick={() => setCurrentQuestion(index)}
                                 className={`h-10 rounded-lg font-medium transition-all text-sm ${currentQuestion === index
-                                        ? 'bg-purple-600 text-white ring-2 ring-purple-300'
-                                        : answers[questions[index].id] !== undefined
-                                            ? 'bg-green-100 text-green-700 border border-green-600 hover:bg-green-200'
-                                            : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                                    ? 'bg-purple-600 text-white ring-2 ring-purple-300 dark:ring-purple-700'
+                                    : answers[questions[index].id] !== undefined
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-600 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/50'
+                                        : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-300 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
                                     }`}
                             >
                                 Q{index + 1}
