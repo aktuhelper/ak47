@@ -861,4 +861,5 @@ export default function StudyMaterialsPage() {
                 </div>
             </div>
         );
+
     }
