@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "./_HomePage_Components/Navbar";
 import Footer from "./_HomePage_Components/Footer";
 import AktuheperChatbot from "./_HomePage_Components/AktuheperChatbot";
+import { Analytics } from "@vercel/analytics/next";
+
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -39,6 +41,9 @@ export default function RootLayout({ children }) {
         <main>{children}</main>
         <Footer />
         <AktuheperChatbot />
+
+        {/* ✅ Vercel Analytics */}
+        <Analytics />
       </body>
     </html>
   );
