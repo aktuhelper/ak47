@@ -6,6 +6,7 @@ export default function StudyMaterialsPage() {
     const [selectedSemester, setSelectedSemester] = useState(1);
     const [customerEmail, setCustomerEmail] = useState('');
     const [customerName, setCustomerName] = useState('');
+    const [isLoadingPayment, setIsLoadingPayment] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [showMaterialModal, setShowMaterialModal] = useState(false);
@@ -131,11 +132,15 @@ export default function StudyMaterialsPage() {
                 return;
             }
 
+            // ✅ START LOADING
+            setIsLoadingPayment(true);
+
             const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
             if (!razorpayKeyId) {
                 alert('Payment configuration error. Please contact support.');
                 console.error('Missing NEXT_PUBLIC_RAZORPAY_KEY_ID');
+                setIsLoadingPayment(false); // Stop loading
                 return;
             }
 
@@ -163,6 +168,9 @@ export default function StudyMaterialsPage() {
             document.body.appendChild(script);
 
             script.onload = () => {
+                // ✅ STOP LOADING when Razorpay is ready
+                setIsLoadingPayment(false);
+
                 const options = {
                     key: razorpayKeyId,
                     amount: amount,
@@ -188,6 +196,8 @@ export default function StudyMaterialsPage() {
                     modal: {
                         ondismiss: function () {
                             console.log('Payment cancelled by user');
+                            // Reset loading if user closes modal
+                            setIsLoadingPayment(false);
                         }
                     }
                 };
@@ -197,14 +207,17 @@ export default function StudyMaterialsPage() {
             };
 
             script.onerror = () => {
+                setIsLoadingPayment(false); // Stop loading on error
                 alert('Failed to load payment gateway. Please try again.');
             };
 
         } catch (error) {
             console.error('Payment failed:', error);
+            setIsLoadingPayment(false); // Stop loading on error
             alert('Payment initiation failed. Please try again.');
         }
     };
+
 
   const organizeMaterials = (materials) => {
     const organized = {
@@ -689,13 +702,23 @@ export default function StudyMaterialsPage() {
                           </div>
 
                           {/* Razorpay Payment Button */}
+                          {/* Razorpay Payment Button */}
                           <div className="flex justify-center mb-4">
                               <button
                                   onClick={handlePayment}
-                                  disabled={!customerEmail || !customerName}
-                                  className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                  disabled={!customerEmail || !customerName || isLoadingPayment}
+                                  className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                               >
-                                  Pay ₹1 & Download
+                                  {isLoadingPayment ? (
+                                      <>
+                                          <Loader2 className="w-5 h-5 animate-spin" />
+                                          <span>Loading Payment...</span>
+                                      </>
+                                  ) : (
+                                      <>
+                                          <span>Pay ₹1 & Download</span>
+                                      </>
+                                  )}
                               </button>
                           </div>
 
@@ -710,97 +733,7 @@ export default function StudyMaterialsPage() {
                   </div>
               </div>
           )}
-    {/* Material Modal - Year-wise View */}
-                {showMaterialModal && selectedMaterial && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
-                            {/* Modal Header */}
-                            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h2 className="text-2xl font-bold capitalize">
-                                        {getMaterialDisplayName(selectedMaterial.type)} Papers
-                                    </h2>
-                                    <button
-                                        onClick={() => setShowMaterialModal(false)}
-                                        className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                                <p className="text-white/90">{selectedMaterial.subject}</p>
-                                <p className="text-white/70 text-sm">{selectedMaterial.code}</p>
-                            </div>
-    
-                            {/* Modal Content */}
-                            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-                                <div className="mb-4">
-                                    <p className="text-sm text-slate-600">
-                                        Select a year to download {selectedMaterial.type === 'pyq' ? 'previous year question papers' : getMaterialDisplayName(selectedMaterial.type).toLowerCase()}
-                                    </p>
-                                </div>
-    
-                                {/* Year-wise Papers Grid */}
-                                <div className="space-y-3">
-                                    {selectedMaterial.data?.years.map((yearData, index) => (
-                                        <div key={index} className="relative group">
-                                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                                            <div className="relative bg-white border-2 border-slate-200 rounded-xl p-4 hover:border-blue-400 transition-all duration-300">
-                                                <div className="flex items-center justify-between gap-4 flex-wrap">
-                                                    <div className="flex items-center gap-4 flex-grow">
-                                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                            <Calendar className="w-6 h-6 text-white" />
-                                                        </div>
-                                                        <div className="flex-grow">
-                                                            <h3 className="text-lg font-bold text-slate-900">
-                                                                {yearData.year} - {yearData.type}
-                                                            </h3>
-                                                            <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                                                <span className="text-sm text-slate-600">Size: {yearData.size}</span>
-                                                                <span className="text-sm text-slate-400">•</span>
-                                                                <span className="text-sm text-slate-600 flex items-center gap-1">
-                                                                    <Download className="w-3 h-3" />
-                                                                    {yearData.downloads} downloads
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-2 flex-shrink-0">
-                                                        {yearData.items.map((item, idx) => (
-                                                            <button
-                                                                key={idx}
-                                                                onClick={() => handleDownload(item.link)}
-                                                                className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg shadow-blue-500/30 flex items-center gap-2"
-                                                            >
-                                                                <Download className="w-4 h-4" />
-                                                                <span>Download</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-    
-                                {/* Info Box */}
-                                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <Lightbulb className="w-4 h-4 text-white" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-slate-900 mb-1">Study Tip</h4>
-                                            <p className="text-sm text-slate-600">
-                                                Practice with at least 3-4 years of previous papers to understand the exam pattern and important topics.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-    
+
                 {/* Quick Tips Section */}
                 <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
                     <div className="max-w-7xl mx-auto">
