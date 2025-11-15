@@ -2,11 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, FileText, Download, Search, Calendar, Star, TrendingUp, CheckCircle, Clock, FileQuestion, Lightbulb, BookMarked, GraduationCap, Code, X, ChevronRight, Loader2 } from 'lucide-react';
 import { getStudyMaterials } from '../_utils/GlobalApi';
+import { BOOK_LINKS } from '../_utils/bookLinks';
 export default function StudyMaterialsPage() {
     const [selectedSemester, setSelectedSemester] = useState(1);
     const [customerEmail, setCustomerEmail] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+     const [showBookNotFoundModal, setShowBookNotFoundModal] = useState(false);
+    const [notFoundSubject, setNotFoundSubject] = useState({ name: '', code: '' });
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [showMaterialModal, setShowMaterialModal] = useState(false);
@@ -262,13 +265,25 @@ export default function StudyMaterialsPage() {
     console.log('Organized result:', organized);
     return organized;
   };
-  const handleQuantumBookClick = (subjectName, subjectCode) => {
-    setSelectedPaymentSubject({
-      name: subjectName,
-      code: subjectCode
-    });
-    setShowPaymentModal(true);
-  };
+    const handleQuantumBookClick = (subjectName, subjectCode) => {
+        const bookData = BOOK_LINKS[subjectCode];
+
+        if (!bookData || !bookData.link) {
+            // Book not available - show "Not Found" modal
+            setNotFoundSubject({
+                name: subjectName,
+                code: subjectCode
+            });
+            setShowBookNotFoundModal(true);
+        } else {
+            // Book available - show payment modal
+            setSelectedPaymentSubject({
+                name: subjectName,
+                code: subjectCode
+            });
+            setShowPaymentModal(true);
+        }
+    };
   const getMergedMaterials = () => {
     // Hardcoded syllabus links for CSE branch
     const syllabusLinks = {
@@ -621,9 +636,6 @@ export default function StudyMaterialsPage() {
                       </div>
                   </div>
               </div>
-  
-
-
           {/* Razorpay Payment Modal - COMPACT */}
           {showPaymentModal && selectedPaymentSubject && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -734,6 +746,87 @@ export default function StudyMaterialsPage() {
               </div>
           )}
 
+          {/* Book Not Found Modal */}
+          {showBookNotFoundModal && notFoundSubject && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                  <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full">
+                      {/* Modal Header */}
+                      <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-4 text-white">
+                          <div className="flex items-center justify-between">
+                              <div>
+                                  <h2 className="text-lg font-bold">Book Not Available</h2>
+                                  <p className="text-sm text-white/90 mt-0.5">{notFoundSubject.name}</p>
+                              </div>
+                              <button
+                                  onClick={() => {
+                                      setShowBookNotFoundModal(false);
+                                      setNotFoundSubject({ name: '', code: '' });
+                                  }}
+                                  className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
+                              >
+                                  <X className="w-4 h-4" />
+                              </button>
+                          </div>
+                      </div>
+
+                      {/* Modal Content */}
+                      <div className="p-6">
+                          {/* Icon */}
+                          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <FileQuestion className="w-8 h-8 text-amber-600" />
+                          </div>
+
+                          {/* Message */}
+                          <div className="text-center mb-6">
+                              <h3 className="text-xl font-bold text-slate-900 mb-2">
+                                  Book Currently Unavailable
+                              </h3>
+                              <p className="text-sm text-slate-600 mb-4">
+                                  The Quantum book for <strong>{notFoundSubject.code}</strong> is not available yet.
+                              </p>
+                          </div>
+
+                          {/* Info Box */}
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                              <div className="flex items-start gap-3">
+                                  <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                  <div className="text-sm text-slate-700">
+                                      <p className="font-semibold mb-1">What you can do:</p>
+                                      <ul className="space-y-1 list-disc list-inside">
+                                          <li>Check other available study materials (PYQ, Notes, Syllabus)</li>
+                                          <li>Contact us to request this book</li>
+                                          <li>Check back later for updates</li>
+                                      </ul>
+                                  </div>
+                              </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-3">
+                              <button
+                                  onClick={() => {
+                                      setShowBookNotFoundModal(false);
+                                      setNotFoundSubject({ name: '', code: '' });
+                                  }}
+                                  className="flex-1 px-4 py-2.5 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition-all"
+                              >
+                                  Close
+                              </button>
+                              <button
+                                  onClick={() => {
+                                      alert('We will notify you when this book becomes available!');
+                                      setShowBookNotFoundModal(false);
+                                      setNotFoundSubject({ name: '', code: '' });
+                                  }}
+                                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
+                              >
+                                  Notify Me
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          )}
                 {/* Quick Tips Section */}
                 <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
                     <div className="max-w-7xl mx-auto">
