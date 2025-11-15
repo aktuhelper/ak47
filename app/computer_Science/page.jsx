@@ -4,6 +4,8 @@ import { BookOpen, FileText, Download, Search, Calendar, Star, TrendingUp, Check
 import { getStudyMaterials } from '../_utils/GlobalApi';
 export default function StudyMaterialsPage() {
     const [selectedSemester, setSelectedSemester] = useState(1);
+    const [customerEmail, setCustomerEmail] = useState('');
+    const [customerName, setCustomerName] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [showMaterialModal, setShowMaterialModal] = useState(false);
@@ -121,34 +123,89 @@ export default function StudyMaterialsPage() {
   
           fetchAllSemesters();
       }, []);
- useEffect(() => {
-    if (showPaymentModal) {
-        const timer = setTimeout(() => {
-            const container = document.getElementById('razorpay-button-container');
-            if (container) {
-                // Clear existing content
-                container.innerHTML = '';
-                
-                // Create form element (Required by Razorpay)
-                const form = document.createElement('form');
-                
-                // Create script element
-                const script = document.createElement('script');
-                script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
-                script.setAttribute('data-payment_button_id', 'pl_Re3Ztu5oznteM4');
-                script.async = true;
-                
-                // Append script inside form
-                form.appendChild(script);
-                
-                // Append form to container
-                container.appendChild(form);
+    const handlePayment = async () => {
+        try {
+            // Validate email
+            if (!customerEmail || !customerName) {
+                alert('Please enter your name and email address');
+                return;
             }
-        }, 300);
 
-        return () => clearTimeout(timer);
-    }
-}, [showPaymentModal]);
+            const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+            if (!razorpayKeyId) {
+                alert('Payment configuration error. Please contact support.');
+                console.error('Missing NEXT_PUBLIC_RAZORPAY_KEY_ID');
+                return;
+            }
+
+            // Create order
+            const response = await fetch('/api/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: 1, // ₹1
+                    subjectCode: selectedPaymentSubject.code,
+                    subjectName: selectedPaymentSubject.name,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create order');
+            }
+
+            const { orderId, amount } = await response.json();
+
+            // Load Razorpay script
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.async = true;
+            document.body.appendChild(script);
+
+            script.onload = () => {
+                const options = {
+                    key: razorpayKeyId,
+                    amount: amount,
+                    currency: 'INR',
+                    name: 'AKTU Helper',
+                    description: `${selectedPaymentSubject.name} - Quantum Book`,
+                    order_id: orderId,
+                    handler: function (response) {
+                        alert(`Payment successful! Download link sent to ${customerEmail}`);
+                        setShowPaymentModal(false);
+                        // Reset form
+                        setCustomerEmail('');
+                        setCustomerName('');
+                    },
+                    prefill: {
+                        name: customerName,
+                        email: customerEmail,
+                        contact: '',
+                    },
+                    theme: {
+                        color: '#3B82F6',
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            console.log('Payment cancelled by user');
+                        }
+                    }
+                };
+
+                const razorpay = new window.Razorpay(options);
+                razorpay.open();
+            };
+
+            script.onerror = () => {
+                alert('Failed to load payment gateway. Please try again.');
+            };
+
+        } catch (error) {
+            console.error('Payment failed:', error);
+            alert('Payment initiation failed. Please try again.');
+        }
+    };
+
   const organizeMaterials = (materials) => {
     const organized = {
       syllabus: { available: false, items: [] },
@@ -554,63 +611,105 @@ export default function StudyMaterialsPage() {
   
 
 
-      {/* Razorpay Payment Modal - COMPACT */}
-      {showPaymentModal && selectedPaymentSubject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full">
-            {/* Modal Header - Compact */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-bold">Download Book</h2>
-                  <p className="text-sm text-white/90 mt-0.5">{selectedPaymentSubject.name}</p>
-                </div>
-                <button
-                  onClick={() => setShowPaymentModal(false)}
-                  className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+          {/* Razorpay Payment Modal - COMPACT */}
+          {showPaymentModal && selectedPaymentSubject && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                  <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full">
+                      {/* Modal Header - Compact */}
+                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
+                          <div className="flex items-center justify-between">
+                              <div>
+                                  <h2 className="text-lg font-bold">Download Book</h2>
+                                  <p className="text-sm text-white/90 mt-0.5">{selectedPaymentSubject.name}</p>
+                              </div>
+                              <button
+                                  onClick={() => {
+                                      setShowPaymentModal(false);
+                                      setCustomerEmail('');
+                                      setCustomerName('');
+                                  }}
+                                  className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
+                              >
+                                  <X className="w-4 h-4" />
+                              </button>
+                          </div>
+                      </div>
 
-            {/* Modal Content - Compact */}
-            <div className="p-5">
+                      {/* Modal Content - Compact */}
+                      <div className="p-5">
+                          {/* Email Input Form */}
+                          <div className="mb-4 space-y-3">
+                              <div>
+                                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                                      Your Name *
+                                  </label>
+                                  <input
+                                      type="text"
+                                      value={customerName}
+                                      onChange={(e) => setCustomerName(e.target.value)}
+                                      placeholder="Enter your name"
+                                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                                      required
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                                      Email Address *
+                                  </label>
+                                  <input
+                                      type="email"
+                                      value={customerEmail}
+                                      onChange={(e) => setCustomerEmail(e.target.value)}
+                                      placeholder="your@email.com"
+                                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                                      required
+                                  />
+                                  <p className="text-xs text-slate-500 mt-1">
+                                      📧 Download link will be sent to this email
+                                  </p>
+                              </div>
+                          </div>
 
-              {/* Features List - Compact */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-sm text-slate-700">
-                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                    <span>Complete PDF with Solutions</span>
+                          {/* Features List - Compact */}
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                              <div className="space-y-1.5">
+                                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                                      <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                      <span>Complete PDF with Solutions</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                                      <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                      <span>Previous Year Questions</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                                      <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                      <span>Instant Download Access</span>
+                                  </div>
+                              </div>
+                          </div>
+
+                          {/* Razorpay Payment Button */}
+                          <div className="flex justify-center mb-4">
+                              <button
+                                  onClick={handlePayment}
+                                  disabled={!customerEmail || !customerName}
+                                  className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                  Pay ₹1 & Download
+                              </button>
+                          </div>
+
+                          {/* Security Note - Compact */}
+                          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                              <Lightbulb className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                              <p className="text-xs text-slate-600">
+                                  Secure payment via Razorpay. Instant access after payment.
+                              </p>
+                          </div>
+                      </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-700">
-                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                    <span>Previous Year Questions</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-700">
-                    <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                    <span>Instant Download Access</span>
-                  </div>
-                </div>
               </div>
-
-              {/* Razorpay Payment Button */}
-              <div className="flex justify-center mb-4">
-                <div id="razorpay-button-container"></div>
-              </div>
-
-              {/* Security Note - Compact */}
-              <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <Lightbulb className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                <p className="text-xs text-slate-600">
-                  Secure payment via Razorpay. Instant access after payment.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+          )}
     {/* Material Modal - Year-wise View */}
                 {showMaterialModal && selectedMaterial && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
