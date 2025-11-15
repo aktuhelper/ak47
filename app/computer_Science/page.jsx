@@ -728,7 +728,7 @@ export default function StudyMaterialsPage() {
                                       </>
                                   ) : (
                                       <>
-                                          <span>Pay ₹1 & Download</span>
+                                          <span>Pay ₹10 & Download</span>
                                       </>
                                   )}
                               </button>
@@ -861,4 +861,5 @@ export default function StudyMaterialsPage() {
                 </div>
             </div>
         );
+
     }
