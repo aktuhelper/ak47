@@ -25,54 +25,41 @@ export default function StudyMaterialsPage() {
             { subject: 'Engineering Mathematics-I', code: 'BAS103', icon: BookOpen },
             { subject: 'Fundamentals of Electrical Engineering', code: 'BEE101', icon: Lightbulb },
             { subject: 'Fundamentals of Electronics Engineering', code: 'BEC101', icon: FileText },
+          
+        ],
+        2: [
             { subject: 'Programming for Problem Solving', code: 'BCS101', icon: BookMarked },
             { subject: 'Fundamentals of Mechanical Engineering', code: 'BME101 ', icon: BookMarked },
             { subject: 'Environment and Ecology', code: 'BAS104', icon: BookMarked },
             { subject: 'Soft Skills', code: 'BAS105', icon: BookMarked },
-
-
-        ],
-        2: [
-            { subject: 'Data Structures', code: 'CS201', icon: Code },
-            { subject: 'Mathematics-II', code: 'MA201', icon: BookOpen },
-            { subject: 'Chemistry', code: 'CH201', icon: Lightbulb },
-            { subject: 'Digital Electronics', code: 'EC201', icon: FileText },
-            { subject: 'Engineering Mechanics', code: 'ME201', icon: BookMarked },
-            { subject: 'English Communication', code: 'EN201', icon: GraduationCap }
         ],
         3: [
-            { subject: 'Object Oriented Programming', code: 'CS301', icon: Code },
-            { subject: 'Discrete Mathematics', code: 'MA301', icon: BookOpen },
-            { subject: 'Computer Organization', code: 'CS302', icon: FileText },
-            { subject: 'Database Management Systems', code: 'CS303', icon: BookMarked },
-            { subject: 'Operating Systems', code: 'CS304', icon: Lightbulb },
-            { subject: 'Software Engineering', code: 'CS305', icon: GraduationCap }
+            { subject: 'Math IV', code: 'BAS303', icon: Code },
+            { subject: 'UHV(Universal Human Value and Professional Ethics)', code: 'BVE301', icon: BookOpen },
+            { subject: 'Technical Communication ', code: 'BAS301', icon: FileText },
+            { subject: 'Data Structure ', code: 'BCS301 ', icon: BookMarked },
+           
         ],
         4: [
-            { subject: 'Computer Networks', code: 'CS401', icon: Code },
-            { subject: 'Theory of Computation', code: 'CS402', icon: BookOpen },
-            { subject: 'Microprocessors', code: 'CS403', icon: FileText },
-            { subject: 'Web Technologies', code: 'CS404', icon: BookMarked },
-            { subject: 'Computer Graphics', code: 'CS405', icon: Lightbulb },
-            { subject: 'Design & Analysis of Algorithms', code: 'CS406', icon: GraduationCap }
+            { subject: 'COA(Computer Organization and Architecture)', code: 'BCS302', icon: Code },
+            { subject: 'DSTL', code: 'BCS303', icon: BookOpen },
+            { subject: 'Python Programming ', code: 'BCC302', icon: FileText },
+            { subject: 'Cyber Security', code: 'BCC301', icon: BookMarked },
+            { subject: 'TAFL(Theory of Automata and Formal Languages)', code: 'BCS402', icon: Lightbulb },
         ],
         5: [
-            { subject: 'Artificial Intelligence', code: 'CS501', icon: Code },
-            { subject: 'Machine Learning', code: 'CS502', icon: BookOpen },
-            { subject: 'Compiler Design', code: 'CS503', icon: FileText },
-            { subject: 'Information Security', code: 'CS504', icon: BookMarked },
-            { subject: 'Cloud Computing', code: 'CS505', icon: Lightbulb },
-            { subject: 'Mobile Application Development', code: 'CS506', icon: GraduationCap },
-            { subject: 'Big Data Analytics', code: 'CS507', icon: Star }
+            { subject: ' DBMS (Database Management System) ', code: 'BCS501', icon: Code },
+            { subject: 'Web Technology', code: 'BCS502', icon: BookOpen },
+            { subject: 'Design and Analysis of Algorithm', code: 'BCS503', icon: FileText },
+            { subject: 'Constitution of India', code: 'BNC501', icon: BookMarked },
+            
         ],
         6: [
-            { subject: 'Deep Learning', code: 'CS601', icon: Code },
-            { subject: 'Natural Language Processing', code: 'CS602', icon: BookOpen },
-            { subject: 'Blockchain Technology', code: 'CS603', icon: FileText },
-            { subject: 'Internet of Things', code: 'CS604', icon: BookMarked },
-            { subject: 'Cyber Security', code: 'CS605', icon: Lightbulb },
-            { subject: 'Data Mining', code: 'CS606', icon: GraduationCap },
-            { subject: 'Distributed Systems', code: 'CS607', icon: Star }
+            { subject: 'Software Engineering', code: 'BCS601', icon: Code },
+            { subject: 'Compiler Design', code: 'BCS602', icon: BookOpen },
+            { subject: 'Computer Networks', code: 'BCS603', icon: FileText },
+            { subject: 'Essence of Indian Traditional Knowledge ', code: 'BNC602', icon: BookMarked },
+             
         ],
         7: [
             { subject: 'Project Management', code: 'CS701', icon: Code },
