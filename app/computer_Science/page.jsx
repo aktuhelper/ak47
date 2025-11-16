@@ -341,7 +341,7 @@ export default function StudyMaterialsPage() {
     { id: 7, name: 'Semester 7', subjects: hardcodedSubjects[7]?.length || 0 },
     { id: 8, name: 'Semester 8', subjects: hardcodedSubjects[8]?.length || 0 }
   ];
-   const categories = ['All', 'Syllabus', 'PYQ', 'Quantum Books', 'Notes'];
+   const categories = ['All', 'Syllabus', 'PYQ', 'Notes'];
   
       const currentMaterials = getMergedMaterials();
   
