@@ -110,5 +110,18 @@ export const BOOK_LINKS = {
         subject: 'Essence of Indian Traditional Knowledge',
         link: 'https://drive.google.com/file/d/1QZuMwns0JBNpqiia9HvYgXTEStvNmt7e/view?usp=drive_link'
     },
+    // Semester 7 & 8 CSE
+    'BCS701': {
+        subject: 'Artificial Intelligence',
+        link: 'https://drive.google.com/file/d/1DziGZtpJhJqY2rtcrJTR_nieNCnOmTqU/view?usp=drive_link'
+    },
+    'BCS071': {
+        subject: 'Cloud Computing',
+        link: 'https://drive.google.com/file/d/1pC9I6e-hXSlL15wCavgJGhHYDgcg4hjk/view?usp=drive_link'
+    },
+    'BCS072': {
+        subject: 'Cryptography and Network Security',
+        link: 'https://drive.google.com/file/d/1Wl5ujswnuTGa_FOePdvY_PbvpKHZA38x/view?usp=drive_link'
+    },
     // Add more subjects for all semesters...
 };

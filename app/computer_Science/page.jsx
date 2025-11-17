@@ -62,19 +62,13 @@ export default function StudyMaterialsPage() {
              
         ],
         7: [
-            { subject: 'Project Management', code: 'CS701', icon: Code },
-            { subject: 'Software Testing', code: 'CS702', icon: BookOpen },
-            { subject: 'Elective I', code: 'CS703', icon: FileText },
-            { subject: 'Elective II', code: 'CS704', icon: BookMarked },
-            { subject: 'Industry Internship', code: 'CS705', icon: Lightbulb },
-            { subject: 'Mini Project', code: 'CS706', icon: GraduationCap }
+            { subject: 'Artificial Intelligence', code: 'BCS701', icon: Code },
+            { subject: 'Cloud Computing', code: 'BCS07', icon: BookOpen },
+         
+
         ],
         8: [
-            { subject: 'Major Project', code: 'CS801', icon: Code },
-            { subject: 'Elective III', code: 'CS802', icon: BookOpen },
-            { subject: 'Elective IV', code: 'CS803', icon: FileText },
-            { subject: 'Seminar', code: 'CS804', icon: BookMarked },
-            { subject: 'Professional Ethics', code: 'CS805', icon: GraduationCap }
+            { subject: 'Cryptography and Network Security', code: 'BCS072', icon: FileText },
         ]
   };
     useEffect(() => {
@@ -276,12 +270,12 @@ export default function StudyMaterialsPage() {
     const syllabusLinks = {
       1: "https://aktu.ac.in/pdf/syllabus/syllabus2223/Syllabus_BTech_First_Yr_Common_other_than_AG_&_BT_effective_from_2022_23_R.pdf",
       2: "https://aktu.ac.in/pdf/syllabus/syllabus2223/Syllabus_BTech_First_Yr_Common_other_than_AG_&_BT_effective_from_2022_23_R.pdf",
-      3: "https://drive.google.com/file/d/1dTQ4kS0R1eoCIf0uYd74mNnC1y6gE3v1/view",
-      4: "https://drive.google.com/file/d/1mR7sEmTtSRz3lKpDPm6TH1UqLLQyeoAW/view",
-      5: "https://drive.google.com/file/d/1z0T4K8oZib6trE3A7z_VXxkRz4H8RcX7/view",
-      6: "https://drive.google.com/file/d/1XnCJtObAWoz5K1PQHg6K1Vxcz4l2zq7M/view",
-      7: "https://drive.google.com/file/d/1dpR0HT2HQzX1zyQ1m5vE2hKPYvZJSkci/view",
-      8: "https://drive.google.com/file/d/1S7c4VZxMo2bEVoHuAQ0tH0AfLrFlZbRr/view",
+      3: "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2324/B.Tech_2nd_Yr_CSE_v3.pdf",
+      4: "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2324/B.Tech_2nd_Yr_CSE_v3.pdf",
+      5: "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2425/B.Tech.%20CS_CE%20and%20CSE%20Syllabus%20%203rd%20Year%202024-25.pdf",
+      6: "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2425/B.Tech.%20CS_CE%20and%20CSE%20Syllabus%20%203rd%20Year%202024-25.pdf",
+      7: "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2526/B.Tech.%20CS_CE%20and%20CSE%20Syllabus%20%204th%20Year%202025-26.pdf",
+      8: "https://fms.aktu.ac.in/Resources/aktu/pdf/syllabus/Syllabus2526/B.Tech.%20CS_CE%20and%20CSE%20Syllabus%20%204th%20Year%202025-26.pdf",
     };
     const hardcoded = hardcodedSubjects[selectedSemester] || [];
     const apiData = apiMaterials[selectedSemester] || [];
@@ -442,7 +436,7 @@ export default function StudyMaterialsPage() {
                         </div>
 
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight px-4">
-                            Study Materials Portal
+                            Study Materials Portal For Computer Science Engineering
                         </h1>
 
                         <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto px-4">
