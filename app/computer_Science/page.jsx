@@ -726,6 +726,73 @@ export default function StudyMaterialsPage() {
                 </div>
             )}
 
+            {/* PYQ Years Modal */}
+            {showMaterialModal && selectedMaterial && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden dark:bg-zinc-900">
+                        {/* Modal Header */}
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-lg font-bold">{getMaterialDisplayName(selectedMaterial.type)}</h2>
+                                    <p className="text-sm text-white/90 mt-0.5">{selectedMaterial.subject} - {selectedMaterial.code}</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowMaterialModal(false);
+                                        setSelectedMaterial(null);
+                                    }}
+                                    className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Modal Content - Scrollable */}
+                        <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
+                            <div className="space-y-3">
+                                {selectedMaterial.data.years.map((yearData, index) => (
+                                    <div
+                                        key={index}
+                                        className="border-2 border-slate-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-md transition-all dark:border-zinc-700 dark:hover:border-blue-500"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center dark:bg-blue-900/30">
+                                                    <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-slate-900 dark:text-white">Year {yearData.year}</h3>
+                                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-zinc-400">
+                                                        <span className="flex items-center gap-1">
+                                                            <FileText className="w-3 h-3" />
+                                                            {yearData.type}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <Download className="w-3 h-3" />
+                                                            {yearData.downloads} downloads
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDownload(yearData.items[0]?.link)}
+                                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                <span>Download</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
             {/* Book Not Found Modal */}
             {showBookNotFoundModal && notFoundSubject && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
