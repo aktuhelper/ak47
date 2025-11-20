@@ -4,20 +4,23 @@ import { BookOpen, FileText, Download, Search, Calendar, Star, TrendingUp, Check
 import { getStudyMaterials } from '../_utils/GlobalApi';
 import { BOOK_LINKS } from '../_utils/bookLinks';
 export default function StudyMaterialsPage() {
-    const [selectedSemester, setSelectedSemester] = useState(1);
     const [customerEmail, setCustomerEmail] = useState('');
-    const [customerName, setCustomerName] = useState('');
-    const [isLoadingPayment, setIsLoadingPayment] = useState(false);
-     const [showBookNotFoundModal, setShowBookNotFoundModal] = useState(false);
+    const [isLoadingDownload, setIsLoadingDownload] = useState(false);
+    const [showBookNotFoundModal, setShowBookNotFoundModal] = useState(false);
     const [notFoundSubject, setNotFoundSubject] = useState({ name: '', code: '' });
+    const [customerName, setCustomerName] = useState('');
+    const [selectedSemester, setSelectedSemester] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [showMaterialModal, setShowMaterialModal] = useState(false);
     const [selectedMaterial, setSelectedMaterial] = useState(null);
     const [apiMaterials, setApiMaterials] = useState({});
     const [loading, setLoading] = useState(true);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPaymentSubject, setSelectedPaymentSubject] = useState(null);
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [showDonateModal, setShowDonateModal] = useState(false);
+    const [donationAmount, setDonationAmount] = useState(20);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [selectedDownloadSubject, setSelectedDownloadSubject] = useState(null);
     // Hardcoded subject names and codes for SEO
     const hardcodedSubjects = {
         1: [
@@ -107,8 +110,18 @@ export default function StudyMaterialsPage() {
           }
   
           fetchAllSemesters();
-      }, []);
-    const handlePayment = async () => {
+    }, []);
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+    const handleFreeDownload = async () => {
         try {
             // Validate email
             if (!customerEmail || !customerName) {
@@ -116,89 +129,52 @@ export default function StudyMaterialsPage() {
                 return;
             }
 
-            // ✅ START LOADING
-            setIsLoadingPayment(true);
-
-            const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-
-            if (!razorpayKeyId) {
-                alert('Payment configuration error. Please contact support.');
-                console.error('Missing NEXT_PUBLIC_RAZORPAY_KEY_ID');
-                setIsLoadingPayment(false); // Stop loading
+            // Validate selectedDownloadSubject exists
+            if (!selectedDownloadSubject || !selectedDownloadSubject.code) {
+                alert('Please select a subject first');
                 return;
             }
 
-            // Create order
-            const response = await fetch('/api/create-order', {
+            setIsLoadingDownload(true);
+
+            console.log('Sending free download request with:', {
+                email: customerEmail,
+                name: customerName,
+                subjectCode: selectedDownloadSubject.code,
+                subjectName: selectedDownloadSubject.name,
+            });
+
+            // Send book link via email
+            const response = await fetch('/api/send-book-link', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    amount: 10, // ₹1
-                    subjectCode: selectedPaymentSubject.code,
-                    subjectName: selectedPaymentSubject.name,
+                    email: customerEmail,
+                    name: customerName,
+                    subjectCode: selectedDownloadSubject.code,
+                    subjectName: selectedDownloadSubject.name,
                 }),
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create order');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to send email');
             }
 
-            const { orderId, amount } = await response.json();
+            alert(`✅ Download link sent to ${customerEmail}! Please check your inbox.`);
+            setShowDownloadModal(false);
+            setShowDonateModal(false); // Also close donate modal if it's open
 
-            // Load Razorpay script
-            const script = document.createElement('script');
-            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-            script.async = true;
-            document.body.appendChild(script);
-
-            script.onload = () => {
-                // ✅ STOP LOADING when Razorpay is ready
-                setIsLoadingPayment(false);
-
-                const options = {
-                    key: razorpayKeyId,
-                    amount: amount,
-                    currency: 'INR',
-                    name: 'AKTU Helper',
-                    description: `${selectedPaymentSubject.name} - Quantum Book`,
-                    order_id: orderId,
-                    handler: function (response) {
-                        alert(`Payment successful! Download link sent to ${customerEmail}`);
-                        setShowPaymentModal(false);
-                        // Reset form
-                        setCustomerEmail('');
-                        setCustomerName('');
-                    },
-                    prefill: {
-                        name: customerName,
-                        email: customerEmail,
-                        contact: '',
-                    },
-                    theme: {
-                        color: '#3B82F6',
-                    },
-                    modal: {
-                        ondismiss: function () {
-                            console.log('Payment cancelled by user');
-                            // Reset loading if user closes modal
-                            setIsLoadingPayment(false);
-                        }
-                    }
-                };
-
-                const razorpay = new window.Razorpay(options);
-                razorpay.open();
-            };
-
-            script.onerror = () => {
-                setIsLoadingPayment(false); // Stop loading on error
-                alert('Failed to load payment gateway. Please try again.');
-            };
+            // Reset form
+            setCustomerEmail('');
+            setCustomerName('');
+            setSelectedDownloadSubject(null);
 
         } catch (error) {
-            console.error('Payment failed:', error);
-            setIsLoadingPayment(false); // Stop loading on error
-            alert('Payment initiation failed. Please try again.');
+            console.error('Failed to send download link:', error);
+            alert(`❌ Failed to send email: ${error.message}`);
+        } finally {
+            setIsLoadingDownload(false);
         }
     };
 
@@ -257,15 +233,109 @@ export default function StudyMaterialsPage() {
             });
             setShowBookNotFoundModal(true);
         } else {
-            // Book available - show payment modal
-            setSelectedPaymentSubject({
+            // Book available - show DONATION modal instead of free download
+            setSelectedDownloadSubject({
                 name: subjectName,
                 code: subjectCode
             });
-            setShowPaymentModal(true);
+            setShowDonateModal(true); // Changed from setShowDownloadModal
         }
     };
-  const getMergedMaterials = () => {
+    const handleDonateAndDownload = async () => {
+        try {
+            if (!customerEmail || !customerName) {
+                alert('Please enter your name and email address');
+                return;
+            }
+
+            if (donationAmount < 20) {
+                alert('Minimum donation amount is ₹20');
+                return;
+            }
+
+            setIsProcessingPayment(true);
+
+            // Create Razorpay order with customer details
+            const orderResponse = await fetch('/api/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: donationAmount,
+                    subjectCode: selectedDownloadSubject.code,
+                    subjectName: selectedDownloadSubject.name,
+                    customerName: customerName,      // ADDED
+                    customerEmail: customerEmail,    // ADDED
+                }),
+            });
+
+            const orderData = await orderResponse.json();
+
+            if (!orderData.id) {
+                throw new Error(orderData.error || 'Failed to create order');
+            }
+
+            // Initialize Razorpay
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: orderData.amount,
+                currency: 'INR',
+                name: 'AKTUHELPER',
+                description: `${selectedDownloadSubject.name} - Quantum Book`,
+                order_id: orderData.id,
+                prefill: {
+                    name: customerName,
+                    email: customerEmail,
+                },
+                theme: {
+                    color: '#3B82F6',
+                },
+                handler: function (response) {
+                    // Payment successful
+                    handlePaymentSuccess(response);
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsProcessingPayment(false);
+                        console.log('Payment cancelled by user');
+                    }
+                }
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+
+        } catch (error) {
+            console.error('Payment failed:', error);
+            alert(error.message || 'Payment failed. Please try again.');
+            setIsProcessingPayment(false);
+        }
+    };
+    const handlePaymentSuccess = async (paymentResponse) => {
+        try {
+            // Show success message
+            alert(`🎉 Payment successful! 
+        
+Thank you for your donation of ₹${donationAmount}!
+
+You will receive the download link at ${customerEmail} within a few moments.
+
+Payment ID: ${paymentResponse.razorpay_payment_id}`);
+
+            // Close modal and reset form
+            setShowDonateModal(false);
+            setCustomerEmail('');
+            setCustomerName('');
+            setDonationAmount(1);
+            setIsProcessingPayment(false);
+
+        } catch (error) {
+            console.error('Post-payment processing error:', error);
+            alert('Payment successful but there was an issue. Please check your email or contact support.');
+            setIsProcessingPayment(false);
+        }
+    };
+
+    const getMergedMaterials = () => {
     // Hardcoded syllabus links for CSE branch
     const syllabusLinks = {
       1: "https://aktu.ac.in/pdf/syllabus/syllabus2223/Syllabus_BTech_First_Yr_Common_other_than_AG_&_BT_effective_from_2022_23_R.pdf",
@@ -616,37 +686,72 @@ export default function StudyMaterialsPage() {
                     </div>
                 </div>
             </div>
-
-            {/* Razorpay Payment Modal - COMPACT */}
-            {showPaymentModal && selectedPaymentSubject && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full dark:bg-zinc-900">
+            {/* Optimized Donation Modal - Responsive */}
+            {showDonateModal && selectedDownloadSubject && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+                    <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-md my-4 dark:bg-zinc-900 animate-in fade-in zoom-in duration-300">
                         {/* Modal Header - Compact */}
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-lg font-bold">Download Book</h2>
-                                    <p className="text-sm text-white/90 mt-0.5">{selectedPaymentSubject.name}</p>
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 sm:p-4 text-white relative overflow-hidden">
+                            <div className="absolute inset-0 bg-white/10 animate-pulse"></div>
+                            <div className="relative flex items-center justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                    <h2 className="text-base sm:text-lg font-bold flex items-center gap-2 truncate">
+                                        📚 Download Your Book
+                                    </h2>
+                                    <p className="text-xs sm:text-sm text-white/90 mt-0.5 truncate">{selectedDownloadSubject.name}</p>
                                 </div>
                                 <button
                                     onClick={() => {
-                                        setShowPaymentModal(false);
+                                        setShowDonateModal(false);
                                         setCustomerEmail('');
                                         setCustomerName('');
+                                        setDonationAmount(1);
                                     }}
-                                    className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
+                                    className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all flex-shrink-0"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Modal Content - Compact */}
-                        <div className="p-5">
-                            {/* Email Input Form */}
-                            <div className="mb-4 space-y-3">
+                        {/* Modal Content - Scrollable */}
+                        <div className="p-4 sm:p-5 max-h-[calc(100vh-120px)] overflow-y-auto">
+                            {/* Emotional Appeal Box - Compact */}
+                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 text-4xl sm:text-6xl opacity-10">💝</div>
+                                <div className="relative">
+                                    <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 animate-bounce shadow-lg">
+                                            <span className="text-xl sm:text-2xl">❤️</span>
+                                        </div>
+                                        <div className="text-xs sm:text-sm text-slate-800 dark:text-zinc-200">
+                                            <p className="font-bold text-sm sm:text-base mb-1">🙏 Help Keep This Free!</p>
+                                            <p className="leading-relaxed">We've helped <strong>50,000+ students</strong>. Your donation keeps materials free for all.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Impact Stats - Mobile Optimized */}
+                                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-2 sm:mt-3">
+                                        <div className="bg-white/60 dark:bg-zinc-800/60 rounded p-1.5 sm:p-2 text-center">
+                                            <div className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">50K+</div>
+                                            <div className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">Students</div>
+                                        </div>
+                                        <div className="bg-white/60 dark:bg-zinc-800/60 rounded p-1.5 sm:p-2 text-center">
+                                            <div className="text-base sm:text-lg font-bold text-green-600 dark:text-green-400">Free</div>
+                                            <div className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">Forever</div>
+                                        </div>
+                                        <div className="bg-white/60 dark:bg-zinc-800/60 rounded p-1.5 sm:p-2 text-center">
+                                            <div className="text-base sm:text-lg font-bold text-purple-600 dark:text-purple-400">24/7</div>
+                                            <div className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">Available</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* User Details Form - Compact */}
+                            <div className="mb-3 sm:mb-4 space-y-2 sm:space-y-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1 dark:text-zinc-300">
+                                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 dark:text-zinc-300">
                                         Your Name *
                                     </label>
                                     <input
@@ -654,12 +759,12 @@ export default function StudyMaterialsPage() {
                                         value={customerName}
                                         onChange={(e) => setCustomerName(e.target.value)}
                                         placeholder="Enter your name"
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
+                                        className="w-full px-3 py-2 text-sm sm:text-base border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1 dark:text-zinc-300">
+                                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 dark:text-zinc-300">
                                         Email Address *
                                     </label>
                                     <input
@@ -667,131 +772,118 @@ export default function StudyMaterialsPage() {
                                         value={customerEmail}
                                         onChange={(e) => setCustomerEmail(e.target.value)}
                                         placeholder="your@email.com"
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
+                                        className="w-full px-3 py-2 text-sm sm:text-base border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
                                         required
                                     />
-                                    <p className="text-xs text-slate-500 mt-1 dark:text-zinc-400">
-                                        📧 Download link will be sent to this email
+                                    <p className="text-[10px] sm:text-xs text-slate-500 mt-1 dark:text-zinc-400">
+                                        📧 Download link will be sent here
                                     </p>
                                 </div>
                             </div>
 
+                            {/* Donation Section - Compact */}
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-300 dark:border-green-700 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+                                <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-2 dark:text-zinc-200 flex items-center gap-1.5 sm:gap-2">
+                                    <span className="text-base sm:text-lg">💝</span>
+                                    <span className="text-xs sm:text-sm">Support Us (Optional!)</span>
+                                </label>
+                                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                                    {[20, 50, 100, 200].map((amount) => (
+                                        <button
+                                            key={amount}
+                                            onClick={() => setDonationAmount(amount)}
+                                            className={`py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all transform hover:scale-105 ${donationAmount === amount
+                                                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
+                                                : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:border-zinc-600'
+                                                }`}
+                                        >
+                                            ₹{amount}
+                                        </button>
+                                    ))}
+                                </div>
+                                <input
+                                    type="number"
+                                    value={donationAmount}
+                                    onChange={(e) => setDonationAmount(Math.max(20, parseInt(e.target.value) || 20))}
+                                    min="20"
+                                    placeholder="Custom (min ₹20)"
+                                    className="w-full px-3 py-2 text-sm sm:text-base border border-green-300 dark:border-green-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-slate-900 dark:bg-zinc-800 dark:text-white"
+                                />
+                                <p className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400 mt-1.5 sm:mt-2 text-center">
+                                    ✨ <strong>Every ₹1</strong> helps us serve 10 more students!
+                                </p>
+                            </div>
+
                             {/* Features List - Compact */}
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 dark:bg-blue-900/20 dark:border-blue-800">
-                                <div className="space-y-1.5">
-                                    <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-zinc-300">
-                                        <CheckCircle className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                                        <span>Complete PDF with Solutions</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-zinc-300">
-                                        <CheckCircle className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                                        <span>Previous Year Questions</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-zinc-300">
-                                        <CheckCircle className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                                        <span>Instant Download Access</span>
-                                    </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 sm:p-3 mb-3 sm:mb-4 dark:bg-blue-900/20 dark:border-blue-800">
+                                <div className="space-y-1 sm:space-y-1.5">
+                                    {['Complete PDF with Solutions', 'Previous Year Questions', 'Instant Download via Email'].map((feature) => (
+                                        <div key={feature} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-slate-700 dark:text-zinc-300">
+                                            <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                            <span>{feature}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
-                            {/* Razorpay Payment Button */}
-                            <div className="flex justify-center mb-4">
+                            {/* Action Buttons - Mobile Optimized */}
+                            <div className="space-y-2 sm:space-y-3">
+                                {/* Donate Button */}
                                 <button
-                                    onClick={handlePayment}
-                                    disabled={!customerEmail || !customerName || isLoadingPayment}
-                                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    onClick={handleDonateAndDownload}
+                                    disabled={!customerEmail || !customerName || isProcessingPayment || donationAmount < 20}
+                                    className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm sm:text-base font-bold hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group shadow-lg hover:shadow-xl transform hover:scale-105"
                                 >
-                                    {isLoadingPayment ? (
+                                    <div className="absolute inset-0 bg-white/20 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
+                                    {isProcessingPayment ? (
                                         <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            <span>Loading Payment...</span>
+                                            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin relative z-10" />
+                                            <span className="relative z-10">Processing...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span>Pay ₹10 & Download</span>
+                                            <span className="text-lg sm:text-xl relative z-10 animate-pulse">💝</span>
+                                            <span className="relative z-10">Donate ₹{donationAmount} & Download</span>
+                                            <span className="text-lg sm:text-xl relative z-10">🙏</span>
+                                        </>
+                                    )}
+                                </button>
+
+                                {/* Free Download Button */}
+                                <button
+                                    onClick={handleFreeDownload}
+                                    disabled={!customerEmail || !customerName || isLoadingDownload}
+                                    className="w-full py-2 sm:py-2.5 bg-slate-200 text-slate-700 rounded-lg text-sm sm:text-base font-medium hover:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                                >
+                                    {isLoadingDownload ? (
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                                            <span className="text-xs sm:text-sm">Sending...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                            <span className="text-xs sm:text-sm">Continue Without Donating</span>
                                         </>
                                     )}
                                 </button>
                             </div>
 
-                            {/* Security Note - Compact */}
-                            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-900/20 dark:border-amber-800">
-                                <Lightbulb className="w-4 h-4 text-amber-600 flex-shrink-0 dark:text-amber-400" />
-                                <p className="text-xs text-slate-600 dark:text-zinc-400">
-                                    Secure payment via Razorpay. Instant access after payment.
+                            {/* Footer Messages */}
+                            <p className="text-[10px] sm:text-xs text-center text-slate-500 dark:text-zinc-500 mt-2 sm:mt-3">
+                                No pressure! But your donation makes a huge difference 💙
+                            </p>
+
+                            <div className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg mt-2 sm:mt-4 dark:bg-green-900/20 dark:border-green-800">
+                                <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 flex-shrink-0 dark:text-green-400" />
+                                <p className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">
+                                    🔒 Secure payment via Razorpay. 100% safe & instant!
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* PYQ Years Modal */}
-            {showMaterialModal && selectedMaterial && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden dark:bg-zinc-900">
-                        {/* Modal Header */}
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 text-white">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-lg font-bold">{getMaterialDisplayName(selectedMaterial.type)}</h2>
-                                    <p className="text-sm text-white/90 mt-0.5">{selectedMaterial.subject} - {selectedMaterial.code}</p>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setShowMaterialModal(false);
-                                        setSelectedMaterial(null);
-                                    }}
-                                    className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Modal Content - Scrollable */}
-                        <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
-                            <div className="space-y-3">
-                                {selectedMaterial.data.years.map((yearData, index) => (
-                                    <div
-                                        key={index}
-                                        className="border-2 border-slate-200 rounded-xl p-4 hover:border-blue-400 hover:shadow-md transition-all dark:border-zinc-700 dark:hover:border-blue-500"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center dark:bg-blue-900/30">
-                                                    <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white">Year {yearData.year}</h3>
-                                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-zinc-400">
-                                                        <span className="flex items-center gap-1">
-                                                            <FileText className="w-3 h-3" />
-                                                            {yearData.type}
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Download className="w-3 h-3" />
-                                                            {yearData.downloads} downloads
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleDownload(yearData.items[0]?.link)}
-                                                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2"
-                                            >
-                                                <Download className="w-4 h-4" />
-                                                <span>Download</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
 
             {/* Book Not Found Modal */}
             {showBookNotFoundModal && notFoundSubject && (
@@ -901,6 +993,31 @@ export default function StudyMaterialsPage() {
                                         <Download className="w-3 h-3 sm:w-4 sm:h-4" />
                                         <span>Free Access</span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {/* Disclaimer Section */}
+            <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
+                <div className="max-w-7xl mx-auto">
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl sm:rounded-3xl p-6 sm:p-8 dark:bg-blue-900/10 dark:border-blue-800">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            </div>
+                            <div className="flex-grow">
+                                <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-3 dark:text-blue-400">
+                                    ⚠️ Disclaimer
+                                </h3>
+                                <div className="text-sm sm:text-base text-blue-800 dark:text-blue-300 space-y-2">
+                                    <p>
+                                        The PDF notes and study materials shared on this website, including content from sources like Quantum Series, educational websites, and Telegram channels, are intended for <strong>educational purposes only</strong>. We do not claim ownership of any materials unless explicitly mentioned. All rights belong to the original creators or publishers.
+                                    </p>
+                                    <p>
+                                        If you are the rightful owner of any content published here and wish for it to be removed, please contact us with proper verification. We will promptly take down the content upon receiving your request.
+                                    </p>
                                 </div>
                             </div>
                         </div>

@@ -6,6 +6,7 @@ import Footer from "./_HomePage_Components/Footer";
 import AktuheperChatbot from "./_HomePage_Components/AktuheperChatbot";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import TelegramButton from "./_HomePage_Components/TelegramButton";
 
 
 const outfit = Outfit({
@@ -41,7 +42,8 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
         <Navbar />
         <main>{children}</main>
-        <Footer />
+          <Footer />
+          <TelegramButton />
         <AktuheperChatbot />
       </ThemeProvider>
         {/* ✅ Vercel Analytics */}
