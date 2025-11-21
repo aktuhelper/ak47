@@ -18,7 +18,7 @@ export default function StudyMaterialsPage() {
     const [loading, setLoading] = useState(true);
     const [showDownloadModal, setShowDownloadModal] = useState(false);
     const [showDonateModal, setShowDonateModal] = useState(false);
-    const [donationAmount, setDonationAmount] = useState(20);
+    const [donationAmount, setDonationAmount] = useState('');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [selectedDownloadSubject, setSelectedDownloadSubject] = useState(null);
     // Hardcoded subject names and codes for SEO
@@ -325,7 +325,7 @@ Payment ID: ${paymentResponse.razorpay_payment_id}`);
             setShowDonateModal(false);
             setCustomerEmail('');
             setCustomerName('');
-            setDonationAmount(1);
+            setDonationAmount(20);
             setIsProcessingPayment(false);
 
         } catch (error) {
@@ -686,199 +686,133 @@ Payment ID: ${paymentResponse.razorpay_payment_id}`);
                     </div>
                 </div>
             </div>
-            {/* Optimized Donation Modal - Responsive */}
             {showDonateModal && selectedDownloadSubject && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-                    <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-md my-4 dark:bg-zinc-900 animate-in fade-in zoom-in duration-300">
-                        {/* Modal Header - Compact */}
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 sm:p-4 text-white relative overflow-hidden">
-                            <div className="absolute inset-0 bg-white/10 animate-pulse"></div>
-                            <div className="relative flex items-center justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                    <h2 className="text-base sm:text-lg font-bold flex items-center gap-2 truncate">
-                                        📚 Download Your Book
-                                    </h2>
-                                    <p className="text-xs sm:text-sm text-white/90 mt-0.5 truncate">{selectedDownloadSubject.name}</p>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="relative bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-3 text-white">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg">📚</span>
+                                    <h2 className="text-sm font-bold">Download Your Book</h2>
                                 </div>
                                 <button
                                     onClick={() => {
                                         setShowDonateModal(false);
                                         setCustomerEmail('');
                                         setCustomerName('');
-                                        setDonationAmount(1);
+                                        setDonationAmount('');
                                     }}
-                                    className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all flex-shrink-0"
+                                    className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
                                 >
-                                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    <X className="w-3.5 h-3.5" />
                                 </button>
                             </div>
+                            <p className="text-xs text-white/80 mt-0.5 truncate">{selectedDownloadSubject.name}</p>
                         </div>
 
-                        {/* Modal Content - Scrollable */}
-                        <div className="p-4 sm:p-5 max-h-[calc(100vh-120px)] overflow-y-auto">
-                            {/* Emotional Appeal Box - Compact */}
-                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 text-4xl sm:text-6xl opacity-10">💝</div>
-                                <div className="relative">
-                                    <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
-                                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 animate-bounce shadow-lg">
-                                            <span className="text-xl sm:text-2xl">❤️</span>
-                                        </div>
-                                        <div className="text-xs sm:text-sm text-slate-800 dark:text-zinc-200">
-                                            <p className="font-bold text-sm sm:text-base mb-1">🙏 Help Keep This Free!</p>
-                                            <p className="leading-relaxed">We've helped <strong>50,000+ students</strong>. Your donation keeps materials free for all.</p>
-                                        </div>
-                                    </div>
+                        {/* Content */}
+                        <div className="p-4 space-y-4">
 
-                                    {/* Impact Stats - Mobile Optimized */}
-                                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                                        <div className="bg-white/60 dark:bg-zinc-800/60 rounded p-1.5 sm:p-2 text-center">
-                                            <div className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">50K+</div>
-                                            <div className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">Students</div>
-                                        </div>
-                                        <div className="bg-white/60 dark:bg-zinc-800/60 rounded p-1.5 sm:p-2 text-center">
-                                            <div className="text-base sm:text-lg font-bold text-green-600 dark:text-green-400">Free</div>
-                                            <div className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">Forever</div>
-                                        </div>
-                                        <div className="bg-white/60 dark:bg-zinc-800/60 rounded p-1.5 sm:p-2 text-center">
-                                            <div className="text-base sm:text-lg font-bold text-purple-600 dark:text-purple-400">24/7</div>
-                                            <div className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">Available</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* User Details Form - Compact */}
-                            <div className="mb-3 sm:mb-4 space-y-2 sm:space-y-3">
+                            {/* User Info */}
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 dark:text-zinc-300">
-                                        Your Name *
-                                    </label>
+                                    <label className="block text-xs font-medium text-slate-600 dark:text-zinc-300 mb-1">Name *</label>
                                     <input
                                         type="text"
                                         value={customerName}
                                         onChange={(e) => setCustomerName(e.target.value)}
-                                        placeholder="Enter your name"
-                                        className="w-full px-3 py-2 text-sm sm:text-base border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
+                                        placeholder="Your name"
+                                        className="w-full px-2.5 py-1.5 text-sm border border-slate-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-zinc-800 dark:text-white"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1 dark:text-zinc-300">
-                                        Email Address *
-                                    </label>
+                                    <label className="block text-xs font-medium text-slate-600 dark:text-zinc-300 mb-1">Email *</label>
                                     <input
                                         type="email"
                                         value={customerEmail}
                                         onChange={(e) => setCustomerEmail(e.target.value)}
                                         placeholder="your@email.com"
-                                        className="w-full px-3 py-2 text-sm sm:text-base border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-zinc-500"
+                                        className="w-full px-2.5 py-1.5 text-sm border border-slate-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none dark:bg-zinc-800 dark:text-white"
                                         required
                                     />
-                                    <p className="text-[10px] sm:text-xs text-slate-500 mt-1 dark:text-zinc-400">
-                                        📧 Download link will be sent here
-                                    </p>
                                 </div>
                             </div>
 
-                            {/* Donation Section - Compact */}
-                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-300 dark:border-green-700 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
-                                <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-2 dark:text-zinc-200 flex items-center gap-1.5 sm:gap-2">
-                                    <span className="text-base sm:text-lg">💝</span>
-                                    <span className="text-xs sm:text-sm">Support Us (Optional!)</span>
-                                </label>
-                                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                            {/* Donation Section */}
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 rounded-lg p-3">
+                                <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200 mb-2 flex items-center gap-1.5">
+                                    <span>💝</span> Support Us (Optional)
+                                </p>
+
+                                <div className="flex gap-2 mb-2">
                                     {[20, 50, 100, 200].map((amount) => (
                                         <button
                                             key={amount}
                                             onClick={() => setDonationAmount(amount)}
-                                            className={`py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all transform hover:scale-105 ${donationAmount === amount
-                                                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
-                                                : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:border-zinc-600'
+                                            className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all ${donationAmount === amount
+                                                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm'
+                                                : 'bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-600 text-slate-600 dark:text-zinc-300 hover:border-green-300'
                                                 }`}
                                         >
                                             ₹{amount}
                                         </button>
                                     ))}
                                 </div>
-                                <input
-                                    type="number"
-                                    value={donationAmount}
-                                    onChange={(e) => setDonationAmount(Math.max(20, parseInt(e.target.value) || 20))}
-                                    min="20"
-                                    placeholder="Custom (min ₹20)"
-                                    className="w-full px-3 py-2 text-sm sm:text-base border border-green-300 dark:border-green-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-slate-900 dark:bg-zinc-800 dark:text-white"
-                                />
-                                <p className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400 mt-1.5 sm:mt-2 text-center">
-                                    ✨ <strong>Every ₹1</strong> helps us serve 10 more students!
+
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-slate-500 dark:text-zinc-400">Custom:</span>
+                                    <input
+                                        type="number"
+                                        value={donationAmount}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setDonationAmount(val === '' ? '' : parseInt(val) || '');
+                                        }}
+                                        min="20"
+                                        placeholder="Min ₹20"
+                                        className="flex-1 px-2 py-1 text-sm border border-green-200 dark:border-green-700 rounded-md focus:ring-1 focus:ring-green-500 outline-none dark:bg-zinc-800 dark:text-white"
+                                    />
+                                </div>
+
+                                <p className="text-center text-xs text-slate-500 dark:text-zinc-400 mt-2">
+                                    ✨ Every ₹1 helps us serve 10 more students!
                                 </p>
                             </div>
 
-                            {/* Features List - Compact */}
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 sm:p-3 mb-3 sm:mb-4 dark:bg-blue-900/20 dark:border-blue-800">
-                                <div className="space-y-1 sm:space-y-1.5">
-                                    {['Complete PDF with Solutions', 'Previous Year Questions', 'Instant Download via Email'].map((feature) => (
-                                        <div key={feature} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-slate-700 dark:text-zinc-300">
-                                            <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600 dark:text-green-400 flex-shrink-0" />
-                                            <span>{feature}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Action Buttons - Mobile Optimized */}
-                            <div className="space-y-2 sm:space-y-3">
-                                {/* Donate Button */}
+                            {/* Action Buttons */}
+                            <div className="space-y-2">
                                 <button
                                     onClick={handleDonateAndDownload}
-                                    disabled={!customerEmail || !customerName || isProcessingPayment || donationAmount < 20}
-                                    className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg text-sm sm:text-base font-bold hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 relative overflow-hidden group shadow-lg hover:shadow-xl transform hover:scale-105"
+                                    disabled={!customerEmail || !customerName || isProcessingPayment || !donationAmount || donationAmount < 20}
+                                    className="w-full py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    <div className="absolute inset-0 bg-white/20 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
                                     {isProcessingPayment ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin relative z-10" />
-                                            <span className="relative z-10">Processing...</span>
-                                        </>
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
                                     ) : (
-                                        <>
-                                            <span className="text-lg sm:text-xl relative z-10 animate-pulse">💝</span>
-                                            <span className="relative z-10">Donate ₹{donationAmount} & Download</span>
-                                            <span className="text-lg sm:text-xl relative z-10">🙏</span>
-                                        </>
+                                        <>💝 Donate {donationAmount ? '₹' + donationAmount : ''} and Download</>
                                     )}
                                 </button>
 
-                                {/* Free Download Button */}
                                 <button
                                     onClick={handleFreeDownload}
                                     disabled={!customerEmail || !customerName || isLoadingDownload}
-                                    className="w-full py-2 sm:py-2.5 bg-slate-200 text-slate-700 rounded-lg text-sm sm:text-base font-medium hover:bg-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                                    className="w-full py-2 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 rounded-lg text-xs font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                                 >
                                     {isLoadingDownload ? (
-                                        <>
-                                            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
-                                            <span className="text-xs sm:text-sm">Sending...</span>
-                                        </>
+                                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending...</>
                                     ) : (
-                                        <>
-                                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                            <span className="text-xs sm:text-sm">Continue Without Donating</span>
-                                        </>
+                                        <><Download className="w-3.5 h-3.5" /> Continue Without Donating</>
                                     )}
                                 </button>
                             </div>
 
-                            {/* Footer Messages */}
-                            <p className="text-[10px] sm:text-xs text-center text-slate-500 dark:text-zinc-500 mt-2 sm:mt-3">
-                                No pressure! But your donation makes a huge difference 💙
-                            </p>
-
-                            <div className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg mt-2 sm:mt-4 dark:bg-green-900/20 dark:border-green-800">
-                                <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 flex-shrink-0 dark:text-green-400" />
-                                <p className="text-[10px] sm:text-xs text-slate-600 dark:text-zinc-400">
-                                    🔒 Secure payment via Razorpay. 100% safe & instant!
-                                </p>
+                            {/* Footer */}
+                            <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 dark:text-zinc-500">
+                                <Lightbulb className="w-3 h-3" />
+                                <span>🔒 Secure payment via Razorpay</span>
                             </div>
                         </div>
                     </div>
@@ -966,7 +900,65 @@ Payment ID: ${paymentResponse.razorpay_payment_id}`);
                     </div>
                 </div>
             )}
+            {/* PYQ Modal*/}
+            {/* PYQ Years Modal */}
+            {showMaterialModal && selectedMaterial && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full dark:bg-zinc-900">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-3 text-white">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-sm font-bold">{selectedMaterial.subject}</h2>
+                                    <p className="text-xs text-white/80">{selectedMaterial.code}</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowMaterialModal(false);
+                                        setSelectedMaterial(null);
+                                    }}
+                                    className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </div>
 
+                        {/* Content */}
+                        <div className="p-4 max-h-96 overflow-y-auto">
+                            <div className="space-y-2">
+                                {selectedMaterial.data.years.map((yearData, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-zinc-800 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                                                <FileQuestion className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                                    Year {yearData.year}
+                                                </p>
+                                                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                                                    {yearData.items.length} paper{yearData.items.length > 1 ? 's' : ''}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleDownload(yearData.items[0].link)}
+                                            className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                            Download
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Quick Tips Section */}
             <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
                 <div className="max-w-7xl mx-auto">

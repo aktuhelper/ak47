@@ -155,7 +155,36 @@ p {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   transition: background 0.3s ease, border-color 0.3s ease;
 }
+/* modal css */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes overlayFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-modal-content {
+  animation: modalFadeIn 0.25s ease-out forwards;
+}
+
+.animate-modal-overlay {
+  animation: overlayFade 0.2s ease-out forwards;
+}
 .dark .sticky-navbar {
   background: rgba(0, 0, 0, 0.9);
   border-bottom: 1px solid #27272a;
