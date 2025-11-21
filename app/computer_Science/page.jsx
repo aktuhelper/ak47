@@ -75,7 +75,19 @@ export default function StudyMaterialsPage() {
         ]
   };
     useEffect(() => {
-          document.title = "Btech Computer Science Study Materials | AKTU Helper";
+        document.title = "B.Tech CSE Study Materials | AKTU Notes, PYQ, Quantum Books - AKTU Helper";
+
+        // Meta description
+        const metaDesc = document.querySelector('meta[name="description"]') || document.createElement('meta');
+        metaDesc.name = "description";
+        metaDesc.content = "Download free AKTU B.Tech Computer Science study materials - Syllabus, Previous Year Question Papers, Quantum Books of First Year, Second Year ,Third Year,Fourth Year & Handwritten Notes for Semester 1-8. BCS301, BCS501, BCS601 and more.";
+        document.head.appendChild(metaDesc);
+
+        // Keywords
+        const metaKeywords = document.createElement('meta');
+        metaKeywords.name = "keywords";
+        metaKeywords.content = "AKTU study materials, B.Tech CSE notes,First Year quantum,Second Year quantum,Third Year Quantum,Fourth Year Quantum, AKTU PYQ, Quantum books PDF, BCS301, BCS501, BCS601, AKTU syllabus 2024-25, computer science engineering notes";
+        document.head.appendChild(metaKeywords);
     }, []);
     useEffect(() => {
           async function fetchAllSemesters() {
@@ -959,6 +971,27 @@ Payment ID: ${paymentResponse.razorpay_payment_id}`);
                     </div>
                 </div>
             )}
+            {/* SEO Content Section */}
+            <div className="relative px-4 sm:px-6 py-12">
+                <div className="max-w-7xl mx-auto">
+                    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                            AKTU B.Tech Computer Science Engineering Study Materials
+                        </h2>
+                        <div className="prose prose-slate dark:prose-invert max-w-none text-sm text-slate-600 dark:text-zinc-400 space-y-4">
+                            <p>
+                                Welcome to the most comprehensive collection of <strong>Dr. APJ Abdul Kalam Technical University (AKTU)</strong> study materials for B.Tech Computer Science & Engineering students. Access free PDF downloads including syllabus, previous year question papers (PYQ), Quantum series books, and handwritten notes for all 8 semesters.
+                            </p>
+                            <p>
+                                Our collection covers essential CSE subjects including <strong>Data Structures (BCS301)</strong>, <strong>Database Management System (BCS501)</strong>, <strong>Computer Networks (BCS603)</strong>, <strong>Software Engineering (BCS601)</strong>, <strong>Compiler Design (BCS602)</strong>, <strong>Artificial Intelligence (BCS701)</strong>, and many more as per the latest AKTU syllabus 2024-25.
+                            </p>
+                            <p>
+                                Whether you're preparing for semester exams, looking for solved question papers, or need quick revision notes, AKTU Helper provides all resources in one place. Download Quantum books PDF, access year-wise PYQ papers from 2019-2024, and get updated syllabus for each semester.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {/* Quick Tips Section */}
             <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
                 <div className="max-w-7xl mx-auto">
