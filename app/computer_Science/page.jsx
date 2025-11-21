@@ -522,7 +522,7 @@ Payment ID: ${paymentResponse.razorpay_payment_id}`);
                         </h1>
 
                         <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto px-4">
-                            Access semester-wise syllabus, notes, PYQs, and Quantum books all in one place
+                            Access semester-wise syllabus, notes, PYQs, and Quantum books of First Year, Second  Year, Third Year ,Fourth Year all in one place
                         </p>
                     </div>
 
@@ -992,38 +992,8 @@ Payment ID: ${paymentResponse.razorpay_payment_id}`);
                     </div>
                 </div>
             </div>
-            {/* Quick Tips Section */}
-            <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
-                <div className="max-w-7xl mx-auto">
-                    <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-white shadow-2xl">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0">
-                                <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8" />
-                            </div>
-                            <div className="flex-grow">
-                                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Study Smart, Not Hard!</h3>
-                                <p className="text-sm sm:text-base text-white/90 mb-4">
-                                    Download materials early, make notes, solve PYQs regularly, and refer to Quantum books for comprehensive preparation.
-                                </p>
-                                <div className="flex flex-wrap gap-2 sm:gap-3">
-                                    <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
-                                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span>Regular Updates</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
-                                        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span>Quality Content</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
-                                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span>Free Access</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
+                   
             {/* Disclaimer Section */}
             <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
                 <div className="max-w-7xl mx-auto">
