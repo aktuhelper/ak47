@@ -21,7 +21,7 @@ export default function StudyMaterialsPage() {
     const [donationAmount, setDonationAmount] = useState('');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [selectedDownloadSubject, setSelectedDownloadSubject] = useState(null);
-    // Hardcoded subject names and codes for SEO
+    
     const hardcodedSubjects = {
         1: [
             { subject: 'Engineering Chemistry', code: 'BAS102', icon: Code },
@@ -40,7 +40,7 @@ export default function StudyMaterialsPage() {
             { subject: 'Math IV', code: 'BAS303', icon: Code },
             { subject: 'UHV(Universal Human Value and Professional Ethics)', code: 'BVE301', icon: BookOpen },
             { subject: 'Technical Communication ', code: 'BAS301', icon: FileText },
-            { subject: 'Data Structure ', code: 'BCS301 ', icon: BookMarked },
+            { subject: 'Data Structure ', code: 'BCS301', icon: BookMarked },
            
         ],
         4: [
@@ -992,8 +992,7 @@ Payment ID: ${paymentResponse.razorpay_payment_id}`);
                     </div>
                 </div>
             </div>
-           
-                   
+            
             {/* Disclaimer Section */}
             <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
                 <div className="max-w-7xl mx-auto">
