@@ -8,7 +8,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import TelegramButton from "./_HomePage_Components/TelegramButton";
 
-
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
@@ -30,7 +29,33 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* ✅ Global Google AdSense Script */}
+
+        {/* ✅ Ezoic CMP scripts */}
+        <Script
+          src="https://cmp.gatekeeperconsent.com/min.js"
+          strategy="beforeInteractive"
+          data-cfasync="false"
+        />
+        <Script
+          src="https://the.gatekeeperconsent.com/cmp.min.js"
+          strategy="beforeInteractive"
+          data-cfasync="false"
+        />
+
+        {/* ✅ Ezoic Standalone Ads Script */}
+        <Script
+          src="//www.ezojs.com/ezoic/sa.min.js"
+          async
+          strategy="beforeInteractive"
+        />
+        <Script id="ezoic-standalone-init" strategy="beforeInteractive">
+          {`
+            window.ezstandalone = window.ezstandalone || {};
+            ezstandalone.cmd = ezstandalone.cmd || [];
+          `}
+        </Script>
+
+        {/* ✅ AdSense Global Script */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2119897152920774"
@@ -40,13 +65,13 @@ export default function RootLayout({ children }) {
 
       <body className={`${outfit.variable} antialiased`}>
         <ThemeProvider>
-        <Navbar />
-        <main>{children}</main>
+          <Navbar />
+          <main>{children}</main>
           <Footer />
           <TelegramButton />
-        <AktuheperChatbot />
-      </ThemeProvider>
-        {/* ✅ Vercel Analytics */}
+          <AktuheperChatbot />
+        </ThemeProvider>
+
         <Analytics />
       </body>
     </html>
