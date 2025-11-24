@@ -7,7 +7,11 @@ import AskQueryPage from '../_loggedinHome/AskQueryPage'
 import TrendingQueries from '../_loggedinHome/trendingquery'
 import UserQueries from '../_loggedinHome/userquery'
 import MyCollegePage from '../_loggedinHome/mycollege'
-import CompleteProfilePage from '../_loggedinHome/mycollege'
+import CompleteProfilePage from '../_loggedinHome/profile'
+
+
+
+
 const Page = () => {
     const [activeTab, setActiveTab] = useState('home')
 
@@ -18,9 +22,9 @@ const Page = () => {
                 {activeTab === 'home' && <HomePagee />}
                 {activeTab === 'ask-query' && <AskQueryPage />}
                 {/* Add other tabs as needed */}
-                {activeTab === 'trending-queries' && <TrendingQueries/>}
-                {activeTab === 'my-college-queries' && <MyCollegePage/>}
-                {activeTab === 'my-queries' && <UserQueries/>}
+                {activeTab === 'trending-queries' && <TrendingQueries />}
+                {activeTab === 'my-college-queries' && <MyCollegePage />}
+                {activeTab === 'my-queries' && <UserQueries />}
                 {activeTab === 'Profile' && <CompleteProfilePage />}
             </div>
         </>
