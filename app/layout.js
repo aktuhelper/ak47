@@ -1,3 +1,4 @@
+"use client";
 import { Outfit } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -7,6 +8,7 @@ import AktuheperChatbot from "./_HomePage_Components/AktuheperChatbot";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import TelegramButton from "./_HomePage_Components/TelegramButton";
+import { usePathname } from "next/navigation";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -14,18 +16,25 @@ const outfit = Outfit({
   display: "swap",
 });
 
-export const metadata = {
-  title: "Aktuhelper Home Page",
-  description: "Professional Homepage built with Outfit font",
-  icons: {
-    icon: "/logoxxx.svg",
-  },
-  other: {
-    "algolia-site-verification": "6C788F7C6ADC5113",
-  },
-};
+
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+
+  // Routes where footer should be hidden
+  const hideFooterRoutes = [
+    '/campusconnecthome',
+    '/dashboard',
+    '/seniors',
+    '/juniors',
+    '/queries',
+    '/trending-queries'
+  ];
+
+  // Check if current path should hide footer
+  const shouldHideFooter = hideFooterRoutes.some(route =>
+    pathname?.startsWith(route)
+  );
   return (
     <html lang="en">
       <head>
@@ -67,7 +76,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <Navbar />
           <main>{children}</main>
-          <Footer />
+          {!shouldHideFooter && <Footer />}
           <TelegramButton />
           <AktuheperChatbot />
         </ThemeProvider>
