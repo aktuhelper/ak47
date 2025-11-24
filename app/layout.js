@@ -77,8 +77,8 @@ export default function RootLayout({ children }) {
           <Navbar />
           <main>{children}</main>
           {!shouldHideFooter && <Footer />}
-          <TelegramButton />
-          <AktuheperChatbot />
+          {!shouldHideFooter && < TelegramButton />}
+          {!shouldHideFooter && <AktuheperChatbot />}
         </ThemeProvider>
 
         <Analytics />

@@ -1,811 +1,856 @@
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-    CheckCircle2,
-    Star,
-    Pencil,
-    MessageCircle,
-    MapPin,
-    Calendar,
-    GraduationCap,
-    Code,
-    Sparkles,
-    Linkedin,
-    Github,
-    Globe,
-    Twitter,
-    Code2,
-    Instagram,
-    Link2,
-    Award,
-    Trophy,
-    Target,
-    Zap,
-    X,
-} from "lucide-react";
-;
+import { useState, useEffect, useRef } from 'react';
+import { X, Download, ChevronLeft, ChevronRight, Eye, MessageCircle, ThumbsUp, Award, Star, Search, FileText, Image as ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export default function CompleteProfilePage() {
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+export default function MyCollegePage() {
+    const [activeFilter, setActiveFilter] = useState('all');
+    const [activeCategory, setActiveCategory] = useState(null);
+    const [sortBy, setSortBy] = useState('latest');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedQuery, setSelectedQuery] = useState(null);
+    const [showAnswersModal, setShowAnswersModal] = useState(false);
+    const [showAddAnswerModal, setShowAddAnswerModal] = useState(false);
+    const [showImagePreview, setShowImagePreview] = useState(false);
+    const [previewAttachments, setPreviewAttachments] = useState([]);
+    const [previewIndex, setPreviewIndex] = useState(0);
+    const [markedHelpful, setMarkedHelpful] = useState(new Set());
+    const [answerText, setAnswerText] = useState('');
+    const [displayedQueries, setDisplayedQueries] = useState([]);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const observerTarget = useRef(null);
 
-    // TODO: remove mock functionality - this is mock data for the prototype
-    const [profile, setProfile] = useState({
-        id: "1",
-        userId: "user-1",
-        fullName: "Alex Morgan",
-        username: "alexmorgan",
-        bio: "Passionate about technology and innovation. Currently exploring AI/ML and full-stack development. Love participating in hackathons and building projects that make a difference. Always eager to learn new technologies and collaborate with talented individuals.",
-        avatarUrl: '/logo_192.png',
-        bannerUrl: '/banner.jpeg',
-        isVerified: 1,
-        isMentor: 1,
-        college: "Massachusetts Institute of Technology",
-        branch: "Computer Science & Engineering",
-        course: "B.Tech",
-        year: 3,
-        enrollmentYear: 2022,
-        graduationYear: 2026,
-        skills: ["C++", "Java", "DSA", "React", "TypeScript", "Node.js", "Python", "Docker"],
-        interests: ["AI", "Startups", "Hackathons", "College Clubs", "Web Development", "Open Source"],
-        linkedinUrl: "https://linkedin.com/in/alexmorgan",
-        githubUrl: "https://github.com/alexmorgan",
-        portfolioUrl: "https://alexmorgan.dev",
-        twitterUrl: "https://twitter.com/alexmorgan",
-        leetcodeUrl: "https://leetcode.com/alexmorgan",
-        instagramUrl: "https://instagram.com/alexmorgan",
-        queriesAsked: 45,
-        answersGiven: 128,
-        helpfulCount: 256,
-        totalViews: 12500,
-    });
-
-    const [formData, setFormData] = useState({
-        fullName: profile.fullName,
-        bio: profile.bio || "",
-        college: profile.college || "",
-        branch: profile.branch || "",
-        course: profile.course || "",
-        year: profile.year || 1,
-        enrollmentYear: profile.enrollmentYear || new Date().getFullYear(),
-        graduationYear: profile.graduationYear || new Date().getFullYear() + 4,
-        skills: profile.skills || [],
-        interests: profile.interests || [],
-        linkedinUrl: profile.linkedinUrl || "",
-        githubUrl: profile.githubUrl || "",
-        portfolioUrl: profile.portfolioUrl || "",
-        twitterUrl: profile.twitterUrl || "",
-        leetcodeUrl: profile.leetcodeUrl || "",
-        instagramUrl: profile.instagramUrl || "",
-    });
-
-    const [newSkill, setNewSkill] = useState("");
-    const [newInterest, setNewInterest] = useState("");
-
-    const isOwner = true; // TODO: remove mock functionality
-
-    // Helper functions
-    const getSeniorityBadge = (year, course) => {
-        if (!year) return "Student";
-        const isMBA = course?.toLowerCase().includes("mba");
-        if (isMBA) return year === 1 ? "MBA-1st" : "MBA-2nd";
-        switch (year) {
-            case 1: return "Fresher";
-            case 2: return "Junior";
-            case 3: return "Senior";
-            case 4: return "Super Senior";
-            default: return "Student";
-        }
+    //todo: remove mock functionality - replace with real user data
+    const currentUser = {
+        branch: 'CSE',
+        course: 'B.Tech',
+        college: 'Dr. A.P.J. Abdul Kalam Technical University (AKTU)',
     };
 
-    const getSeniorityGradient = (badge) => {
-        switch (badge) {
-            case "Fresher": return "from-emerald-500 to-teal-500";
-            case "Junior": return "from-blue-500 to-cyan-500";
-            case "Senior": return "from-purple-500 to-pink-500";
-            case "Super Senior": return "from-orange-500 to-red-500";
-            case "MBA-1st":
-            case "MBA-2nd": return "from-yellow-500 to-amber-500";
-            default: return "from-gray-500 to-slate-500";
-        }
-    };
-
-    const getYearSuffix = (year) => {
-        if (year === 1) return "1st";
-        if (year === 2) return "2nd";
-        if (year === 3) return "3rd";
-        return `${year}th`;
-    };
-
-    const formatBadgeText = () => {
-        if (!profile.year) return getSeniorityBadge(profile.year, profile.course);
-        const isMBA = profile.course?.toLowerCase().includes("mba");
-        const badge = getSeniorityBadge(profile.year, profile.course);
-        if (isMBA) return `${badge.split('-')[0]} • ${getYearSuffix(profile.year)} Year`;
-        return `${badge} • ${getYearSuffix(profile.year)} Year`;
-    };
-
-    // Event handlers
-    const handleEditProfile = () => {
-        setIsEditModalOpen(true);
-    };
-
-    const handleSaveProfile = () => {
-        console.log("Saving profile:", formData);
-        setProfile({ ...profile, ...formData });
-        setIsEditModalOpen(false);
-    };
-
-    const handleAskDoubt = () => {
-        alert("This would navigate to messaging or doubt submission!");
-    };
-
-    const handleAddSkill = () => {
-        if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-            setFormData({ ...formData, skills: [...formData.skills, newSkill.trim()] });
-            setNewSkill("");
-        }
-    };
-
-    const handleRemoveSkill = (skill) => {
-        setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) });
-    };
-
-    const handleAddInterest = () => {
-        if (newInterest.trim() && !formData.interests.includes(newInterest.trim())) {
-            setFormData({ ...formData, interests: [...formData.interests, newInterest.trim()] });
-            setNewInterest("");
-        }
-    };
-
-    const handleRemoveInterest = (interest) => {
-        setFormData({ ...formData, interests: formData.interests.filter(i => i !== interest) });
-    };
-
-    const seniorityBadge = getSeniorityBadge(profile.year, profile.course);
-
-    const skillColors = [
-        "bg-gradient-to-r from-blue-500 to-cyan-500",
-        "bg-gradient-to-r from-purple-500 to-pink-500",
-        "bg-gradient-to-r from-green-500 to-emerald-500",
-        "bg-gradient-to-r from-orange-500 to-red-500",
+    const categories = [
+        { id: 'academic', label: 'Academic' },
+        { id: 'career', label: 'Career' },
+        { id: 'college-life', label: 'College Life' },
+        { id: 'hostel', label: 'Hostel' },
+        { id: 'placements', label: 'Placements' },
+        { id: 'tech', label: 'Tech' },
+        { id: 'general', label: 'General Query' },
     ];
 
-    const interestColors = [
-        "bg-gradient-to-r from-violet-400 to-purple-400",
-        "bg-gradient-to-r from-pink-400 to-rose-400",
-        "bg-gradient-to-r from-cyan-400 to-blue-400",
-        "bg-gradient-to-r from-amber-400 to-yellow-400",
+    //todo: remove mock functionality - replace with API call
+    const generateMockQueries = (startId) => [
+        {
+            id: startId,
+            title: 'How to prepare for competitive programming?',
+            description: "I'm a second-year CSE student looking to start with competitive programming. What resources and practice platforms would you recommend?",
+            user: {
+                name: 'Rahul Sharma',
+                avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=user1',
+                college: 'AKTU',
+                branch: 'CSE',
+                year: 2,
+                mentorStatus: null,
+            },
+            category: 'Academic',
+            views: 234,
+            upvotes: 45,
+            attachments: [
+                {
+                    id: '1',
+                    type: 'image',
+                    url: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=800',
+                    name: 'coding-screenshot.png',
+                    thumbnail: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=200',
+                },
+            ],
+            answers: [
+                {
+                    id: 1,
+                    content: 'Start with Codeforces and LeetCode. Practice daily and focus on understanding algorithms first. Begin with easy problems and gradually increase difficulty.',
+                    user: {
+                        name: 'Prashant Kumar',
+                        avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=mentor1',
+                        college: 'AKTU',
+                        branch: 'CSE',
+                        year: 4,
+                        mentorStatus: 'mentor',
+                    },
+                    helpfulCount: 45,
+                    timestamp: '2 hours ago',
+                },
+            ],
+            timestamp: '3 hours ago',
+        },
+        {
+            id: startId + 1,
+            title: 'Best internship opportunities for CSE students?',
+            description: 'Looking for good internship opportunities in software development and AI. Any suggestions for companies or startups in Noida/Delhi NCR?',
+            user: {
+                name: 'Amit Verma',
+                avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=user3',
+                college: 'AKTU',
+                branch: 'CSE',
+                year: 3,
+                mentorStatus: 'mentor',
+            },
+            category: 'Career',
+            views: 189,
+            upvotes: 32,
+            attachments: [],
+            answers: [
+                {
+                    id: 1,
+                    content: 'Check out startups in Noida Sector 62-63. Also apply to Wipro, TCS, Infosys summer internship programs. They have good stipends.',
+                    user: {
+                        name: 'Rajesh Kumar',
+                        avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=mentor2',
+                        college: 'AKTU',
+                        branch: 'IT',
+                        year: 'Alumni',
+                        mentorStatus: 'mentor',
+                    },
+                    helpfulCount: 28,
+                    timestamp: '1 day ago',
+                },
+            ],
+            timestamp: '6 hours ago',
+        },
+        {
+            id: startId + 2,
+            title: 'Hostel Wi-Fi issues - any solutions?',
+            description: 'The Wi-Fi in Block-C hostel keeps disconnecting. Has anyone found a workaround or should we raise a complaint?',
+            user: {
+                name: 'Pooja Gupta',
+                avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=user4',
+                college: 'AKTU',
+                branch: 'CSE',
+                year: 1,
+                mentorStatus: null,
+            },
+            category: 'Hostel',
+            views: 312,
+            upvotes: 56,
+            attachments: [],
+            answers: [],
+            timestamp: '5 hours ago',
+        },
+        {
+            id: startId + 3,
+            title: 'Resume tips for campus placements?',
+            description: 'What should I highlight in my resume when applying to companies during campus placements? Should I include all projects or just major ones?',
+            user: {
+                name: 'Sanjay Desai',
+                avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=user6',
+                college: 'AKTU',
+                branch: 'IT',
+                year: 3,
+                mentorStatus: null,
+            },
+            category: 'Placements',
+            views: 421,
+            upvotes: 68,
+            attachments: [
+                {
+                    id: '4',
+                    type: 'pdf',
+                    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                    name: 'resume-template.pdf',
+                },
+            ],
+            answers: [
+                {
+                    id: 1,
+                    content: 'Focus on 2-3 major projects with real impact. Quantify achievements. Keep it one page. Add relevant coursework and skills.',
+                    user: {
+                        name: 'Deepak Malhotra',
+                        avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=mentor4',
+                        college: 'AKTU',
+                        branch: 'CSE',
+                        year: 4,
+                        mentorStatus: 'mentor',
+                    },
+                    helpfulCount: 68,
+                    timestamp: '1 hour ago',
+                },
+            ],
+            timestamp: '2 hours ago',
+        },
+        {
+            id: startId + 4,
+            title: 'Best cafeteria spots for group study?',
+            description: 'Looking for quiet cafeteria spots where a group of 4-5 can study together. Any recommendations?',
+            user: {
+                name: 'Neha Singh',
+                avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=user7',
+                college: 'AKTU',
+                branch: 'ECE',
+                year: 2,
+                mentorStatus: 'mentor',
+            },
+            category: 'College Life',
+            views: 145,
+            upvotes: 23,
+            attachments: [],
+            answers: [],
+            timestamp: '4 hours ago',
+        },
+        {
+            id: startId + 5,
+            title: 'MERN stack vs Django - which to learn first?',
+            description: 'Final year student here. For campus placements, which tech stack should I focus on?',
+            user: {
+                name: 'Karthik Reddy',
+                avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=user8',
+                college: 'AKTU',
+                branch: 'CSE',
+                year: 4,
+                mentorStatus: null,
+            },
+            category: 'Tech',
+            views: 567,
+            upvotes: 89,
+            attachments: [],
+            answers: [
+                {
+                    id: 1,
+                    content: 'MERN has more demand in startups. Django is great for backend roles. Learn based on your interest - full-stack vs backend-focused.',
+                    user: {
+                        name: 'Arjun Mehta',
+                        avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=mentor5',
+                        college: 'AKTU',
+                        branch: 'CSE',
+                        year: 'Alumni',
+                        mentorStatus: null,
+                    },
+                    helpfulCount: 89,
+                    timestamp: '5 hours ago',
+                },
+            ],
+            timestamp: '8 hours ago',
+        },
     ];
+    useEffect(() => {
+        //todo: remove mock functionality - replace with API call
+        setDisplayedQueries(generateMockQueries(1));
+    }, []);
 
-    const socialLinks = [
-        {
-            name: "LinkedIn",
-            icon: Linkedin,
-            url: profile.linkedinUrl,
-            color: "text-[#0A66C2]",
-            bgColor: "bg-[#0A66C2]/10",
-            hoverBg: "hover:bg-[#0A66C2]/20",
-        },
-        {
-            name: "GitHub",
-            icon: Github,
-            url: profile.githubUrl,
-            color: "text-foreground",
-            bgColor: "bg-muted",
-            hoverBg: "hover:bg-muted/80",
-        },
-        {
-            name: "Portfolio",
-            icon: Globe,
-            url: profile.portfolioUrl,
-            color: "text-purple-500",
-            bgColor: "bg-purple-500/10",
-            hoverBg: "hover:bg-purple-500/20",
-        },
-        {
-            name: "Twitter",
-            icon: Twitter,
-            url: profile.twitterUrl,
-            color: "text-[#1DA1F2]",
-            bgColor: "bg-[#1DA1F2]/10",
-            hoverBg: "hover:bg-[#1DA1F2]/20",
-        },
-        {
-            name: "LeetCode",
-            icon: Code2,
-            url: profile.leetcodeUrl,
-            color: "text-orange-500",
-            bgColor: "bg-orange-500/10",
-            hoverBg: "hover:bg-orange-500/20",
-        },
-        {
-            name: "Instagram",
-            icon: Instagram,
-            url: profile.instagramUrl,
-            color: "text-pink-500",
-            bgColor: "bg-pink-500/10",
-            hoverBg: "hover:bg-pink-500/20",
-        },
-    ].filter(link => link.url);
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !loading) {
+                    loadMoreQueries();
+                }
+            },
+            { threshold: 1.0 }
+        );
 
-    // Badges data
-    const badges = [];
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
 
-    if (profile.year) {
-        const isMBA = profile.course?.toLowerCase().includes("mba");
-        if (isMBA) {
-            badges.push({
-                id: `mba-${profile.year}`,
-                name: "MBA",
-                description: `${getYearSuffix(profile.year)} Year`,
-                icon: Trophy,
-                gradient: "from-yellow-500 to-amber-500",
-                earnedDate: "2024"
-            });
-        } else {
-            const badgeMap = {
-                1: { id: "fresher", name: "Fresher", icon: Target, gradient: "from-emerald-500 to-teal-500", earnedDate: "2024" },
-                2: { id: "junior", name: "Junior", icon: Zap, gradient: "from-blue-500 to-cyan-500", earnedDate: "2023" },
-                3: { id: "senior", name: "Senior", icon: Award, gradient: "from-purple-500 to-pink-500", earnedDate: "2022" },
-                4: { id: "super-senior", name: "Super Senior", icon: Trophy, gradient: "from-orange-500 to-red-500", earnedDate: "2021" },
-            };
-            if (badgeMap[profile.year]) {
-                badges.push({ ...badgeMap[profile.year], description: `${getYearSuffix(profile.year)} Year` });
+        return () => {
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current);
+            }
+        };
+    }, [loading, page]);
+
+    const loadMoreQueries = () => {
+        setLoading(true);
+        //todo: remove mock functionality - replace with API call
+        setTimeout(() => {
+            const newQueries = generateMockQueries(page * 6 + 1);
+            setDisplayedQueries((prev) => [...prev, ...newQueries]);
+            setPage((prev) => prev + 1);
+            setLoading(false);
+        }, 500);
+    };
+
+    const handleViewAnswers = (query) => {
+        setSelectedQuery(query);
+        setShowAnswersModal(true);
+    };
+
+    const handleAddAnswer = (query) => {
+        setSelectedQuery(query);
+        setShowAddAnswerModal(true);
+    };
+
+    const handleSubmitAnswer = () => {
+        if (answerText.trim()) {
+            console.log('New answer submitted:', answerText);
+            setAnswerText('');
+            setShowAddAnswerModal(false);
+        }
+    };
+
+    const handleAttachmentClick = (query, index) => {
+        if (query.attachments && query.attachments.length > 0) {
+            const attachment = query.attachments[index];
+
+            if (attachment.type === 'pdf') {
+                // Open PDF in new tab
+                window.open(attachment.url, '_blank');
+            } else if (attachment.type === 'image') {
+                // Show image preview modal
+                const imageAttachments = query.attachments.filter((a) => a.type === 'image');
+                const imageIndex = imageAttachments.findIndex(img => img.id === attachment.id);
+                setPreviewAttachments(imageAttachments);
+                setPreviewIndex(imageIndex >= 0 ? imageIndex : 0);
+                setShowImagePreview(true);
             }
         }
-    }
+    };
 
-    if (profile.isMentor === 1) {
-        badges.push({
-            id: "mentor",
-            name: "Mentor",
-            description: "Helping students",
-            icon: Star,
-            gradient: "from-rose-500 to-red-600",
-            earnedDate: "2024"
+    const handleMarkHelpful = (answerId) => {
+        setMarkedHelpful((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(answerId)) {
+                newSet.delete(answerId);
+            } else {
+                newSet.add(answerId);
+            }
+            return newSet;
         });
-    }
+    };
 
-    if (profile.isVerified === 1) {
-        badges.push({
-            id: "verified",
-            name: "Verified",
-            description: "Verified user",
-            icon: CheckCircle2,
-            gradient: "from-blue-500 to-indigo-600",
-            earnedDate: "2024"
-        });
-    }
+    const filteredQueries = displayedQueries.filter((query) => {
+        if (searchQuery && !query.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            !query.description.toLowerCase().includes(searchQuery.toLowerCase())) {
+            return false;
+        }
+        if (activeFilter === 'branch' && query.user.branch !== currentUser.branch) return false;
+        if (activeFilter === 'course' && query.user.year.toString().includes('Alumni')) return false;
+        if (activeCategory && query.category !== activeCategory) return false;
+        return true;
+    });
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="max-w-7xl mx-auto p-4 md:p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    {/* Left Sidebar - Profile */}
-                    <aside className="lg:col-span-3">
-                        <div className="lg:sticky lg:top-6 space-y-4">
-                            {/* Main Profile Card */}
-                            <Card className="overflow-hidden">
-                                {/* Banner */}
-                                <div
-                                    className="h-24 w-full bg-gradient-to-br from-blue-900/40 via-purple-900/30 to-black"
-                                    style={{
-                                        backgroundImage: profile.bannerUrl ? `url(${profile.bannerUrl})` : undefined,
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center'
-                                    }}
-                                />
-
-                                <CardContent className="pt-0 pb-6">
-                                    {/* Avatar */}
-                                    <div className="flex justify-center -mt-12 mb-4">
-                                        <Avatar className="w-24 h-24 ring-4 ring-background border-2 border-primary/20">
-                                            <AvatarImage src={profile.avatarUrl || undefined} alt={profile.fullName} />
-                                            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-chart-3">
-                                                {profile.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </div>
-
-                                    {/* Name and Verification */}
-                                    <div className="text-center space-y-3 mb-4">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <h2 className="text-xl font-bold">{profile.fullName}</h2>
-                                            {profile.isVerified === 1 && (
-                                                <CheckCircle2 className="w-5 h-5 text-primary" />
-                                            )}
-                                        </div>
-
-                                        {/* Badges */}
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Badge
-                                                className={`bg-gradient-to-r ${getSeniorityGradient(seniorityBadge)} text-white border-0 px-4 py-1.5 text-xs font-semibold`}
-                                            >
-                                                {formatBadgeText()}
-                                            </Badge>
-
-                                            {profile.isMentor === 1 && (
-                                                <Badge
-                                                    className="bg-gradient-to-r from-rose-500 to-red-600 text-white border-0 px-4 py-1.5 text-xs font-semibold"
-                                                >
-                                                    <Star className="w-3 h-3 mr-1.5 fill-white" />
-                                                    Mentor
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Bio */}
-                                    {profile.bio && (
-                                        <p className="text-sm text-muted-foreground text-center mb-4 line-clamp-3">
-                                            {profile.bio}
-                                        </p>
-                                    )}
-
-                                    {/* Quick Info */}
-                                    <div className="space-y-2 mb-4 text-sm">
-                                        {profile.college && (
-                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                <GraduationCap className="w-4 h-4 flex-shrink-0" />
-                                                <span className="truncate">{profile.college}</span>
-                                            </div>
-                                        )}
-                                        {profile.branch && (
-                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                <MapPin className="w-4 h-4 flex-shrink-0" />
-                                                <span className="truncate">{profile.branch}</span>
-                                            </div>
-                                        )}
-                                        {profile.graduationYear && (
-                                            <div className="flex items-center gap-2 text-muted-foreground">
-                                                <Calendar className="w-4 h-4 flex-shrink-0" />
-                                                <span>Graduating {profile.graduationYear}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="space-y-2">
-                                        {isOwner && (
-                                            <Button
-                                                onClick={handleEditProfile}
-                                                variant="outline"
-                                                className="w-full gap-2"
-                                            >
-                                                <Pencil className="w-4 h-4" />
-                                                Edit Profile
-                                            </Button>
-                                        )}
-
-                                        {!isOwner && profile.isMentor === 1 && (
-                                            <Button
-                                                onClick={handleAskDoubt}
-                                                className="w-full gap-2"
-                                            >
-                                                <MessageCircle className="w-4 h-4" />
-                                                Ask a Doubt
-                                            </Button>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Stats Card */}
-                            <Card>
-                                <CardContent className="p-4">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-primary">{profile.queriesAsked || 0}</div>
-                                            <div className="text-xs text-muted-foreground">Queries</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-chart-2">{profile.answersGiven || 0}</div>
-                                            <div className="text-xs text-muted-foreground">Answers</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-chart-3">{profile.helpfulCount || 0}</div>
-                                            <div className="text-xs text-muted-foreground">Helpful</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-chart-4">{(profile.totalViews || 0).toLocaleString()}</div>
-                                            <div className="text-xs text-muted-foreground">Views</div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </aside>
-
-                    {/* Main Content */}
-                    <main className="lg:col-span-9 space-y-4">
-                        {/* About Section */}
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-lg font-semibold">About</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {profile.bio && (
-                                    <div>
-                                        <p className="text-sm text-foreground leading-relaxed">{profile.bio}</p>
-                                    </div>
-                                )}
-
-                                {profile.skills && profile.skills.length > 0 && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                                            <Code className="w-3.5 h-3.5" />
-                                            Skills
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {profile.skills.map((skill, index) => (
-                                                <Badge
-                                                    key={skill}
-                                                    className={`${skillColors[index % skillColors.length]} text-white border-0 px-2.5 py-0.5 text-xs`}
-                                                >
-                                                    {skill}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {profile.interests && profile.interests.length > 0 && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                                            <Sparkles className="w-3.5 h-3.5" />
-                                            Interests
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {profile.interests.map((interest, index) => (
-                                                <Badge
-                                                    key={interest}
-                                                    className={`${interestColors[index % interestColors.length]} text-white border-0 px-2.5 py-0.5 text-xs`}
-                                                >
-                                                    {interest}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        {/* Two Column Layout */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Academic Details */}
-                            <Card>
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                        <GraduationCap className="w-4 h-4" />
-                                        Education
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-3 text-sm">
-                                        <div className="flex justify-between items-start gap-4">
-                                            <span className="text-muted-foreground">College</span>
-                                            <span className="font-medium text-right">{profile.college || "Not specified"}</span>
-                                        </div>
-                                        <div className="flex justify-between items-start gap-4">
-                                            <span className="text-muted-foreground">Branch</span>
-                                            <span className="font-medium text-right">{profile.branch || "Not specified"}</span>
-                                        </div>
-                                        <div className="flex justify-between items-start gap-4">
-                                            <span className="text-muted-foreground">Course</span>
-                                            <span className="font-medium text-right">{profile.course || "Not specified"}</span>
-                                        </div>
-                                        <div className="flex justify-between items-start gap-4">
-                                            <span className="text-muted-foreground">Year</span>
-                                            <span className="font-medium text-right">{profile.year ? `${getYearSuffix(profile.year)} Year` : "N/A"}</span>
-                                        </div>
-                                        <div className="flex justify-between items-start gap-4">
-                                            <span className="text-muted-foreground">Graduation</span>
-                                            <span className="font-medium text-right">{profile.graduationYear || "N/A"}</span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Achievements/Badges */}
-                            {badges.length > 0 && (
-                                <Card>
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                            <Award className="w-4 h-4" />
-                                            Achievements
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-3">
-                                            {badges.map((badge) => (
-                                                <div
-                                                    key={badge.id}
-                                                    className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border hover-elevate transition-all"
-                                                >
-                                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${badge.gradient} flex items-center justify-center flex-shrink-0`}>
-                                                        <badge.icon className="w-6 h-6 text-white" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="text-sm font-semibold">{badge.name}</div>
-                                                        <div className="text-xs text-muted-foreground">{badge.description}</div>
-                                                    </div>
-                                                    {badge.earnedDate && (
-                                                        <div className="text-xs text-muted-foreground">{badge.earnedDate}</div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
-
-                        {/* Social Links */}
-                        {socialLinks.length > 0 && (
-                            <Card>
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                        <Link2 className="w-4 h-4" />
-                                        Connect
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                                        {socialLinks.map((link) => (
-                                            <button
-                                                key={link.name}
-                                                onClick={() => window.open(link.url, '_blank')}
-                                                className={`group flex flex-col items-center gap-2 p-3 rounded-lg ${link.bgColor} ${link.hoverBg} transition-all hover:scale-105`}
-                                            >
-                                                <link.icon className={`w-6 h-6 ${link.color}`} />
-                                                <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                                                    {link.name}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </main>
+        <div className="min-h-screen bg-background py-6 sm:py-12 px-4 sm:px-6">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1" data-testid="text-page-title">
+                        My College
+                    </h1>
+                    <p className="text-muted-foreground text-xs sm:text-sm mb-4" data-testid="text-page-subtitle">
+                        Queries from your college community
+                    </p>
+                    <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm" data-testid="badge-college-name">
+                        {currentUser.college}
+                    </Badge>
                 </div>
-            </div>
 
-            {/* Edit Profile Modal */}
-            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold">Edit Profile</DialogTitle>
-                    </DialogHeader>
+                {/* Search Bar */}
+                <div className="mb-4 sm:mb-6">
+                    <div className="relative max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search queries..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                            data-testid="input-search"
+                        />
+                    </div>
+                </div>
 
-                    <div className="space-y-6 py-4">
-                        {/* Basic Info */}
-                        <div className="space-y-4">
-                            <div>
-                                <Label htmlFor="fullName">Full Name</Label>
-                                <Input
-                                    id="fullName"
-                                    value={formData.fullName}
-                                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                />
-                            </div>
-
-                            <div>
-                                <Label htmlFor="bio">Bio</Label>
-                                <Textarea
-                                    id="bio"
-                                    value={formData.bio}
-                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                    placeholder="Tell us about yourself (max 300 characters)"
-                                    maxLength={300}
-                                    className="resize-none"
-                                    rows={3}
-                                />
-                                <div className="text-xs text-muted-foreground mt-1">
-                                    {formData.bio.length}/300 characters
-                                </div>
-                            </div>
+                {/* Filter Bar */}
+                <div className="mb-4 sm:mb-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                        {/* Left side filters */}
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                            <button
+                                onClick={() => {
+                                    setActiveFilter('all');
+                                    setActiveCategory(null);
+                                }}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-all ${activeFilter === 'all' && !activeCategory
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-primary/50'
+                                    }`}
+                                data-testid="button-filter-all"
+                            >
+                                All
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveFilter('branch');
+                                    setActiveCategory(null);
+                                }}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-all ${activeFilter === 'branch'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-primary/50'
+                                    }`}
+                                data-testid="button-filter-branch"
+                            >
+                                Branch: {currentUser.branch} Only
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveFilter('course');
+                                    setActiveCategory(null);
+                                }}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-all ${activeFilter === 'course'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-primary/50'
+                                    }`}
+                                data-testid="button-filter-course"
+                            >
+                                {currentUser.course} Only
+                            </button>
                         </div>
 
-                        {/* Academic Details */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Academic Details</h3>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label htmlFor="college">College</Label>
-                                    <Input
-                                        id="college"
-                                        value={formData.college}
-                                        onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="branch">Branch</Label>
-                                    <Input
-                                        id="branch"
-                                        value={formData.branch}
-                                        onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="course">Course</Label>
-                                    <Input
-                                        id="course"
-                                        value={formData.course}
-                                        onChange={(e) => setFormData({ ...formData, course: e.target.value })}
-                                        placeholder="e.g., B.Tech, MBA"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="year">Year</Label>
-                                    <Select
-                                        value={formData.year.toString()}
-                                        onValueChange={(value) => setFormData({ ...formData, year: parseInt(value) })}
-                                    >
-                                        <SelectTrigger id="year">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">1st Year</SelectItem>
-                                            <SelectItem value="2">2nd Year</SelectItem>
-                                            <SelectItem value="3">3rd Year</SelectItem>
-                                            <SelectItem value="4">4th Year</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="enrollmentYear">Enrollment Year</Label>
-                                    <Input
-                                        id="enrollmentYear"
-                                        type="number"
-                                        value={formData.enrollmentYear}
-                                        onChange={(e) => setFormData({ ...formData, enrollmentYear: parseInt(e.target.value) })}
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="graduationYear">Graduation Year</Label>
-                                    <Input
-                                        id="graduationYear"
-                                        type="number"
-                                        value={formData.graduationYear}
-                                        onChange={(e) => setFormData({ ...formData, graduationYear: parseInt(e.target.value) })}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Skills */}
-                        <div className="space-y-3">
-                            <Label>Skills</Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    value={newSkill}
-                                    onChange={(e) => setNewSkill(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
-                                    placeholder="Add a skill"
-                                />
-                                <Button onClick={handleAddSkill} type="button">Add</Button>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {formData.skills.map((skill) => (
-                                    <Badge key={skill} className="gap-1">
-                                        {skill}
-                                        <X className="w-3 h-3 cursor-pointer hover-elevate" onClick={() => handleRemoveSkill(skill)} />
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Interests */}
-                        <div className="space-y-3">
-                            <Label>Interests</Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    value={newInterest}
-                                    onChange={(e) => setNewInterest(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddInterest())}
-                                    placeholder="Add an interest"
-                                />
-                                <Button onClick={handleAddInterest} type="button">Add</Button>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {formData.interests.map((interest) => (
-                                    <Badge key={interest} className="gap-1">
-                                        {interest}
-                                        <X className="w-3 h-3 cursor-pointer hover-elevate" onClick={() => handleRemoveInterest(interest)} />
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Social Links */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Social Links</h3>
-
-                            <div className="grid grid-cols-1 gap-4">
-                                <div>
-                                    <Label htmlFor="linkedinUrl">LinkedIn</Label>
-                                    <Input
-                                        id="linkedinUrl"
-                                        value={formData.linkedinUrl}
-                                        onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                                        placeholder="https://linkedin.com/in/username"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="githubUrl">GitHub</Label>
-                                    <Input
-                                        id="githubUrl"
-                                        value={formData.githubUrl}
-                                        onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                                        placeholder="https://github.com/username"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="portfolioUrl">Portfolio</Label>
-                                    <Input
-                                        id="portfolioUrl"
-                                        value={formData.portfolioUrl}
-                                        onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
-                                        placeholder="https://yourportfolio.com"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="twitterUrl">Twitter</Label>
-                                    <Input
-                                        id="twitterUrl"
-                                        value={formData.twitterUrl}
-                                        onChange={(e) => setFormData({ ...formData, twitterUrl: e.target.value })}
-                                        placeholder="https://twitter.com/username"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="leetcodeUrl">LeetCode</Label>
-                                    <Input
-                                        id="leetcodeUrl"
-                                        value={formData.leetcodeUrl}
-                                        onChange={(e) => setFormData({ ...formData, leetcodeUrl: e.target.value })}
-                                        placeholder="https://leetcode.com/username"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="instagramUrl">Instagram</Label>
-                                    <Input
-                                        id="instagramUrl"
-                                        value={formData.instagramUrl}
-                                        onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
-                                        placeholder="https://instagram.com/username"
-                                    />
-                                </div>
-                            </div>
+                        {/* Right side sorting */}
+                        <div className="flex items-center gap-2">
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger className="w-[180px]" data-testid="select-sort">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="latest">Latest</SelectItem>
+                                    <SelectItem value="most-answered">Most Answered</SelectItem>
+                                    <SelectItem value="most-viewed">Most Viewed</SelectItem>
+                                    <SelectItem value="top-rated">Top Rated</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveProfile}>Save Changes</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                    {/* Category filters */}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                        {categories.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => {
+                                    setActiveCategory(activeCategory === cat.label ? null : cat.label);
+                                    setActiveFilter('all');
+                                }}
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-all ${activeCategory === cat.label
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-primary/50'
+                                    }`}
+                                data-testid={`button-category-${cat.id}`}
+                            >
+                                {cat.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Query Cards Grid */}
+                {filteredQueries.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                        {filteredQueries.map((query) => (
+                            <QueryCard
+                                key={query.id}
+                                query={query}
+                                onViewAnswers={() => handleViewAnswers(query)}
+                                onAddAnswer={() => handleAddAnswer(query)}
+                                onAttachmentClick={(index) => handleAttachmentClick(query, index)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    /* Empty State */
+                    <div className="text-center py-16">
+                        <div className="max-w-md mx-auto">
+                            <MessageCircle className="h-16 w-16 text-muted mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-foreground mb-2" data-testid="text-empty-state-title">
+                                No queries found
+                            </h3>
+                            <p className="text-muted-foreground mb-6" data-testid="text-empty-state-description">
+                                Ask a question to help your college community!
+                            </p>
+                            <Button data-testid="button-ask-query">Ask a Query</Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Infinite scroll loader */}
+                <div ref={observerTarget} className="h-4 py-8 text-center">
+                    {loading && (
+                        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                            <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                            <span className="text-sm">Loading more queries...</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Answers Modal */}
+            {showAnswersModal && selectedQuery && (
+                <ViewAnswersModal
+                    query={selectedQuery}
+                    onClose={() => setShowAnswersModal(false)}
+                    markedHelpful={markedHelpful}
+                    onMarkHelpful={handleMarkHelpful}
+                />
+            )}
+
+            {/* Add Answer Modal */}
+            {showAddAnswerModal && selectedQuery && (
+                <AddAnswerModal
+                    query={selectedQuery}
+                    answerText={answerText}
+                    setAnswerText={setAnswerText}
+                    onSubmit={handleSubmitAnswer}
+                    onClose={() => {
+                        setShowAddAnswerModal(false);
+                        setAnswerText('');
+                    }}
+                />
+            )}
+
+            {/* Image Preview Modal */}
+            {showImagePreview && (
+                <ImagePreviewModal
+                    attachments={previewAttachments}
+                    currentIndex={previewIndex}
+                    setCurrentIndex={setPreviewIndex}
+                    onClose={() => setShowImagePreview(false)}
+                />
+            )}
+        </div>
+    );
+}
+// Query Card Component
+function QueryCard({ query, onViewAnswers, onAddAnswer, onAttachmentClick }) {
+    const hasAttachments = query.attachments && query.attachments.length > 0;
+    const displayAttachments = query.attachments ? query.attachments.slice(0, 3) : [];
+    const remainingCount = query.attachments ? query.attachments.length - 3 : 0;
+
+    const getUserBadge = (user) => {
+        if (user.year === 1) {
+            return { text: 'Fresher', color: 'bg-green-600' };
+        } else if (user.year === 2) {
+            return { text: 'Senior 2nd Year', color: 'bg-blue-600' };
+        } else if (user.year === 3) {
+            return { text: 'Senior 3rd Year', color: 'bg-purple-600' };
+        } else if (user.year === 4) {
+            return { text: 'Senior 4th Year', color: 'bg-orange-600' };
+        }
+        return null;
+    };
+
+    const getMentorBadge = (user) => {
+        if (user.mentorStatus === 'mentor') {
+            return { text: 'Mentor', icon: Award, color: 'bg-indigo-600' };
+        }
+        return null;
+    };
+
+    const userBadge = getUserBadge(query.user);
+    const mentorBadge = getMentorBadge(query.user);
+
+    return (
+        <div className="group p-3 sm:p-4 bg-card border border-card-border rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:border-primary/50" data-testid={`card-query-${query.id}`}>
+            <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <img
+                        src={query.user.avatar}
+                        alt={query.user.name}
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-border flex-shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-semibold text-xs sm:text-sm text-foreground truncate" data-testid={`text-user-name-${query.id}`}>
+                                {query.user.name}
+                            </p>
+                            {userBadge && (
+                                <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 ${userBadge.color} text-white rounded flex-shrink-0`}>
+                                    {userBadge.text}
+                                </span>
+                            )}
+                            {mentorBadge && (
+                                <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 ${mentorBadge.color} text-white rounded flex items-center gap-0.5 flex-shrink-0`}>
+                                    <mentorBadge.icon className="w-2.5 h-2.5" />
+                                    {mentorBadge.text}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-muted-foreground text-[10px] sm:text-[11px] truncate">
+                            {query.user.branch} • {query.user.college}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className="text-[9px] sm:text-[10px] font-medium px-1.5 sm:px-2 py-0.5 bg-secondary text-secondary-foreground rounded whitespace-nowrap" data-testid={`badge-category-${query.id}`}>
+                        {query.category}
+                    </span>
+                    <span className="text-muted-foreground text-[9px] sm:text-[10px] whitespace-nowrap">{query.timestamp}</span>
+                </div>
+            </div>
+
+            <div className={hasAttachments ? "mb-3" : ""}>
+                <h2 className="font-bold text-sm sm:text-base mb-1.5 group-hover:text-primary transition-colors line-clamp-2" data-testid={`text-query-title-${query.id}`}>
+                    {query.title}
+                </h2>
+                <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2" data-testid={`text-query-description-${query.id}`}>
+                    {query.description}
+                </p>
+            </div>
+
+            {hasAttachments && (
+                <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+                    {displayAttachments.map((attachment, index) => (
+                        <button
+                            key={attachment.id}
+                            onClick={() => onAttachmentClick(index)}
+                            className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden border border-border hover:border-primary transition-colors flex-shrink-0"
+                            data-testid={`attachment-${query.id}-${index}`}
+                        >
+                            {attachment.type === 'image' ? (
+                                <img
+                                    src={attachment.thumbnail || attachment.url}
+                                    alt={attachment.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-secondary flex items-center justify-center">
+                                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+                                </div>
+                            )}
+                        </button>
+                    ))}
+                    {remainingCount > 0 && (
+                        <button
+                            onClick={() => onAttachmentClick(3)}
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-md border border-border bg-secondary flex items-center justify-center hover:border-primary transition-colors flex-shrink-0"
+                        >
+                            <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                                +{remainingCount}
+                            </span>
+                        </button>
+                    )}
+                </div>
+            )}
+
+            <div className="flex items-center justify-between pt-3 border-t border-border gap-2">
+                <div className="flex items-center gap-3 sm:gap-4 text-muted-foreground text-xs flex-wrap">
+                    <div className="flex items-center gap-1" data-testid={`stat-views-${query.id}`}>
+                        <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span className="text-[10px] sm:text-xs">{query.views}</span>
+                    </div>
+                    <div className="flex items-center gap-1" data-testid={`stat-answers-${query.id}`}>
+                        <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span className="text-[10px] sm:text-xs">{query.answers.length} answers</span>
+                    </div>
+                    {hasAttachments && (
+                        <div className="flex items-center gap-1">
+                            <ImageIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                            <span className="text-[10px] sm:text-xs">{query.attachments.length}</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
+                    <button
+                        onClick={onViewAnswers}
+                        className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 border border-border text-foreground rounded hover-elevate active-elevate-2 transition-colors"
+                        data-testid={`button-view-${query.id}`}
+                    >
+                        View
+                    </button>
+                    <button
+                        onClick={onAddAnswer}
+                        className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 bg-primary text-primary-foreground rounded hover-elevate active-elevate-2 transition-colors"
+                        data-testid={`button-answer-${query.id}`}
+                    >
+                        Answer
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// View Answers Modal Component
+function ViewAnswersModal({ query, onClose, markedHelpful, onMarkHelpful }) {
+    const getUserBadge = (user) => {
+        if (user.year === 1) {
+            return { text: 'Fresher', color: 'bg-green-600' };
+        } else if (user.year === 2) {
+            return { text: 'Senior 2nd Year', color: 'bg-blue-600' };
+        } else if (user.year === 3) {
+            return { text: 'Senior 3rd Year', color: 'bg-purple-600' };
+        } else if (user.year === 4) {
+            return { text: 'Senior 4th Year', color: 'bg-orange-600' };
+        }
+        return null;
+    };
+
+    const getMentorBadge = (user) => {
+        if (user.mentorStatus === 'mentor') {
+            return { text: 'Mentor', icon: Award, color: 'bg-indigo-600' };
+        }
+        return null;
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+            <div className="bg-card border border-border rounded-lg max-w-2xl w-full max-h-[85vh] sm:max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 sm:p-6 border-b border-border">
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 className="text-base sm:text-lg font-bold line-clamp-2 flex-1 text-foreground">{query.title}</h2>
+                        <button
+                            onClick={onClose}
+                            className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                            data-testid="button-close-answers-modal"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+                <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(85vh-120px)] sm:max-h-[60vh]">
+                    <div className="space-y-4">
+                        {query.answers.map((answer) => {
+                            const isMarkedHelpful = markedHelpful.has(answer.id);
+                            const userBadge = getUserBadge(answer.user);
+                            const mentorBadge = getMentorBadge(answer.user);
+
+                            return (
+                                <div
+                                    key={answer.id}
+                                    className="p-3 sm:p-4 rounded-lg border border-border bg-background"
+                                >
+                                    <div className="flex items-start gap-2 sm:gap-3">
+                                        <img
+                                            src={answer.user.avatar}
+                                            alt={answer.user.name}
+                                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-border flex-shrink-0"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <p className="font-semibold text-sm text-foreground">{answer.user.name}</p>
+                                                    {userBadge && (
+                                                        <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 ${userBadge.color} text-white rounded`}>
+                                                            {userBadge.text}
+                                                        </span>
+                                                    )}
+                                                    {mentorBadge && (
+                                                        <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 ${mentorBadge.color} text-white rounded flex items-center gap-0.5`}>
+                                                            <mentorBadge.icon className="w-2.5 h-2.5" />
+                                                            {mentorBadge.text}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-muted-foreground text-xs">{answer.timestamp}</span>
+                                            </div>
+                                            <p className="text-foreground text-sm mb-3">{answer.content}</p>
+                                            <button
+                                                onClick={() => onMarkHelpful(answer.id)}
+                                                className={`text-xs px-3 py-1.5 rounded transition-all ${isMarkedHelpful
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'border border-border text-foreground hover-elevate active-elevate-2'
+                                                    }`}
+                                                data-testid={`button-helpful-${answer.id}`}
+                                            >
+                                                <span className="flex items-center gap-1.5">
+                                                    <ThumbsUp className="w-3.5 h-3.5" />
+                                                    Helpful ({answer.helpfulCount + (isMarkedHelpful ? 1 : 0)})
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Add Answer Modal Component
+function AddAnswerModal({ query, answerText, setAnswerText, onSubmit, onClose }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+            <div className="bg-card border border-border rounded-lg max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 sm:p-6 border-b border-border">
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 className="text-lg font-bold text-foreground">Add Your Answer</h2>
+                        <button
+                            onClick={onClose}
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                            data-testid="button-close-add-answer-modal"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+                <div className="p-4 sm:p-6 space-y-4">
+                    <div>
+                        <h3 className="font-semibold text-foreground mb-2 text-sm">{query.title}</h3>
+                        <p className="text-sm text-muted-foreground">{query.description}</p>
+                    </div>
+                    <Textarea
+                        placeholder="Write your answer here..."
+                        value={answerText}
+                        onChange={(e) => setAnswerText(e.target.value)}
+                        className="min-h-[200px]"
+                        data-testid="input-answer-text"
+                    />
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={onClose} data-testid="button-cancel-answer">
+                            Cancel
+                        </Button>
+                        <Button onClick={onSubmit} disabled={!answerText.trim()} data-testid="button-submit-answer">
+                            Submit Answer
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Image Preview Modal Component
+function ImagePreviewModal({ attachments, currentIndex, setCurrentIndex, onClose }) {
+    return (
+        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="relative max-w-6xl w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                <button
+                    className="absolute top-4 right-4 text-white hover:bg-white/10 p-2 rounded-lg transition-colors"
+                    onClick={onClose}
+                    data-testid="button-close-image-preview"
+                >
+                    <X className="h-6 w-6" />
+                </button>
+                {attachments.length > 1 && (
+                    <>
+                        <button
+                            className="absolute left-4 text-white hover:bg-white/10 p-2 rounded-lg transition-colors"
+                            onClick={() => setCurrentIndex(currentIndex > 0 ? currentIndex - 1 : attachments.length - 1)}
+                            data-testid="button-prev-image"
+                        >
+                            <ChevronLeft className="h-8 w-8" />
+                        </button>
+                        <button
+                            className="absolute right-4 text-white hover:bg-white/10 p-2 rounded-lg transition-colors"
+                            onClick={() => setCurrentIndex(currentIndex < attachments.length - 1 ? currentIndex + 1 : 0)}
+                            data-testid="button-next-image"
+                        >
+                            <ChevronRight className="h-8 w-8" />
+                        </button>
+                    </>
+                )}
+                <img src={attachments[currentIndex].url} alt={attachments[currentIndex].name} className="max-h-full max-w-full object-contain" />
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                    <span>
+                        {currentIndex + 1} / {attachments.length}
+                    </span>
+                </div>
+            </div>
         </div>
     );
 }
