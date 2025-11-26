@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useState } from 'react'
 import Sidebar from '../_loggedinHome/sidebar'
@@ -8,10 +7,6 @@ import TrendingQueries from '../_loggedinHome/trendingquery'
 import UserQueries from '../_loggedinHome/userquery'
 import MyCollegePage from '../_loggedinHome/mycollege'
 import CompleteProfilePage from '../_loggedinHome/profile'
-
-
-
-
 const Page = () => {
     const [activeTab, setActiveTab] = useState('home')
 

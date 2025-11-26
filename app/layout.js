@@ -15,9 +15,6 @@ const outfit = Outfit({
   subsets: ["latin"],
   display: "swap",
 });
-
-
-
 export default function RootLayout({ children }) {
   const pathname = usePathname();
 
@@ -28,7 +25,11 @@ export default function RootLayout({ children }) {
     '/seniors',
     '/juniors',
     '/queries',
-    '/trending-queries'
+    '/trending-queries',
+    '/seniormycollege',
+    '/juniorothercollege',
+    '/seniorfromothercollege',
+    '/juniormycollege',
   ];
 
   // Check if current path should hide footer
