@@ -1,479 +1,538 @@
-import React, { useState } from 'react';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import PageHeader from '../_loggedinHome/_homepage/PageHeader';
+import StudentsSection from '../_loggedinHome/_homepage/StudentsSection';
 import AskQueryModal from './AskQueryModal';
-import Link from 'next/link';
+import QueryCardFull from './querycard';
+import NextBadgeModal from '../_loggedinHome/_homepage/NextBadgeModal';
+import { useSocket } from '@/app/contexts/SocketContext';
+import { useFetchPublicQueries } from './_homepage/useFetchPublicQueriesHook';
+import { fetchFromStrapi } from '@/secure/strapi';
+import { Users, MessageSquare } from 'lucide-react';
 
-const SeniorCard = ({ senior, currentUserId }) => {
+export default function HomePagee({ userData }) {
+    // Early validation
+    if (!userData) {
+        return <div className="p-8 text-center text-red-600">Error: User data not available</div>;
+    }
+
+    const [activeTab, setActiveTab] = useState('queries');
+    const [selectedBadge, setSelectedBadge] = useState(null);
+    const [sameCollegeSeniors, setSameCollegeSeniors] = useState([]);
+    const [sameCollegeJuniors, setSameCollegeJuniors] = useState([]);
+    const [otherCollegeSeniors, setOtherCollegeSeniors] = useState([]);
+    const [otherCollegeJuniors, setOtherCollegeJuniors] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedReceiver, setSelectedReceiver] = useState(null);
 
-    const handleViewProfile = () => {
-        window.location.href = `/seniormycollege/${senior.id}`;
+    // Next Badge Modal state
+    const [showNextBadgeModal, setShowNextBadgeModal] = useState(false);
+    const [nextBadgeData, setNextBadgeData] = useState(null);
+
+    // ✅ Use the custom hook for queries with infinite scrolling (pass userData for visibility filtering)
+    const {
+        publicQueries,
+        loading: queriesLoading,
+        error: queriesError,
+        hasMore,
+        page,
+        totalPages,
+        fetchQueries,
+        loadMore,
+        incrementViewCount,
+        refreshQueries,
+        lastQueryRef
+    } = useFetchPublicQueries(userData);
+
+    // ✅ Get Socket.IO online users
+    const { onlineUsers, isConnected } = useSocket();
+
+    const userName = userData?.name || "Guest";
+    const userCollege = userData?.college || "Your College";
+    const userCourse = userData?.course || "Your Course";
+    const userBranch = userData?.branch || "Your Branch";
+    const year = userData?.year || "1st Year";
+    const currentUserId = userData?.documentId || userData?.id;
+
+    // Badge-related data
+    const badgeData = {
+        answeredQueries: userData?.answeredQueries || 0,
+        helpfulAnswers: userData?.helpfulAnswers || 0,
+        views: userData?.views || userData?.totalViews || 0,
+        queriesPosted: userData?.queriesPosted || userData?.queriesAsked || 0,
+        engagement: userData?.engagement || 0,
+        isVerified: userData?.isVerified || false,
+        isMentor: userData?.isMentor || false,
+        superMentor: userData?.superMentor || false,
+        eliteMentor: userData?.eliteMentor || false,
+        activeParticipant: userData?.activeParticipant || false
     };
 
-    const handleAskQuery = () => {
+    // Helper function to check if course has no branches
+    const shouldShowBranch = (course, branch) => {
+        if (!course || !branch) return false;
+
+        const noBranchCourses = ['mca', 'bca', 'bpharma', 'mba'];
+        const courseLower = course.toLowerCase();
+
+        // Show branch for BTech and MTech, hide for others
+        if (courseLower.includes('btech') || courseLower.includes('mtech') ||
+            courseLower.includes('b.tech') || courseLower.includes('m.tech')) {
+            return true;
+        }
+
+        // Hide branch for courses in the noBranchCourses list
+        return !noBranchCourses.some(noBranchCourse => courseLower.includes(noBranchCourse));
+    };
+
+    // Helper function to get display text (course + branch or just course)
+    const getDisplayText = (course, branch) => {
+        if (shouldShowBranch(course, branch)) {
+            return `${course} • ${branch}`;
+        }
+        return course || 'Your Course';
+    };
+
+    // Helper function to extract year number from year string - Updated for Passout
+    const extractYearNumber = (yearString) => {
+        if (!yearString) return 1;
+
+        // Handle "Pass-out" and "Passout" variants
+        const yearLower = yearString.toLowerCase();
+        if (yearLower === 'pass-out' || yearLower === 'passout') {
+            return 5; // Alumni/Passout = year 5
+        }
+
+        const match = yearString.match(/(\d+)/);
+        return match ? parseInt(match[1]) : 1;
+    };
+
+    // Helper function to convert year number to badge format - Updated for Passout
+    const getYearBadge = (yearString) => {
+        const yearNum = extractYearNumber(yearString);
+        const badges = {
+            1: '1st-year',
+            2: '2nd-year',
+            3: '3rd-year',
+            4: '4th-year',
+            5: 'alumni' // Passout students get alumni badge
+        };
+        return badges[yearNum] || '1st-year';
+    };
+
+    // Helper function to format user data
+    const formatUserData = (user) => {
+        // Get profile image URL (already absolute from API proxy)
+        let profileImageUrl = null;
+
+        if (user.profileImageUrl) {
+            profileImageUrl = user.profileImageUrl;
+        } else if (user.profilePic) {
+            profileImageUrl = user.profilePic;
+        } else if (user.profileImage) {
+            const profileImage = Array.isArray(user.profileImage)
+                ? user.profileImage[0]
+                : user.profileImage;
+
+            if (profileImage?.url) {
+                profileImageUrl = profileImage.url;
+            }
+        }
+
+        const formattedUser = {
+            id: user.id,
+            documentId: user.documentId || user.id,
+            name: user.name || 'Anonymous',
+            username: user.username || user.name || 'Anonymous',
+            role: user.isMentor ? 'Mentor' : 'Student',
+            college: user.college || '',
+            course: user.course || '',
+            branch: user.branch || '',
+            email: user.email || '',
+            isMentor: user.isMentor || false,
+            superMentor: user.superMentor || false,
+            eliteMentor: user.eliteMentor || false,
+            isVerified: user.isVerified || false,
+            year: user.year, // Keep original year string
+            yearBadge: getYearBadge(user.year),
+            avatar: profileImageUrl || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`,
+            skills: user.interests || [],
+            isActive: false,
+            answeredQueries: user.answeredQueries || 0,
+            helpfulAnswers: user.helpfulAnswers || 0,
+            views: user.views || user.totalViews || 0,
+            queriesPosted: user.queriesPosted || user.queriesAsked || 0,
+            engagement: user.engagement || 0
+        };
+
+        return formattedUser;
+    };
+
+    // ✅ Helper function to update online status
+    const updateOnlineStatus = (users) => {
+        return users.map(user => {
+            const isOnline = onlineUsers.some(
+                onlineUserId =>
+                    onlineUserId === user.documentId ||
+                    onlineUserId === user.id ||
+                    onlineUserId === String(user.documentId) ||
+                    onlineUserId === String(user.id)
+            );
+
+            return {
+                ...user,
+                isActive: isOnline
+            };
+        });
+    };
+
+    // 🔒 Fetch students data using secure API - Updated to handle Passout as seniors
+    useEffect(() => {
+        const fetchStudents = async () => {
+            if (!userData || !userData.college || !userData.year) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                const currentYearNum = extractYearNumber(userData.year);
+
+                // 🔒 Use secure API wrapper
+                const data = await fetchFromStrapi('user-profiles?populate=*&pagination[limit]=100');
+
+                const allUsers = data.data || [];
+
+                const sameCollege = [];
+                const otherCollege = [];
+
+                allUsers.forEach(user => {
+                    if (user.id === currentUserId || user.documentId === currentUserId) return;
+
+                    const formattedUser = formatUserData(user);
+                    const userYearNum = extractYearNumber(user.year);
+                    const isSameCollege = user.college === userData.college;
+
+                    if (isSameCollege) {
+                        sameCollege.push({ ...formattedUser, yearNum: userYearNum });
+                    } else {
+                        otherCollege.push({ ...formattedUser, yearNum: userYearNum });
+                    }
+                });
+
+                // ✅ Seniors: Anyone with yearNum > currentYearNum (includes Passout students with yearNum = 5)
+                setSameCollegeSeniors(
+                    sameCollege
+                        .filter(u => u.yearNum > currentYearNum)
+                        .map(({ yearNum, ...user }) => user)
+                        .slice(0, 6)
+                );
+
+                // ✅ Juniors: Anyone with yearNum < currentYearNum
+                setSameCollegeJuniors(
+                    sameCollege
+                        .filter(u => u.yearNum < currentYearNum)
+                        .map(({ yearNum, ...user }) => user)
+                        .slice(0, 6)
+                );
+
+                setOtherCollegeSeniors(
+                    otherCollege
+                        .filter(u => u.yearNum > currentYearNum)
+                        .map(({ yearNum, ...user }) => user)
+                        .slice(0, 6)
+                );
+
+                setOtherCollegeJuniors(
+                    otherCollege
+                        .filter(u => u.yearNum < currentYearNum)
+                        .map(({ yearNum, ...user }) => user)
+                        .slice(0, 6)
+                );
+
+            } catch (error) {
+                // Error silently handled
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStudents();
+    }, [userData, currentUserId]);
+
+    // ✅ Update online status when onlineUsers changes
+    useEffect(() => {
+        if (sameCollegeSeniors.length > 0) {
+            setSameCollegeSeniors(prev => updateOnlineStatus(prev));
+        }
+        if (sameCollegeJuniors.length > 0) {
+            setSameCollegeJuniors(prev => updateOnlineStatus(prev));
+        }
+        if (otherCollegeSeniors.length > 0) {
+            setOtherCollegeSeniors(prev => updateOnlineStatus(prev));
+        }
+        if (otherCollegeJuniors.length > 0) {
+            setOtherCollegeJuniors(prev => updateOnlineStatus(prev));
+        }
+    }, [onlineUsers]);
+
+    // ✅ Fetch public queries when queries tab is active
+    useEffect(() => {
+        if (activeTab === 'queries') {
+            fetchQueries();
+        }
+    }, [activeTab, fetchQueries]);
+
+    // ✅ Handle query click (increment view count)
+    const handleQueryClick = async (queryDocumentId) => {
+        await incrementViewCount(queryDocumentId, currentUserId);
+    };
+
+    // Handle badge click
+    const handleBadgeClick = (badge) => {
+        setSelectedBadge(badge);
+        setTimeout(() => {
+            setSelectedBadge(null);
+        }, 3000);
+    };
+
+    // Handle next badge click
+    const handleNextBadgeClick = (nextBadge) => {
+        setNextBadgeData(nextBadge);
+        setShowNextBadgeModal(true);
+    };
+
+    // Modal handlers
+    const handleAskQuery = (receiver) => {
+        setSelectedReceiver(receiver);
         setIsModalOpen(true);
     };
 
-    const getYearBadgeStyles = (yearBadge) => {
-        switch (yearBadge) {
-            case '1st-year':
-                return 'bg-green-500 text-white dark:bg-green-600';
-            case '2nd-year':
-                return 'bg-blue-500 text-white dark:bg-blue-600';
-            case '3rd-year':
-                return 'bg-violet-600 text-white dark:bg-violet-700';
-            case '4th-year':
-                return 'bg-orange-600 text-white dark:bg-orange-700';
-            default:
-                return 'bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400';
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedReceiver(null);
+    };
+
+    const handleQuerySent = () => {
+        if (activeTab === 'queries') {
+            refreshQueries();
         }
     };
 
-    const getYearBadgeContent = (yearBadge) => {
-        const icon = (
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-            </svg>
-        );
-
-        switch (yearBadge) {
-            case '1st-year':
-                return <>{icon} 1st Year</>;
-            case '2nd-year':
-                return <>{icon} 2nd Year</>;
-            case '3rd-year':
-                return <>{icon} 3rd Year</>;
-            case '4th-year':
-                return <>{icon} 4th Year</>;
-            default:
-                return 'Student';
-        }
-    };
-
-    return (
-        <>
-            <div className="group bg-gradient-to-br from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950 border border-gray-200/50 dark:border-zinc-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 dark:hover:shadow-red-500/20 hover:-translate-y-2 hover:border-red-500/30 flex flex-col h-full">
-                <div className="flex gap-4 p-5 flex-1">
-                    <div className="flex-shrink-0 relative">
-                        <img
-                            src={senior.avatar}
-                            alt={senior.name}
-                            className="w-16 h-16 rounded-full border-2 border-gray-200 dark:border-zinc-800 shadow-lg shadow-red-500/20 ring-2 ring-red-500/10 group-hover:ring-red-500/30 transition-all duration-300"
-                        />
-                        {senior.isActive && (
-                            <span
-                                className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full animate-pulse"
-                                title="Active Now"
-                            />
-                        )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="min-w-0 flex-1">
-                                <h2 className="text-gray-900 dark:text-white font-bold text-base truncate">
-                                    {senior.name}
-                                </h2>
-                                <p className="text-gray-600 dark:text-gray-400 text-xs mt-0.5">{senior.role}</p>
-
-                                <div className="text-xs mt-1 space-y-0.5">
-                                    <p className="text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium">
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                                            />
-                                        </svg>
-                                        {senior.college}
-                                    </p>
-                                    {senior.course && (
-                                        <p className="text-gray-500 dark:text-gray-500 text-[11px]">
-                                            {senior.course}
-                                            {senior.branch && (senior.course.toLowerCase().includes('btech') || senior.course.toLowerCase().includes('mtech')) &&
-                                                ` - ${senior.branch}`
-                                            }
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-1.5 items-end">
-                                {senior.isMentor && (
-                                    <span className="flex-shrink-0 px-2.5 py-1 text-[10px] font-bold rounded-lg whitespace-nowrap flex items-center gap-1 shadow-sm bg-red-500 text-white dark:bg-red-600">
-                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                        </svg>
-                                        Mentor
-                                    </span>
-                                )}
-                                {senior.yearBadge && (
-                                    <span className={`flex-shrink-0 px-2.5 py-1 text-[10px] font-bold rounded-lg whitespace-nowrap flex items-center gap-1 shadow-sm ${getYearBadgeStyles(senior.yearBadge)}`}>
-                                        {getYearBadgeContent(senior.yearBadge)}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                            {senior.skills?.map((skill, idx) => (
-                                <span
-                                    key={idx}
-                                    className="px-2.5 py-1 text-[11px] font-medium rounded-md bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/40 dark:to-zinc-950/40 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-red-300 dark:hover:border-red-800 transition-colors duration-200"
-                                >
-                                    {skill}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="px-5 pb-5 flex gap-3 mt-auto">
-                    <button
-                        onClick={handleViewProfile}
-                        className="group/view relative flex-1 py-2.5 bg-transparent border-2 border-red-500 dark:border-red-400 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white text-sm font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/40 cursor-pointer"
-                    >
-                        <span className="absolute inset-0 bg-gradient-to-r from-red-500 to-rose-500 dark:from-red-500 dark:to-rose-400 transform scale-x-0 group-hover/view:scale-x-100 transition-transform duration-300 origin-left" />
-                        <span className="relative flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            View Profile
-                        </span>
-                    </button>
-                    <button
-                        onClick={handleAskQuery}
-                        className="group/connect relative flex-1 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 hover:scale-105 cursor-pointer"
-                    >
-                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover/connect:translate-x-[100%] transition-transform duration-700" />
-                        <span className="relative flex items-center gap-2">
-                            <svg
-                                className="w-4 h-4 group-hover/connect:rotate-12 transition-transform duration-300"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                />
-                            </svg>
-                            Ask Query
-                        </span>
-                    </button>
+    if (loading) {
+        return (
+            <div className="min-h-screen pb-10 lg:pb-0 bg-gray-50 dark:bg-black flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading students...</p>
                 </div>
             </div>
-
-            <AskQueryModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                receiverName={senior.name}
-                receiverRole={senior.yearBadge || 'student'}
-                receiverId={senior.id}
-                currentUserId={currentUserId}
-            />
-        </>
-    );
-};
-
-export default function HomePagee() {
-    const userName = "Rahul Kumar";
-    const userCollege = "IIT Delhi";
-    const userBranch = "CSE";
-    const year = "1st Year";
-    const currentUserId = 1;
-
-    const sameCollegeSeniors = [
-        {
-            id: 1,
-            name: "Prashant Kumar Singh",
-            role: "Mentor",
-            college: "IIT Delhi",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: true,
-            yearBadge: "4th-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor1",
-            skills: ["React", "Node.js", "Python", "AI/ML", "System Design"],
-            isActive: true
-        },
-        {
-            id: 2,
-            name: "Ananya Sharma",
-            role: "Senior Student",
-            college: "IIT Delhi",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "3rd-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor2",
-            skills: ["JavaScript", "React", "MongoDB"],
-            isActive: false
-        },
-        {
-            id: 3,
-            name: "Vikram Patel",
-            role: "Senior Student & Mentor",
-            college: "IIT Delhi",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: true,
-            yearBadge: "4th-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor3",
-            skills: ["C++", "DSA", "Competitive Programming"],
-            isActive: true
-        }
-    ];
-
-    // Updated junior data to match SeniorCard structure
-    const sameCollegeJuniors = [
-        {
-            id: 101,
-            name: "Amit Verma",
-            role: "Junior Student",
-            college: "IIT Delhi",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "1st-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=junior1",
-            skills: ["Python", "C++", "Web Dev"],
-            isActive: true
-        },
-        {
-            id: 102,
-            name: "Pooja Gupta",
-            role: "Junior Student",
-            college: "IIT Delhi",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "2nd-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=junior2",
-            skills: ["Java", "React", "DSA"],
-            isActive: false
-        },
-        {
-            id: 103,
-            name: "Rohit Singh",
-            role: "Junior Student",
-            college: "IIT Delhi",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "1st-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=junior3",
-            skills: ["HTML", "CSS", "JavaScript"],
-            isActive: true
-        }
-    ];
-
-    const otherCollegeSeniors = [
-        {
-            id: 301,
-            name: "Rajesh Kumar",
-            role: "Senior Student & Mentor",
-            college: "IIT Bombay",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: true,
-            yearBadge: "4th-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor4",
-            skills: ["Java", "Spring Boot", "Microservices"],
-            isActive: true
-        },
-        {
-            id: 302,
-            name: "Neha Singh",
-            role: "Senior Student",
-            college: "NIT Trichy",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "3rd-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor5",
-            skills: ["Flutter", "Dart", "Mobile Dev"],
-            isActive: false
-        },
-        {
-            id: 303,
-            name: "Karan Mehta",
-            role: "Senior Student",
-            college: "BITS Pilani",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "4th-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor6",
-            skills: ["DevOps", "Docker", "Kubernetes"],
-            isActive: true
-        }
-    ];
-
-    const otherCollegeJuniors = [
-        {
-            id: 201,
-            name: "Sanya Agarwal",
-            role: "Junior Student",
-            college: "IIT Madras",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "2nd-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=junior4",
-            skills: ["Python", "Django", "PostgreSQL"],
-            isActive: false
-        },
-        {
-            id: 202,
-            name: "Arjun Reddy",
-            role: "Junior Student",
-            college: "NIT Warangal",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "1st-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=junior5",
-            skills: ["C", "Data Structures", "Algorithms"],
-            isActive: true
-        },
-        {
-            id: 203,
-            name: "Meera Nair",
-            role: "Junior Student",
-            college: "IIIT Hyderabad",
-            course: "BTech",
-            branch: "Computer Science Engineering",
-            isMentor: false,
-            yearBadge: "2nd-year",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=junior6",
-            skills: ["React", "TypeScript", "Next.js"],
-            isActive: false
-        }
-    ];
+        );
+    }
 
     return (
         <div className="min-h-screen pb-10 lg:pb-0 bg-gray-50 dark:bg-black">
-            <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 dark:from-black dark:via-zinc-950 dark:to-slate-950 border-b border-gray-200 dark:border-zinc-900">
-                <div className="max-w-7xl mx-auto px-6 py-12">
-                    <div className="flex items-center gap-3 mb-4">
-                        <Sparkles className="w-8 h-8 text-yellow-500 animate-pulse" />
-                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
-                            Hey <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">{userName}</span>!
-                        </h1>
-                    </div>
-                    <p className="text-xl text-gray-700 dark:text-gray-300 max-w-3xl leading-relaxed">
-                        Ready to <span className="font-bold text-blue-600 dark:text-blue-400">connect</span>, <span className="font-bold text-purple-600 dark:text-purple-400">learn</span>, and <span className="font-bold text-pink-600 dark:text-pink-400">grow</span> with your campus connect by <span className="font-bold">AktuHelper</span>
-                    </p>
-                    <div className="flex flex-wrap gap-4 mt-6">
-                        <div className="px-4 py-2 bg-white dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 shadow-sm">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">College: </span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">{userCollege}</span>
-                        </div>
-                        <div className="px-4 py-2 bg-white dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 shadow-sm">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Branch: </span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">{userBranch}</span>
-                        </div>
-                        <div className="px-4 py-2 bg-white dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 shadow-sm">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Year: </span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">{year}</span>
+
+            <PageHeader
+                userName={userName}
+                userCollege={userCollege}
+                userCourse={userCourse}
+                userBranch={userBranch}
+                year={year}
+                badgeData={badgeData}
+                onBadgeClick={handleBadgeClick}
+                onNextBadgeClick={handleNextBadgeClick}
+                userData={userData}
+            />
+            {/* Tabs Navigation - Wrapper for sticky behavior */}
+            <div className="sticky top-0 z-40">
+                <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="flex gap-1">
+                            {/* All Queries Tab - First */}
+                            <button
+                                onClick={() => setActiveTab('queries')}
+                                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all relative ${activeTab === 'queries'
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                    }`}
+                            >
+                                <MessageSquare className="w-5 h-5" />
+                                <span>All Queries</span>
+                                {activeTab === 'queries' && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
+                                )}
+                            </button>
+
+                            {/* Connect Tab - Second */}
+                            <button
+                                onClick={() => setActiveTab('users')}
+                                className={`flex items-center gap-2 px-6 py-4 font-medium transition-all relative ${activeTab === 'users'
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                    }`}
+                            >
+                                <Users className="w-5 h-5" />
+                                <span>Connect</span>
+                                {activeTab === 'users' && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-t-full"></div>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
-                <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                                Your College Seniors
-                            </h2>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                Connect with seniors from {userCollege} • {userBranch}
-                            </p>
+            {/* Tab Content */}
+            <div className="max-w-7xl mx-auto px-6 py-12">
+                {activeTab === 'queries' ? (
+                    // All Queries Content
+                    <div>
+                        <div className="mb-6 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">All Queries</h2>
+                                <p className="text-gray-600 dark:text-gray-400">View and interact with all public queries from the community</p>
+                            </div>
+                            {totalPages > 0 && (
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Page {page} of {totalPages}
+                                </div>
+                            )}
                         </div>
-                        <a href="/seniormycollege" className="group flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-colors">
-                            View All
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </a>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {sameCollegeSeniors.map((senior) => (
-                            <SeniorCard key={senior.id} senior={senior} currentUserId={currentUserId} />
-                        ))}
-                    </div>
-                </section>
 
-                <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                                Your College Juniors
-                            </h2>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                Guide and mentor juniors from {userCollege} • {userBranch}
-                            </p>
-                        </div>
-                        <Link href="/juniormycollege" className="group flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-colors">
-                            View All
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {sameCollegeJuniors.map((junior) => (
-                            <SeniorCard key={junior.id} senior={junior} currentUserId={currentUserId} />
-                        ))}
-                    </div>
-                </section>
+                        {queriesLoading && publicQueries.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-500 mx-auto mb-4"></div>
+                                <p className="text-gray-600 dark:text-gray-400">Loading queries...</p>
+                            </div>
+                        ) : queriesError ? (
+                            <div className="text-center py-16 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+                                <MessageSquare className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error loading queries</h3>
+                                <p className="text-gray-600 dark:text-gray-400 mb-6">{queriesError}</p>
+                                <button
+                                    onClick={refreshQueries}
+                                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+                        ) : publicQueries.length === 0 ? (
+                            <div className="text-center py-16 bg-white dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700">
+                                <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No queries yet</h3>
+                                <p className="text-gray-600 dark:text-gray-400 mb-6">Be the first to post a query to the community</p>
+                                <button
+                                    onClick={() => setActiveTab('users')}
+                                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition"
+                                >
+                                    Connect with Users
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {publicQueries.map((query, index) => {
+                                    // ⭐ Attach ref to last element for infinite scroll
+                                    const isLastElement = index === publicQueries.length - 1;
 
-                <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                                Seniors from Other Colleges
-                            </h2>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                Expand your network • {userBranch} students across India
-                            </p>
-                        </div>
-                        <Link href="/seniorfromothercollege" className="group flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-colors">
-                            View All
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {otherCollegeSeniors.map((senior) => (
-                            <SeniorCard key={senior.id} senior={senior} currentUserId={currentUserId} />
-                        ))}
-                    </div>
-                </section>
+                                    return (
+                                        <div
+                                            key={query.documentId || query.id}
+                                            ref={isLastElement ? lastQueryRef : null}
+                                        >
+                                            <QueryCardFull
+                                                query={query}
+                                                userData={userData}
+                                                onAnswerAdded={refreshQueries}
+                                                onStatsChange={refreshQueries}
+                                                onQueryClick={() => handleQueryClick(query.documentId)}
+                                            />
+                                        </div>
+                                    );
+                                })}
 
-                <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                                Juniors from Other Colleges
-                            </h2>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                Share your knowledge • {userBranch} students across India
-                            </p>
-                        </div>
-                        <Link href="/juniorothercollege" className="group flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-colors">
-                            View All
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
+                                {/* ⭐ Loading indicator */}
+                                {queriesLoading && hasMore && (
+                                    <div className="text-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto mb-2"></div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">Loading more queries...</p>
+                                    </div>
+                                )}
+
+                                {/* ⭐ End of list indicator */}
+                                {!hasMore && publicQueries.length > 0 && (
+                                    <div className="text-center py-8 border-t border-gray-200 dark:border-zinc-800">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2">
+                                            <span>🎉</span>
+                                            You've seen all {publicQueries.length} queries
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {otherCollegeJuniors.map((junior) => (
-                            <SeniorCard key={junior.id} senior={junior} currentUserId={currentUserId} />
-                        ))}
+                ) : (
+                    // Connect Content
+                    <div className="space-y-16">
+                        <StudentsSection
+                            title="Your College Seniors"
+                            description={`Connect with seniors from ${userCollege} • ${getDisplayText(userCourse, userBranch)}`}
+                            viewAllLink="/seniormycollege"
+                            students={sameCollegeSeniors}
+                            currentUserId={currentUserId}
+                            onAskQuery={handleAskQuery}
+                            emptyMessage="No seniors found in your college"
+                        />
+
+                        <StudentsSection
+                            title="Your College Juniors"
+                            description={`Guide and mentor juniors from ${userCollege} • ${getDisplayText(userCourse, userBranch)}`}
+                            viewAllLink="/juniormycollege"
+                            students={sameCollegeJuniors}
+                            currentUserId={currentUserId}
+                            onAskQuery={handleAskQuery}
+                            emptyMessage="No juniors found in your college"
+                        />
+
+                        <StudentsSection
+                            title="Seniors from Other Colleges"
+                            description={`Expand your network • ${getDisplayText(userCourse, userBranch)} students across India`}
+                            viewAllLink="/seniorfromothercollege"
+                            students={otherCollegeSeniors}
+                            currentUserId={currentUserId}
+                            onAskQuery={handleAskQuery}
+                            emptyMessage="No seniors found from other colleges"
+                        />
+
+                        <StudentsSection
+                            title="Juniors from Other Colleges"
+                            description={`Share your knowledge • ${getDisplayText(userCourse, userBranch)} students across India`}
+                            viewAllLink="/juniorothercollege"
+                            students={otherCollegeJuniors}
+                            currentUserId={currentUserId}
+                            onAskQuery={handleAskQuery}
+                            emptyMessage="No juniors found from other colleges"
+                        />
                     </div>
-                </section>
+                )}
             </div>
+
+            {/* Ask Query Modal */}
+            <AskQueryModal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                receiverData={selectedReceiver}
+                currentUserId={currentUserId}
+                onQuerySent={handleQuerySent}
+            />
+
+            {/* Next Badge Modal */}
+            <NextBadgeModal
+                isOpen={showNextBadgeModal}
+                onClose={() => setShowNextBadgeModal(false)}
+                nextBadge={nextBadgeData}
+            />
         </div>
     );
 }

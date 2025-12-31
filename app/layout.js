@@ -9,7 +9,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import TelegramButton from "./_HomePage_Components/TelegramButton";
 import { usePathname } from "next/navigation";
-
+import { Toaster } from "react-hot-toast";
+import { SocketProvider } from "@/app/contexts/SocketContext";
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
@@ -30,8 +31,8 @@ export default function RootLayout({ children }) {
     '/juniorothercollege',
     '/seniorfromothercollege',
     '/juniormycollege',
+    '/profile'
   ];
-
   // Check if current path should hide footer
   const shouldHideFooter = hideFooterRoutes.some(route =>
     pathname?.startsWith(route)
@@ -75,11 +76,61 @@ export default function RootLayout({ children }) {
 
       <body className={`${outfit.variable} antialiased`}>
         <ThemeProvider>
-          <Navbar />
-          <main>{children}</main>
-          {!shouldHideFooter && <Footer />}
-          {!shouldHideFooter && < TelegramButton />}
-          {!shouldHideFooter && <AktuheperChatbot />}
+          <SocketProvider>
+            <Navbar />
+            <main>{children}</main>
+            {!shouldHideFooter && <Footer />}
+            {!shouldHideFooter && <TelegramButton />}
+            {!shouldHideFooter && <AktuheperChatbot />}
+
+            {/* ✅ Toast Notifications */}
+            <Toaster
+              position="top-center"
+              reverseOrder={false}
+              gutter={8}
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  maxWidth: '500px',
+                },
+                success: {
+                  duration: 3000,
+                  style: {
+                    background: '#10b981',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#10b981',
+                  },
+                },
+                error: {
+                  duration: 4000,
+                  style: {
+                    background: '#ef4444',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#ef4444',
+                  },
+                },
+                loading: {
+                  style: {
+                    background: '#3b82f6',
+                  },
+                  iconTheme: {
+                    primary: '#fff',
+                    secondary: '#3b82f6',
+                  },
+                },
+              }}
+            />
+          </SocketProvider>
+
         </ThemeProvider>
 
         <Analytics />

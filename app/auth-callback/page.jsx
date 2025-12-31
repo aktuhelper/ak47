@@ -1,33 +1,28 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 export default function AuthCallback() {
     const { user, isLoading } = useKindeBrowserClient();
-    const router = useRouter();
+    const [hasRedirected, setHasRedirected] = useState(false);
 
     useEffect(() => {
-        // Wait for authentication to complete
-        if (!isLoading && user) {
-            // Check if there's a return URL stored
+        if (!isLoading && user && !hasRedirected) {
+            setHasRedirected(true);
+
             const returnUrl = sessionStorage.getItem('returnUrl');
+            console.log("🔄 Redirecting to:", returnUrl || '/dashboard');
 
             if (returnUrl) {
-                console.log('🔄 Redirecting to:', returnUrl);
-                // Clear the return URL
                 sessionStorage.removeItem('returnUrl');
-                // Redirect to the stored URL
-                router.push(returnUrl);
+                window.location.href = returnUrl; // Direct browser redirect
             } else {
-                // Default redirect if no return URL
-                console.log('🏠 No return URL, redirecting to dashboard');
-                router.push('/'); // or your default page
+                window.location.href = '/dashboard';
             }
         }
-    }, [user, isLoading, router]);
+    }, [user, isLoading, hasRedirected]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 flex items-center justify-center">

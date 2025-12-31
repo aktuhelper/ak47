@@ -1,322 +1,238 @@
 "use client";
-import React, { useState } from "react";
-import {
-    MessageSquare,
-    Eye,
-    FileText,
-    Image,
-    Download,
-    X,
-    GraduationCap,
-    BookOpen,
-    Shield,
-    Send,
-    User
-} from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { MessageSquare, Eye, FileText, CheckCircle, Trash2, Lock } from "lucide-react";
+import { MiniBadge } from "./_card/MiniBadge";
+import { getUserBadges } from "./_card/getUserBadges";
+import { FilePreviewModal } from "./_card/FilePreviewModal";
+import { ViewAnswersModal } from "./_card/ViewAnswersModal";
+import { AddAnswerModal } from "./_card/AddAnswerModal";
+import { ViewPersonalAnswersModal } from "./_userquerycollection/ViewPersonalAnswersModal";
+import { AddPersonalAnswerModal } from "./_userquerycollection/AddPersonalAnswerModal";
+import { DeleteConfirmationModal } from "./_userquerycollection/DeleteConfirmationModal";
+import { useFetchPersonalAnswers } from "./_userquerycollection/useFetchPersonalAnswers";
+import { fetchFromStrapi, deleteFromStrapi } from '@/secure/strapi';
 
-const cn = (...classes) => classes.filter(Boolean).join(' ');
-
-// -----------------------------------------------
-// BADGE COMPONENT
-// -----------------------------------------------
-export const Badge = ({ type, className }) => {
-    const configs = {
-        fresher: {
-            label: "1st Year",
-            icon: GraduationCap,
-            className: "bg-emerald-500 text-white border-transparent dark:bg-emerald-600"
-        },
-        "2nd-year": {
-            label: "2nd Year",
-            icon: BookOpen,
-            className: "bg-blue-500 text-white border-transparent dark:bg-blue-600"
-        },
-        "3rd-year": {
-            label: "3rd Year",
-            icon: BookOpen,
-            className: "bg-violet-600 text-white border-transparent dark:bg-violet-700"
-        },
-        "4th-year": {
-            label: "4th Year",
-            icon: BookOpen,
-            className: "bg-orange-600 text-white border-transparent dark:bg-orange-700"
-        },
-        mentor: {
-            label: "Mentor",
-            icon: Shield,
-            className: "bg-red-500 text-white border-transparent dark:bg-red-600"
-        },
-        default: {
-            label: "Student",
-            icon: GraduationCap,
-            className: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
-        }
-    };
-
-    const config = configs[type] || configs.default;
-    const Icon = config.icon;
-
-    return (
-        <span
-            className={cn(
-                "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border tracking-wide",
-                config.className,
-                className
-            )}
-        >
-            <Icon className="w-3 h-3" /> {config.label}
-        </span>
-    );
-};
-
-// -----------------------------------------------
-// FILE PREVIEW MODAL
-// -----------------------------------------------
-export const FilePreviewModal = ({ file, isOpen, onClose }) => {
-    if (!isOpen || !file) return null;
-
-    const isImage = file.type === "image";
-
-    return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
-            <div
-                className="relative max-w-4xl w-full bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <h3 className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                        {isImage ? <Image className="w-4 h-4 text-blue-500" /> : <FileText className="w-4 h-4 text-orange-500" />}
-                        {file.name}
-                    </h3>
-
-                    <button onClick={onClose} className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <div className="p-6 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950/30 min-h-[300px]">
-                    {isImage ? (
-                        <img src={file.url} alt={file.name} className="max-h-[70vh] w-auto object-contain rounded-lg" />
-                    ) : (
-                        <div className="text-center">
-                            <div className="w-20 h-20 mx-auto bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center mb-4">
-                                <FileText className="w-10 h-10 text-orange-500" />
-                            </div>
-                            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg inline-flex items-center gap-2 transition-colors">
-                                <Download className="w-4 h-4" /> Download File
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// -----------------------------------------------
-// HELPER FUNCTION - NOW EXPORTED
-// -----------------------------------------------
-export const getBadges = (user) => {
-    const arr = [];
-    if (!user) return arr;
-
-    // Year-based badges
-    if (user.year === 1) arr.push("fresher");
-    else if (user.year === 2) arr.push("2nd-year");
-    else if (user.year === 3) arr.push("3rd-year");
-    else if (user.year === 4) arr.push("4th-year");
-
-    // Mentor badge (for any year if they are a mentor)
-    if (user.isMentor) arr.push("mentor");
-
-    return arr;
-};
-
-// -----------------------------------------------
-// VIEW ANSWERS MODAL
-// -----------------------------------------------
-export const ViewAnswersModal = ({ query, isOpen, onClose }) => {
-    if (!isOpen || !query) return null;
-
-    const answers = query.answers || [];
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-            <div
-                className="bg-white dark:bg-zinc-900 w-full max-w-2xl rounded-xl shadow-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 max-h-[90vh]"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex justify-between items-center p-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <h3 className="font-medium text-zinc-900 dark:text-zinc-100">Answers</h3>
-                    <button onClick={onClose} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300">
-                        <X className="w-6 h-6" />
-                    </button>
-                </div>
-
-                <div className="overflow-y-auto p-6">
-                    {/* Question Header with User Info and Badges */}
-                    <div className="mb-6 pb-6 border-b border-zinc-200 dark:border-zinc-800">
-                        <div className="flex items-center gap-3 mb-3">
-                            <img
-                                src={query.user.avatar}
-                                className="w-10 h-10 rounded-full border border-zinc-200 dark:border-zinc-700"
-                                alt={query.user.name}
-                            />
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
-                                        {query.user.name}
-                                    </span>
-                                    {getBadges(query.user).map((b) => (
-                                        <Badge type={b} key={b} />
-                                    ))}
-                                </div>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                                    {query.user.branch} • {query.user.college}
-                                </p>
-                            </div>
-                        </div>
-
-                        <h2 className="text-xl font-bold mb-2 text-zinc-900 dark:text-zinc-100">{query.title}</h2>
-                        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">{query.description}</p>
-                    </div>
-
-                    {/* Answers Section */}
-                    <div className="space-y-6">
-                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
-                            {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
-                        </h3>
-
-                        {answers.length === 0 ? (
-                            <p className="text-center text-zinc-500 dark:text-zinc-400 py-8">No answers yet. Be the first to answer!</p>
-                        ) : (
-                            answers.map((answer) => (
-                                <div key={answer.id} className="border-b border-zinc-200 dark:border-zinc-800 pb-4 last:border-0">
-                                    <div className="flex gap-2 mb-2">
-                                        <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center">
-                                            <User className="w-5 h-5 text-zinc-500" />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                                <p className="font-medium text-sm text-zinc-900 dark:text-zinc-100">{answer.user}</p>
-                                                {answer.badges?.map((badge) => (
-                                                    <Badge type={badge} key={badge} />
-                                                ))}
-                                            </div>
-                                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{answer.details}</p>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed mb-2 ml-12">
-                                        {answer.text}
-                                    </p>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// -----------------------------------------------
-// ADD ANSWER MODAL
-// -----------------------------------------------
-export const AddAnswerModal = ({ query, isOpen, onClose }) => {
-    const [answerText, setAnswerText] = useState('');
-
-    if (!isOpen || !query) return null;
-
-    const handleSubmit = () => {
-        if (answerText.trim()) {
-            // Handle answer submission here
-            console.log('Submitting answer:', answerText);
-            setAnswerText('');
-            onClose();
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-            <div
-                className="bg-white dark:bg-zinc-900 max-w-lg w-full rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex justify-between items-center p-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <h3 className="font-medium text-sm text-zinc-900 dark:text-zinc-100">Write an Answer</h3>
-                    <button onClick={onClose} className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300">
-                        <X className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="p-4">
-                    {/* Question Preview with Badges */}
-                    <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                            <img
-                                src={query.user.avatar}
-                                className="w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700"
-                                alt={query.user.name}
-                            />
-                            <div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="font-semibold text-xs text-zinc-900 dark:text-zinc-100">
-                                        {query.user.name}
-                                    </span>
-                                    {getBadges(query.user).map((b) => (
-                                        <Badge type={b} key={b} />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{query.title}</p>
-                    </div>
-
-                    <textarea
-                        value={answerText}
-                        onChange={(e) => setAnswerText(e.target.value)}
-                        className="w-full h-32 p-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Type your answer..."
-                    />
-
-                    <div className="flex justify-end mt-4 gap-2">
-                        <button
-                            onClick={onClose}
-                            className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSubmit}
-                            disabled={!answerText.trim()}
-                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-400 disabled:cursor-not-allowed text-white text-sm rounded-lg flex items-center gap-1 transition-colors"
-                        >
-                            <Send className="w-3 h-3" /> Post
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// -----------------------------------------------
-// MAIN FULL CARD COMPONENT - DEFAULT EXPORT
-// -----------------------------------------------
-export default function QueryCardFull({ query }) {
+export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsChange, onQueryClick }) {
     const [previewFile, setPreviewFile] = useState(null);
     const [openAnswers, setOpenAnswers] = useState(false);
     const [openAddAnswer, setOpenAddAnswer] = useState(false);
+    const [openDeleteModal, setOpenDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [answerCount, setAnswerCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [userAnswer, setUserAnswer] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+
+    // ⭐ Refs for IntersectionObserver view tracking
+    const cardRef = useRef(null);
+    const hasTrackedView = useRef(false);
+
+    // ⭐ Detect if this is a personal query
+    const isPersonalQuery = query.isPersonalQuery || query.isSentQuery || false;
+    const isQueryAuthor = isPersonalQuery
+        ? (query.isSentQuery || userData?.documentId === query.fromUser?.documentId)
+        : userData?.documentId === query.user?.documentId;
+
+    // ⭐ Use personal query answers hook if it's a personal query
+    const {
+        answers: personalAnswers,
+        loading: personalLoading,
+        refreshPersonalAnswers,
+        checkUserAnswer,
+        getAnswerCount: getPersonalAnswerCount
+    } = useFetchPersonalAnswers(
+        isPersonalQuery ? query.documentId : null,
+        userData
+    );
+
+    // ⭐ Auto-increment view count when card becomes visible (backend handles duplicates)
+    useEffect(() => {
+        // Don't track views if:
+        // - Personal query (no view tracking)
+        // - Already tracked in this component instance
+        // - No onQueryClick handler provided
+        if (isPersonalQuery || hasTrackedView.current || !onQueryClick) {
+            return;
+        }
+
+        // Create IntersectionObserver to watch when card enters viewport
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // Check if card is visible and hasn't been tracked yet in this instance
+                if (entry.isIntersecting && !hasTrackedView.current) {
+                    hasTrackedView.current = true; // Prevent multiple calls in same session
+                    onQueryClick(); // Backend will handle all duplicate checking
+                }
+            },
+            {
+                threshold: 0.5, // Trigger when 50% of card is visible
+                rootMargin: '0px'
+            }
+        );
+
+        // Start observing the card element
+        if (cardRef.current) {
+            observer.observe(cardRef.current);
+        }
+
+        // Cleanup: Stop observing when component unmounts
+        return () => {
+            if (observer) {
+                observer.disconnect();
+            }
+        };
+    }, [onQueryClick, isPersonalQuery, query.documentId]);
+
+    // ⭐ Fetch answer count based on query type
+    const fetchRealAnswerCount = async () => {
+        try {
+            if (isPersonalQuery) {
+                // ⭐ PERSONAL QUERY - Use personal answers
+                const count = await getPersonalAnswerCount();
+                setAnswerCount(count);
+
+                // Check if user answered
+                if (userData?.documentId) {
+                    const userPersonalAnswer = checkUserAnswer(userData.documentId);
+                    setUserAnswer(userPersonalAnswer);
+                }
+            } else {
+                // ⭐ REGULAR QUERY - Use regular answers
+                const data = await fetchFromStrapi(
+                    `answers?populate=user_profile&filters[query][documentId]=${query.documentId}`
+                );
+
+                const answers = data.data || [];
+                const realCount = answers.length;
+
+                setAnswerCount(realCount);
+
+                // Check if user answered
+                if (userData?.documentId) {
+                    const found = answers.find(a => {
+                        const answerUserId = a.user_profile?.documentId;
+                        return answerUserId === userData.documentId;
+                    });
+
+                    setUserAnswer(found || null);
+                } else {
+                    setUserAnswer(null);
+                }
+            }
+
+        } catch (err) {
+            setAnswerCount(query.answerCount || 0);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (query.documentId) {
+            fetchRealAnswerCount();
+        }
+    }, [query.documentId, userData?.documentId, isPersonalQuery]);
+
+    // ⭐ Refresh personal answers when they change
+    useEffect(() => {
+        if (isPersonalQuery && personalAnswers.length > 0) {
+            setAnswerCount(personalAnswers.length);
+            if (userData?.documentId) {
+                const userPersonalAnswer = checkUserAnswer(userData.documentId);
+                setUserAnswer(userPersonalAnswer);
+            }
+        }
+    }, [personalAnswers, isPersonalQuery, userData?.documentId]);
+
+    const handleAnswerSubmitted = async (newCount) => {
+        if (newCount !== undefined && newCount !== null) {
+            setAnswerCount(newCount);
+        }
+
+        // ⭐ Refresh based on query type
+        if (isPersonalQuery) {
+            await refreshPersonalAnswers();
+        }
+
+        await fetchRealAnswerCount();
+
+        if (onAnswerAdded) onAnswerAdded();
+        if (onStatsChange) onStatsChange();
+        setIsEditMode(false);
+    };
+
+    const handleViewAnswers = () => {
+        // Note: View tracking now happens automatically via IntersectionObserver
+        // Backend handles all duplicate prevention
+        setOpenAnswers(true);
+    };
+
+    const handleCloseAnswersModal = async () => {
+        setOpenAnswers(false);
+
+        // ⭐ Refresh based on query type
+        if (isPersonalQuery) {
+            await refreshPersonalAnswers();
+        }
+
+        await fetchRealAnswerCount();
+
+        if (onStatsChange) onStatsChange();
+    };
+
+    const handleEditAnswer = () => {
+        setIsEditMode(true);
+        setOpenAddAnswer(true);
+    };
+
+    // ⭐ Delete query handler with authorization check
+    const handleDeleteQuery = async () => {
+        // ⭐ SECURITY CHECK: Verify user is the query author
+        if (!isQueryAuthor) {
+            alert('You can only delete your own queries!');
+            setOpenDeleteModal(false);
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            // ⭐ Delete based on query type
+            const endpoint = isPersonalQuery
+                ? `personal-queries/${query.documentId}`
+                : `queries/${query.documentId}`;
+
+            await deleteFromStrapi(endpoint);
+
+            setOpenDeleteModal(false);
+
+            // ⭐ Notify parent to update stats AND refresh queries
+            if (onStatsChange) onStatsChange();
+            if (onAnswerAdded) onAnswerAdded();
+
+        } catch (err) {
+            alert('Failed to delete query. Please try again.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     return (
         <>
-            {/* CARD */}
-            <div className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:shadow-lg transition-all relative">
+            {/* CARD - ⭐ Added ref={cardRef} for IntersectionObserver */}
+            <div
+                ref={cardRef}
+                className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 hover:shadow-lg transition-all relative"
+            >
 
-                {/* CATEGORY BADGE - Top Right */}
-                <div className="absolute top-3 right-3">
-                    <span className="px-2.5 py-1 text-[10px] font-semibold bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm text-zinc-700 dark:text-zinc-300 rounded-md border border-zinc-200/50 dark:border-zinc-700/50">
+                {/* CATEGORY with Personal Badge */}
+                <div className="absolute top-3 right-3 flex gap-2">
+                    {isPersonalQuery && (
+                        <div className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold bg-purple-100/80 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-md border border-purple-200/50 dark:border-purple-700/50">
+                            <Lock className="w-3 h-3" />
+                            Private
+                        </div>
+                    )}
+                    <span className="px-2.5 py-1 text-[10px] font-semibold bg-zinc-100/80 dark:bg-zinc-800/80 rounded-md border border-zinc-200/50 dark:border-zinc-700/50">
                         {query.category}
                     </span>
                 </div>
@@ -324,32 +240,34 @@ export default function QueryCardFull({ query }) {
                 {/* USER */}
                 <div className="flex items-center gap-3 pr-20">
                     <img
-                        src={query.user.avatar}
+                        src={query.user.profileImageUrl || query.user.profilePic || '/default-avatar.png'}
                         className="w-10 h-10 rounded-full border border-zinc-200 dark:border-zinc-700"
                         alt={query.user.name}
                     />
-
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{query.user.name}</span>
-                            {getBadges(query.user).map((b) => (
-                                <Badge type={b} key={b} />
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm">
+                                {query.user.name}
+                            </span>
+                            {query.user.isVerified && (
+                                <CheckCircle className="w-4 h-4 text-zinc-500" />
+                            )}
+                            {getUserBadges(query.user).map((badge) => (
+                                <MiniBadge badge={badge} key={badge.id} />
                             ))}
                         </div>
 
                         <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
-                            {query.user.branch} • {query.user.college}
+                            {query.user.course} • {query.user.branch} • {query.user.year} • {query.user.college}
                         </p>
                     </div>
                 </div>
 
                 {/* TITLE */}
-                <h3 className="mt-3 text-base font-bold text-zinc-900 dark:text-zinc-100">{query.title}</h3>
+                <h3 className="mt-3 text-base font-bold">{query.title}</h3>
 
                 {/* DESCRIPTION */}
-                <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-1 line-clamp-2 leading-relaxed">
-                    {query.description}
-                </p>
+                <p className="text-sm mt-1 line-clamp-2">{query.description}</p>
 
                 {/* ATTACHMENTS */}
                 {query.attachments?.length > 0 && (
@@ -357,14 +275,14 @@ export default function QueryCardFull({ query }) {
                         {query.attachments.map((file, idx) => (
                             <button
                                 key={idx}
-                                className="w-16 h-16 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 hover:border-blue-500 transition-colors flex-shrink-0"
                                 onClick={() => setPreviewFile(file)}
+                                className="w-16 h-16 rounded-lg overflow-hidden border dark:border-zinc-700"
                             >
                                 {file.type === "image" ? (
-                                    <img src={file.url} className="w-full h-full object-cover" alt={file.name} />
+                                    <img src={file.url} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="flex items-center justify-center w-full h-full bg-zinc-100 dark:bg-zinc-800">
-                                        <FileText className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                                    <div className="flex justify-center items-center h-full bg-zinc-100 dark:bg-zinc-800">
+                                        <FileText className="w-5 h-5" />
                                     </div>
                                 )}
                             </button>
@@ -373,38 +291,141 @@ export default function QueryCardFull({ query }) {
                 )}
 
                 {/* FOOTER */}
-                <div className="flex justify-between items-center mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-700">
+                <div className="flex justify-between items-center mt-4 pt-3 border-t">
                     <div className="flex gap-4 text-xs text-zinc-600 dark:text-zinc-400">
+                        {/* ⭐ Hide views for personal queries (they don't have view tracking) */}
+                        {!isPersonalQuery && (
+                            <span className="flex items-center gap-1">
+                                <Eye className="w-3 h-3" /> {query.views}
+                            </span>
+                        )}
                         <span className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" /> {query.views}
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3" /> {query.answers?.length || 0}
+                            <MessageSquare className="w-3 h-3" />
+                            {loading ? "..." : answerCount}
                         </span>
                     </div>
 
                     <div className="flex gap-2">
+                        {/* View Button - Always visible */}
                         <button
-                            onClick={() => setOpenAnswers(true)}
-                            className="px-3 py-1.5 text-xs font-semibold border border-zinc-300 dark:border-zinc-700 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                            onClick={handleViewAnswers}
+                            className="px-3 py-1.5 text-xs font-semibold border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                         >
                             View
                         </button>
 
-                        <button
-                            onClick={() => setOpenAddAnswer(true)}
-                            className="px-3 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                        >
-                            Answer
-                        </button>
+                        {/* ⭐ SCENARIO 1: User is the QUERY AUTHOR */}
+                        {isQueryAuthor && (
+                            <button
+                                onClick={() => setOpenDeleteModal(true)}
+                                className="px-3 py-1.5 text-xs font-semibold border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1"
+                            >
+                                <Trash2 className="w-3 h-3" />
+                                Delete
+                            </button>
+                        )}
+
+                        {/* ⭐ SCENARIO 2: User is NOT the query author */}
+                        {!isQueryAuthor && (
+                            <>
+                                {/* If user has answered - show Edit + Delete Answer buttons */}
+                                {userAnswer ? (
+                                    <>
+                                        <button
+                                            onClick={handleEditAnswer}
+                                            className="px-3 py-1.5 text-xs font-semibold border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={handleViewAnswers}
+                                            className="px-3 py-1.5 text-xs font-semibold border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1"
+                                            title="View answers to delete your answer"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    /* If user hasn't answered - show Answer button */
+                                        <button
+                                            onClick={() => { setIsEditMode(false); setOpenAddAnswer(true); }}
+                                            className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                        >
+                                            Answer
+                                        </button>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* ALL MODALS */}
+            {/* MODALS */}
             <FilePreviewModal file={previewFile} isOpen={!!previewFile} onClose={() => setPreviewFile(null)} />
-            <ViewAnswersModal query={query} isOpen={openAnswers} onClose={() => setOpenAnswers(false)} />
-            <AddAnswerModal query={query} isOpen={openAddAnswer} onClose={() => setOpenAddAnswer(false)} />
+
+            {/* ⭐ CONDITIONAL MODALS - Show correct ones based on query type */}
+            {isPersonalQuery ? (
+                <>
+                    <ViewPersonalAnswersModal
+                        query={query}
+                        isOpen={openAnswers}
+                        onClose={handleCloseAnswersModal}
+                        userData={userData}
+                        onAnswerDeleted={async () => {
+                            await refreshPersonalAnswers();
+                            await fetchRealAnswerCount();
+                            if (onStatsChange) onStatsChange();
+                        }}
+                    />
+
+                    <AddPersonalAnswerModal
+                        query={query}
+                        isOpen={openAddAnswer}
+                        onClose={() => setOpenAddAnswer(false)}
+                        userData={userData}
+                        onAnswerSubmitted={handleAnswerSubmitted}
+                        isEdit={isEditMode}
+                        existingAnswer={userAnswer}
+                    />
+                </>
+            ) : (
+                <>
+                    <ViewAnswersModal
+                        query={query}
+                        isOpen={openAnswers}
+                        onClose={handleCloseAnswersModal}
+                        userData={userData}
+                        onAnswerDeleted={() => {
+                            fetchRealAnswerCount();
+                            if (onStatsChange) onStatsChange();
+                        }}
+                    />
+
+                    <AddAnswerModal
+                        query={query}
+                        isOpen={openAddAnswer}
+                        onClose={() => setOpenAddAnswer(false)}
+                        userData={userData}
+                        onAnswerSubmitted={handleAnswerSubmitted}
+                        isEdit={isEditMode}
+                        existingAnswer={userAnswer}
+                    />
+                </>
+            )}
+
+            {/* ⭐ DELETE QUERY CONFIRMATION MODAL */}
+            <DeleteConfirmationModal
+                isOpen={openDeleteModal}
+                onClose={() => setOpenDeleteModal(false)}
+                onConfirm={handleDeleteQuery}
+                title={isPersonalQuery ? "Delete Personal Query" : "Delete Query"}
+                message={
+                    isPersonalQuery
+                        ? "Are you sure you want to delete this personal query? All answers will also be removed."
+                        : "Are you sure you want to delete this query? All answers associated with it will also be removed."
+                }
+                isDeleting={isDeleting}
+            />
         </>
     );
 }

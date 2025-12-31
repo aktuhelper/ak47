@@ -268,7 +268,7 @@ export default function TrendingQueries() {
                 {/* View More Link */}
                 <div className="flex justify-center mt-8">
                     <a
-                        href="/login"
+                        href="/campusconnecthome"
                         className="group inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-all duration-200"
                     >
                         <span className="underline-offset-4 group-hover:underline">View More Queries</span>

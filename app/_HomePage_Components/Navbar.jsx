@@ -164,6 +164,11 @@ export default function Navbar() {
                                 )}
                             </li>
                             <li>
+                                <Link className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" href="/campusconnecthome">
+                                    CampusConnect
+                                </Link>
+                            </li>
+                            <li>
                                 <Link className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" href="/jobs">
                                     Jobs
                                 </Link>

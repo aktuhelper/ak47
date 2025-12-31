@@ -1,138 +1,220 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, Filter } from 'lucide-react';
-import SeniorCard from '../_loggedinHome/userproflecard';
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import FiltersContainer from '../seniormycollege/_comp/FiltersContainer';
+import SectionHeader from './_comp/SectionHeade';
+import LoadingSpinner from '../juniormycollege/_comp/LoadingSpinner';
+import ErrorMessage from '../juniormycollege/_comp/ErrorMessage';
+import EmptyState from '../juniormycollege/_comp/EmptyState';
+import JuniorsGrid from '../juniormycollege/_comp/JuniorsGrid';
+import useSeniorsFetch from './_comp/useSeniorsFetchHook';
+import { useSocket } from '@/app/contexts/SocketContext';
+import { fetchFromStrapi } from '@/secure/strapi'; // ✅ Import secure wrapper
 
-// Mock Data Generators
-const generateSeniors = (count, startId, course, branch, year) => {
-    const yearBadgeMap = {
-        "2nd Year": "2nd-year",
-        "3rd Year": "3rd-year",
-        "4th Year": "4th-year",
-        "Pass-out": "4th-year"
-    };
-
-    return Array.from({ length: count }).map((_, i) => ({
-        id: startId + i,
-        name: `Senior User ${startId + i}`,
-        role: `Senior Student`,
-        college: "IIT Delhi",
-        course: course,
-        branch: (course === "B.Tech" || course === "M.Tech") ? branch : null,
-        yearBadge: yearBadgeMap[year] || "3rd-year",
-        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${startId + i}`,
-        skills: ["React", "Node.js", "Python", "Design", "DSA", "AI/ML"].sort(() => 0.5 - Math.random()).slice(0, 3),
-        isActive: Math.random() > 0.8
-    }));
-};
-
-const TOP_MENTORS = [
-    {
-        id: 101,
-        name: "Prashant Kumar Singh",
-        role: "Mentor",
-        college: "IIT Delhi",
-        course: "BTech",
-        branch: "Computer Science Engineering",
-        isMentor: true,
-        yearBadge: "4th-year",
-        showYearBadge: true,
-        avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor1",
-        skills: ["React", "Node.js", "System Design", "AI/ML"],
-        isActive: true
-    },
-    {
-        id: 102,
-        name: "Aman Gupta",
-        role: "Mentor",
-        college: "NIT Trichy",
-        course: "BTech",
-        branch: "Electronics and Communication",
-        isMentor: true,
-        yearBadge: "3rd-year",
-        showYearBadge: true,
-        avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor2",
-        skills: ["VLSI", "Embedded Systems", "IoT"],
-        isActive: false
-    },
-    {
-        id: 103,
-        name: "Rohit Verma",
-        role: "Mentor",
-        college: "IIT Bombay",
-        course: "BTech",
-        branch: "Mechanical Engineering",
-        isMentor: true,
-        yearBadge: "4th-year",
-        showYearBadge: true,
-        avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor4",
-        skills: ["CAD", "Robotics", "Design"],
-        isActive: true
-    }
-];
-const ACTIVE_SENIORS = [
-    {
-        id: 201,
-        name: "Sarah Lee",
-        role: "Senior Student",
-        college: "IIT Delhi",
-        course: "BTech",
-        branch: "Computer Science Engineering",
-        yearBadge: "4th-year",
-        avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=active1",
-        skills: ["Figma", "UI/UX", "Design"],
-        isActive: true
-    },
-    {
-        id: 202,
-        name: "David Chen",
-        role: "Senior Student",
-        college: "BITS Pilani",
-        course: "BTech",
-        branch: "Information Technology",
-        yearBadge: "3rd-year",
-        avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=active2",
-        skills: ["Python", "Django", "PostgreSQL"],
-        isActive: true
-    },
-    {
-        id: 203,
-        name: "Priya Patel",
-        role: "Senior Student",
-        college: "NIT Warangal",
-        course: "BTech",
-        branch: "Electronics and Communication",
-        yearBadge: "4th-year",
-        avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=active3",
-        skills: ["React Native", "Mobile", "Flutter"],
-        isActive: true
-    }
-];
+const COURSES = ["B.Tech", "M.Tech", "BCA", "MCA", "MBA"];
+const BRANCHES = ["CSE", "ECE", "Mechanical", "IT", "Civil"];
 
 export default function SeniorsPage() {
+    const { user, isLoading: authLoading } = useKindeBrowserClient();
+    const router = useRouter();
+    const { onlineUsers, isConnected } = useSocket();
+    const [strapiUser, setStrapiUser] = useState(null);
+
     // Filters State
+    const [userTypeFilter, setUserTypeFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCourse, setSelectedCourse] = useState("B.Tech");
-    const [selectedBranch, setSelectedBranch] = useState("CSE");
-    const [selectedYear, setSelectedYear] = useState("3rd Year");
+    const [selectedCourse, setSelectedCourse] = useState("");
+    const [selectedBranch, setSelectedBranch] = useState("");
+    const [selectedYear, setSelectedYear] = useState("All");
 
-    // Data State
-    const [seniors, setSeniors] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
+    // Get available years based on current user's year - Updated for Passout
+    const getAvailableYears = () => {
+        if (!strapiUser?.year) return ["All"];
 
-    // Constants
-    const COURSES = ["B.Tech", "M.Tech", "BCA", "MCA", "MBA"];
-    const BRANCHES = ["CSE", "ECE", "Mechanical", "IT", "Civil"];
-    const YEARS = ["2nd Year", "3rd Year", "4th Year", "Pass-out"];
+        const yearMap = {
+            "1st Year": [],
+            "2nd Year": ["All", "1st Year"],
+            "3rd Year": ["All", "1st Year", "2nd Year"],
+            "4th Year": ["All", "1st Year", "2nd Year", "3rd Year"],
+            "Pass-out": ["All", "1st Year", "2nd Year", "3rd Year", "4th Year"],
+            "Passout": ["All", "1st Year", "2nd Year", "3rd Year", "4th Year"]
+        };
+        return yearMap[strapiUser.year] || ["All"];
+    };
+
+    const YEARS = getAvailableYears();
+
+    // Check if branch filter should be shown
+    const shouldShowBranchFilter = selectedCourse === "B.Tech" || selectedCourse === "M.Tech";
+
+    // Fetch current user's Strapi profile
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            if (!user?.email) return;
+
+            try {
+               
+
+                // ✅ Use secure wrapper instead of direct fetch
+                const result = await fetchFromStrapi(
+                    `user-profiles?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`
+                );
+
+                if (result.data && result.data.length > 0) {
+                    const userRecord = result.data[0];
+                    const userData = userRecord.attributes || userRecord;
+
+                    setStrapiUser({
+                        id: userRecord.id,
+                        documentId: userRecord.documentId || userRecord.id,
+                        ...userData
+                    });
+
+                 
+                }
+            } catch (error) {
+                console.error('❌ Error fetching current user:', error);
+            }
+        };
+
+        if (user && !authLoading) {
+            fetchCurrentUser();
+        }
+    }, [user, authLoading]);
+
+    // Initialize filters based on current user's data
+    useEffect(() => {
+        if (strapiUser) {
+            setSelectedCourse(strapiUser.course || "B.Tech");
+
+            if (strapiUser.course === "B.Tech" || strapiUser.course === "M.Tech") {
+                setSelectedBranch(strapiUser.branch || "CSE");
+            } else {
+                setSelectedBranch("");
+            }
+        }
+    }, [strapiUser]);
+
+    // Use custom hook for fetching seniors
+    const {
+        seniors: fetchedSeniors,
+        isLoading,
+        page,
+        hasMore,
+        totalCount,
+        error,
+        loadMoreRef,
+        resetPagination,
+        fetchSeniors
+    } = useSeniorsFetch({
+        strapiUser,
+        selectedCourse,
+        selectedBranch,
+        selectedYear,
+        userTypeFilter,
+        searchQuery
+    });
+
+    // ✅ CRITICAL FIX: Sync Socket.IO online status with fetched seniors
+    const [seniorsWithStatus, setSeniorsWithStatus] = useState([]);
+
+    useEffect(() => {
+        if (!fetchedSeniors || fetchedSeniors.length === 0) {
+            setSeniorsWithStatus([]);
+            return;
+        }
+
+        // Update isActive based on Socket.IO onlineUsers
+        const updatedSeniors = fetchedSeniors.map(senior => {
+            // Check if user is online using documentId or id
+            const isOnline = onlineUsers.some(
+                onlineUserId =>
+                    onlineUserId === senior.documentId ||
+                    onlineUserId === senior.id ||
+                    onlineUserId === String(senior.documentId) ||
+                    onlineUserId === String(senior.id)
+            );
+
+            return {
+                ...senior,
+                isActive: isOnline
+            };
+        });
+
+        setSeniorsWithStatus(updatedSeniors);
+
+       
+
+    }, [fetchedSeniors, onlineUsers]);
+
+    // ✅ Apply filters and sorting on the merged data
+    const displayedSeniors = React.useMemo(() => {
+        let filtered = seniorsWithStatus;
+
+        // Apply active filter
+        if (userTypeFilter === "active") {
+            filtered = filtered.filter(senior => senior.isActive);
+        }
+
+        // Filter and sort mentors by badge tier
+        if (userTypeFilter === "mentors") {
+            // Show all users with any mentor badge
+            filtered = filtered.filter(senior =>
+                senior.isMentor === true ||
+                senior.superMentor === true ||
+                senior.eliteMentor === true
+            );
+
+            // Sort by mentor tier: Elite → Super → Regular
+            filtered = [...filtered].sort((a, b) => {
+                // Determine tier level (higher is better)
+                const getTier = (senior) => {
+                    if (senior.eliteMentor) return 3;
+                    if (senior.superMentor) return 2;
+                    if (senior.isMentor) return 1;
+                    return 0;
+                };
+
+                const tierDiff = getTier(b) - getTier(a);
+                if (tierDiff !== 0) return tierDiff;
+
+                // Within same tier, sort by performance
+                if (b.answeredQueries !== a.answeredQueries) {
+                    return b.answeredQueries - a.answeredQueries;
+                }
+                if (b.helpfulAnswers !== a.helpfulAnswers) {
+                    return b.helpfulAnswers - a.helpfulAnswers;
+                }
+                return b.engagement - a.engagement;
+            });
+
+           
+        }
+
+        return filtered;
+    }, [seniorsWithStatus, userTypeFilter]);
 
     // Handlers
+    const handleUserTypeChange = (type) => {
+        setUserTypeFilter(type);
+        resetPagination();
+    };
+
     const handleCourseChange = (course) => {
         setSelectedCourse(course);
-        // Reset logic according to prompt
-        setSelectedBranch(course === "MBA" || course === "BCA" || course === "MCA" ? "" : "CSE");
-        setSelectedYear("3rd Year");
+
+        if (course === "B.Tech" || course === "M.Tech") {
+            if (strapiUser?.course === course && strapiUser?.branch) {
+                setSelectedBranch(strapiUser.branch);
+            } else {
+                setSelectedBranch("CSE");
+            }
+        } else {
+            setSelectedBranch("");
+        }
+
         resetPagination();
     };
 
@@ -146,195 +228,112 @@ export default function SeniorsPage() {
         resetPagination();
     };
 
-    const resetPagination = () => {
-        setPage(1);
-        setSeniors([]);
-        setHasMore(true);
+    // Get page subtitle based on user's year - Updated for Passout
+    const getPageSubtitle = () => {
+        if (!strapiUser?.year) return "Connect with students from your college";
+
+        const subtitleMap = {
+            "1st Year": "Connect with 2nd, 3rd & 4th year students and alumni from your college",
+            "2nd Year": "Connect with 3rd & 4th year students and alumni from your college",
+            "3rd Year": "Connect with 4th year students and alumni from your college",
+            "4th Year": "Connect with alumni from your college"
+        };
+
+        return subtitleMap[strapiUser.year] || "Connect with students from your college";
     };
 
-    // Search Debounce
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            resetPagination();
-        }, 350);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
+    // Show loading if auth is still loading
+    if (authLoading) {
+        return <LoadingSpinner fullPage />;
+    }
 
-    // Data Fetching (Simulated)
-    useEffect(() => {
-        const fetchSeniors = async () => {
-            setIsLoading(true);
-            // Simulate network delay
-            await new Promise(resolve => setTimeout(resolve, 800));
-
-            const newSeniors = generateSeniors(8, (page - 1) * 8 + 1000, selectedCourse, selectedBranch, selectedYear);
-
-            setSeniors(prev => page === 1 ? newSeniors : [...prev, ...newSeniors]);
-            setHasMore(page < 5); // Limit to 5 pages for demo
-            setIsLoading(false);
-        };
-
-        fetchSeniors();
-    }, [page, selectedCourse, selectedBranch, selectedYear, searchQuery]);
-
-    // Infinite Scroll Observer
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || isLoading || !hasMore) return;
-            setPage(prev => prev + 1);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [isLoading, hasMore]);
+    // Show message if user is Passout (has no seniors) - Handle both variants
+    if (strapiUser?.year === "Pass-out" || strapiUser?.year === "Passout") {
+        return <EmptyState type="pass-out" />;
+    }
 
     return (
         <div className="min-h-screen bg-theme-primary transition-colors duration-300">
             {/* Header & Filters Container */}
-            <div className="bg-white dark:bg-black border-b border-gray-200 dark:border-zinc-800 shadow-sm ">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    {/* (1) Page Header */}
-                    <div className="mb-4">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">All Seniors</h1>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Explore seniors, mentors, and recent active users from your college.</p>
+            <FiltersContainer
+                pageTitle={
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => router.back()}
+                            className="group flex items-center justify-center w-10 h-10 bg-white dark:bg-zinc-900 border-2 border-gray-200 dark:border-zinc-800 rounded-xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
+                            title="Go Back"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                        </button>
+                        <span>Your Seniors</span>
                     </div>
+                }
+                pageSubtitle={getPageSubtitle()}
+                college={strapiUser?.college}
+                userTypeFilter={userTypeFilter}
+                onUserTypeChange={handleUserTypeChange}
+                isSeniorPage={true}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                courses={COURSES}
+                selectedCourse={selectedCourse}
+                onCourseChange={handleCourseChange}
+                branches={BRANCHES}
+                selectedBranch={selectedBranch}
+                onBranchChange={handleBranchChange}
+                showBranchFilter={shouldShowBranchFilter}
+                years={YEARS}
+                selectedYear={selectedYear}
+                onYearChange={handleYearChange}
+            />
 
-                    {/* (2) Search Bar */}
-                    <div className="relative mb-4">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-zinc-800 rounded-xl leading-5 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 sm:text-sm"
-                            placeholder="Search by name, handle, skills, or interest..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <section>
+                    {/* Section Header */}
+                    <SectionHeader
+                        userTypeFilter={userTypeFilter}
+                        totalCount={userTypeFilter === "active" ? displayedSeniors.length : totalCount}
+                        selectedCourse={selectedCourse}
+                        selectedBranch={selectedBranch}
+                        selectedYear={selectedYear}
+                        isSeniorPage={true}
+                    />
 
-                    {/* (3) Branch Tabs (Conditional) */}
-                    {(selectedCourse === "B.Tech" || selectedCourse === "M.Tech") && (
-                        <div className="flex overflow-x-auto pb-2 mb-2 gap-2 no-scrollbar">
-                            {BRANCHES.map((branch) => (
-                                <button
-                                    key={branch}
-                                    onClick={() => handleBranchChange(branch)}
-                                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 border ${selectedBranch === branch
-                                        ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20"
-                                        : "bg-white dark:bg-zinc-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800"
-                                        }`}
-                                >
-                                    {branch}
-                                </button>
-                            ))}
+                    {/* Error State */}
+                    <ErrorMessage error={error} onRetry={() => fetchSeniors(1)} />
+
+                    {/* Seniors Grid - with online status */}
+                    <JuniorsGrid
+                        juniors={displayedSeniors}
+                        currentUserId={strapiUser?.documentId || strapiUser?.id}
+                        onlineUsers={onlineUsers}
+                        isSocketConnected={isConnected}
+                        isSeniorPage={true}
+                    />
+
+                    {/* Loading State - Initial */}
+                    {isLoading && page === 1 && <LoadingSpinner size="large" />}
+
+                    {/* Loading State - Infinite Scroll */}
+                    {isLoading && page > 1 && (
+                        <div className="flex justify-center py-8">
+                            <LoadingSpinner size="small" />
                         </div>
                     )}
 
-                    {/* (4) Course Tabs */}
-                    <div className="flex overflow-x-auto pb-2 mb-2 gap-2 no-scrollbar border-b border-gray-100 dark:border-zinc-800/50">
-                        {COURSES.map((course) => (
-                            <button
-                                key={course}
-                                onClick={() => handleCourseChange(course)}
-                                className={`whitespace-nowrap px-3 py-1.5 text-sm font-medium transition-colors duration-200 ${selectedCourse === course
-                                    ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                                    : "text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-                                    }`}
-                            >
-                                {course}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* (5) Seniority Tabs */}
-                    <div className="flex overflow-x-auto pb-1 gap-2 no-scrollbar">
-                        {YEARS.map((year) => (
-                            <button
-                                key={year}
-                                onClick={() => handleYearChange(year)}
-                                className={`whitespace-nowrap px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 border ${selectedYear === year
-                                    ? "bg-gray-900 dark:bg-white text-white dark:text-black border-gray-900 dark:border-white"
-                                    : "bg-transparent text-gray-500 dark:text-gray-500 border-transparent hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                    }`}
-                            >
-                                {year}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-
-                {/* (6) Top Mentors Section */}
-                <section>
-                    <div className="mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <span className="text-amber-500">🏆</span> Top Mentors of Your College
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Super mentors and experts from your branch & course</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {TOP_MENTORS.map(mentor => (
-                            <SeniorCard key={mentor.id} senior={mentor} />
-                        ))}
-                    </div>
-                </section>
-
-                {/* (7) Currently Active Seniors Section */}
-                <section>
-                    <div className="mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <span className="relative flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                            </span>
-                            Currently Active Seniors
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Seniors who were active in the last 24 hours</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {ACTIVE_SENIORS.map(senior => (
-                            <SeniorCard key={senior.id} senior={senior} />
-                        ))}
-                    </div>
-                </section>
-
-                {/* (8) Main Seniors Grid (Infinite Scroll) */}
-                <section>
-                    <div className="mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">All Seniors</h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Browsing {selectedCourse}
-                            {selectedBranch && ` • ${selectedBranch}`}
-                            {` • ${selectedYear}`}
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {seniors.map((senior) => (
-                            <SeniorCard key={senior.id} senior={senior} />
-                        ))}
-                    </div>
-
-                    {/* Loading State / Infinite Scroll Spinner */}
-                    {isLoading && (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        </div>
+                    {/* Infinite Scroll Trigger */}
+                    {hasMore && !isLoading && displayedSeniors.length > 0 && (
+                        <div ref={loadMoreRef} className="h-20" />
                     )}
 
-                    {!hasMore && !isLoading && seniors.length > 0 && (
-                        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                            You've reached the end of the list.
-                        </div>
+                    {/* End of List */}
+                    {!hasMore && !isLoading && displayedSeniors.length > 0 && (
+                        <EmptyState type="end-of-list" />
                     )}
 
-                    {!isLoading && seniors.length === 0 && (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500 dark:text-gray-400 text-lg">No seniors found</p>
-                            <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Try adjusting your filters</p>
-                        </div>
+                    {/* No Results */}
+                    {!isLoading && displayedSeniors.length === 0 && !error && (
+                        <EmptyState type="no-results" isSeniorPage={true} />
                     )}
                 </section>
             </div>

@@ -32,15 +32,7 @@ export default function MentorProfiles() {
             avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor3",
             skills: ["JavaScript", "React", "UI/UX"],
         },
-        {
-            id: 4,
-            name: "Rohit Verma",
-            role: "Mentor • Mechanical",
-            college: "IIT Bombay",
-            badge: "Super Mentor",
-            avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=mentor4",
-            skills: ["CAD", "Robotics", "3D Printing"],
-        }
+       
     ];
 
     const displayedProfiles = showAll ? profiles : profiles.slice(0, 3);

@@ -36,7 +36,7 @@ export default function CTAComponent() {
 
                         {/* Subheading */}
                         <p className="text-lg md:text-xl text-white/90 mb-4 font-medium">
-                            with <span className="font-bold text-yellow-300">CampusLink</span> by{' '}
+                            with <span className="font-bold text-yellow-300">CampusConnect</span> by{' '}
                             <span className="font-bold text-yellow-300">AKTUHelper</span>
                         </p>
 
@@ -48,7 +48,7 @@ export default function CTAComponent() {
                         {/* CTA Buttons */}
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
                             <a
-                                href="/signup"
+                                href="/campusconnecthome"
                                 className="group relative px-6 py-3 bg-white text-blue-600 font-bold text-base rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden"
                             >
                                 {/* Shine Effect */}
