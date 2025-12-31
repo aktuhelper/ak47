@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight } from "lucide-react";
-import CollegeSelector from "./Collegeselector";
+import CollegeSelector from "./Collegeselector.jsx";
 
 const branches = ["CSE", "IT", "ECE", "EEE", "ME", "CE", "AI & ML", "Data Science"];
 const years = ["1st Year", "2nd Year", "3rd Year", "4th Year", "Passout"];
