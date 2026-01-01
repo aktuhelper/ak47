@@ -412,7 +412,9 @@ export default function Navbar() {
                                     </div>
                                 )}
                             </div>
-
+                            <a href="/campusconnecthome" className="block px-4 py-3 text-theme-primary font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                                campusconnect
+                            </a>
                             <a href="/jobs" className="block px-4 py-3 text-theme-primary font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition">
                                 Jobs
                             </a>
