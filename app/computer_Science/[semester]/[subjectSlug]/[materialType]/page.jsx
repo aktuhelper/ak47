@@ -204,7 +204,7 @@ export default function MaterialDetailPage() {
                                     </div>
 
                                     <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900 rounded-lg p-3 text-sm text-amber-900 dark:text-amber-200">
-                                        <strong>About Quantum:</strong> Comprehensive AKTU exam materials with solved examples and previous year questions.
+                                        <p>The PDF notes and study materials shared on this website, including content from sources like Quantum Series, educational websites, and Telegram channels, are intended for <strong>educational purposes only</strong>. We do not claim ownership of any materials unless explicitly mentioned. All rights belong to the original creators or publishers. Please support the original authors by purchasing their books or materials if you find them helpful.</p>
                                     </div>
                                 </div>
                             ) : (
