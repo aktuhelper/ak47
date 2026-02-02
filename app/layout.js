@@ -40,6 +40,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        {/* ✅ Favicon */}
+        <link rel="icon" href="/logoxxx.svg" type="image/svg+xml" />
 
         {/* ✅ Ezoic CMP scripts */}
         <Script
