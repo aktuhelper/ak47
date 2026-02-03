@@ -58,7 +58,13 @@ export default function StudyMaterialsPage() {
     };
 
     useEffect(() => {
-        document.title = "Btech Computer Science Study Materials | AKTU Helper";
+        document.title = "AKTU BTech CSE Study Materials | Previous Year Papers, Notes, Quantum Books | Computer Science Engineering";
+
+        // Add meta description for SEO
+        const metaDescription = document.querySelector('meta[name="description"]');
+        if (metaDescription) {
+            metaDescription.setAttribute('content', 'Free AKTU Computer Science Engineering study materials for all semesters. Download previous year question papers (PYQs), Quantum books, handwritten notes, and syllabus for BTech CSE. Complete coverage from semester 1 to 8 including Data Structures, DBMS, Software Engineering, Artificial Intelligence, and more.');
+        }
     }, []);
 
     const getMaterialsForSubject = (subjectCode) => {
@@ -150,16 +156,21 @@ export default function StudyMaterialsPage() {
                     <div className="text-center mb-8 sm:mb-12">
                         <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 mb-4 sm:mb-6 dark:bg-blue-900/30 dark:border-blue-800">
                             <GraduationCap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                            <span className="text-xs sm:text-sm text-blue-700 dark:text-blue-400">Computer Science & Engineering</span>
+                            <span className="text-xs sm:text-sm text-blue-700 dark:text-blue-400">AKTU BTech Computer Science & Engineering</span>
                         </div>
 
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight px-4">
-                            Study Materials Portal For Computer Science Engineering
+                            AKTU CSE Study Materials - Free Notes, PYQ, Quantum Books
                         </h1>
 
-                        <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-zinc-400 max-w-2xl mx-auto px-4">
-                            Access semester-wise syllabus, notes, PYQs, and Quantum books all in one place
+                        <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-zinc-400 max-w-3xl mx-auto px-4 mb-4">
+                            Download free AKTU Computer Science Engineering study materials for all semesters. Access previous year question papers, handwritten notes, Quantum series books, and complete syllabus PDFs for BTech CSE students.
                         </p>
+
+                        {/* SEO-rich keyword paragraph - hidden visually but readable by search engines */}
+                        <div className="text-xs sm:text-sm text-slate-500 dark:text-zinc-500 max-w-4xl mx-auto px-4">
+                            Complete collection of AKTU study resources including Data Structures (BCS301), Database Management System (BCS501), Computer Organization and Architecture (BCS302), Software Engineering (BCS601), Compiler Design (BCS602), Computer Networks (BCS603), Design and Analysis of Algorithms (BCS503), Theory of Automata and Formal Languages (TAFL-BCS402), Web Technology (BCS502), Artificial Intelligence (BCS701), Cloud Computing, Cryptography and Network Security, Python Programming (BCC302), Cyber Security (BCC301), Engineering Mathematics, Programming for Problem Solving (BCS101), and all core subjects from Dr. A.P.J. Abdul Kalam Technical University curriculum.
+                        </div>
                     </div>
 
                     {/* Search Bar */}
@@ -168,7 +179,7 @@ export default function StudyMaterialsPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400 dark:text-zinc-500" />
                             <input
                                 type="text"
-                                placeholder="Search subjects or codes..."
+                                placeholder="Search AKTU CSE subjects, codes (BCS301, BCS501, BAS102)..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base rounded-xl sm:rounded-2xl border-2 border-slate-200 focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 outline-none transition-all duration-300 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
@@ -203,7 +214,7 @@ export default function StudyMaterialsPage() {
                             <div className="bg-white border-2 border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 sticky top-6 shadow-lg dark:bg-zinc-900 dark:border-zinc-800">
                                 <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2 dark:text-white">
                                     <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
-                                    Semesters
+                                    BTech CSE Semesters
                                 </h2>
                                 <div className="space-y-2">
                                     {semesters.map((sem) => (
@@ -234,10 +245,10 @@ export default function StudyMaterialsPage() {
                         <div className="lg:col-span-3">
                             <div className="mb-4 sm:mb-6">
                                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                                    Semester {selectedSemester} - Study Materials
+                                    AKTU Semester {selectedSemester} - Computer Science Study Materials
                                 </h2>
                                 <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 mt-1">
-                                    {filteredMaterials.length} subject{filteredMaterials.length !== 1 ? 's' : ''} found
+                                    {filteredMaterials.length} CSE subject{filteredMaterials.length !== 1 ? 's' : ''} with PYQ, Notes, Quantum Books & Syllabus
                                 </p>
                             </div>
 
@@ -262,7 +273,7 @@ export default function StudyMaterialsPage() {
                                                         </div>
                                                         <div className="flex-grow min-w-0">
                                                             <h3 className="text-base font-bold text-slate-900 truncate dark:text-white">{material.subject}</h3>
-                                                            <p className="text-xs text-slate-600 dark:text-zinc-400">{material.code}</p>
+                                                            <p className="text-xs text-slate-600 dark:text-zinc-400">{material.code} - AKTU</p>
                                                         </div>
                                                         <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md flex-shrink-0 dark:bg-amber-900/30 dark:border-amber-800">
                                                             <Star className="w-3 h-3 fill-amber-500 text-amber-500 dark:fill-amber-400 dark:text-amber-400" />
@@ -303,10 +314,10 @@ export default function StudyMaterialsPage() {
                                                                             {data?.available ? (
                                                                                 <div className="flex items-center justify-center gap-1 text-xs text-green-600 dark:text-green-400">
                                                                                     <ChevronRight className="w-3 h-3" />
-                                                                                    <span>View</span>
+                                                                                    <span>Download</span>
                                                                                 </div>
                                                                             ) : (
-                                                                                <p className="text-xs text-slate-400 dark:text-zinc-600">N/A</p>
+                                                                                <p className="text-xs text-slate-400 dark:text-zinc-600">Coming Soon</p>
                                                                             )}
                                                                         </div>
                                                                     </div>
@@ -326,8 +337,8 @@ export default function StudyMaterialsPage() {
                                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 dark:bg-zinc-800">
                                         <Search className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400 dark:text-zinc-600" />
                                     </div>
-                                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 dark:text-white">No materials found</h3>
-                                    <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-400">Try adjusting your search or filters</p>
+                                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 dark:text-white">No AKTU CSE materials found</h3>
+                                    <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-400">Try searching for different subjects or adjust your filters</p>
                                 </div>
                             )}
                         </div>
@@ -344,25 +355,54 @@ export default function StudyMaterialsPage() {
                                 <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8" />
                             </div>
                             <div className="flex-grow">
-                                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Study Smart, Not Hard!</h3>
+                                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Ace Your AKTU Exams - Study Smart!</h3>
                                 <p className="text-sm sm:text-base text-white/90 mb-4">
-                                    Download materials early, make notes, solve PYQs regularly, and refer to Quantum books for comprehensive preparation.
+                                    Download AKTU study materials early, solve previous year question papers regularly, practice with Quantum books, and make handwritten notes for better retention. Focus on important questions and syllabus topics for maximum marks in BTech Computer Science exams.
                                 </p>
                                 <div className="flex flex-wrap gap-2 sm:gap-3">
                                     <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
                                         <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span>Regular Updates</span>
+                                        <span>Updated PYQ Collection</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
                                         <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span>Quality Content</span>
+                                        <span>Quality Quantum Books</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-lg text-xs sm:text-sm">
                                         <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span>Free Access</span>
+                                        <span>100% Free Access</span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* SEO Content Section - About Materials */}
+            <div className="relative px-4 sm:px-6 pb-12 sm:pb-20">
+                <div className="max-w-7xl mx-auto">
+                    <div className="bg-white border-2 border-slate-200 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg dark:bg-zinc-900 dark:border-zinc-800">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6 dark:text-white">
+                            About AKTU Computer Science Study Materials
+                        </h2>
+
+                        <div className="space-y-4 text-slate-700 dark:text-zinc-300">
+                            <p className="text-sm sm:text-base">
+                                This comprehensive portal provides free access to all essential study materials for AKTU (Dr. A.P.J. Abdul Kalam Technical University) BTech Computer Science and Engineering students. Our collection includes semester-wise organized resources covering all eight semesters from first year to final year. Students can download previous year question papers (PYQs), Quantum series books, handwritten notes, complete syllabus PDFs, and important question banks for effective exam preparation.
+                            </p>
+
+                            <p className="text-sm sm:text-base">
+                                We cover all major CSE subjects including Data Structures (BCS301), Database Management System DBMS (BCS501), Computer Organization and Architecture COA (BCS302), Software Engineering (BCS601), Compiler Design (BCS602), Computer Networks (BCS603), Design and Analysis of Algorithms DAA (BCS503), Theory of Automata and Formal Languages TAFL (BCS402), Web Technology (BCS502), Artificial Intelligence AI (BCS701), Cloud Computing (BCS07), Cryptography and Network Security (BCS072), Python Programming (BCC302), Cyber Security (BCC301), Engineering Chemistry (BAS102), Engineering Mathematics (BAS103, BAS303), Programming for Problem Solving C Programming (BCS101), and all other core and elective subjects from the AKTU curriculum.
+                            </p>
+
+                            <p className="text-sm sm:text-base">
+                                Our previous year question papers collection spans multiple years, providing students with authentic AKTU exam papers and solutions. The Quantum series books are specially curated for AKTU examination patterns, containing solved previous papers, important questions with detailed answers, and concise notes for quick revision. All materials are available in downloadable PDF format for easy offline access and studying.
+                            </p>
+
+                            <p className="text-sm sm:text-base">
+                                Whether you're preparing for mid-semester exams, end-semester exams, or just looking for quality reference materials to understand complex CSE topics, this portal serves as your one-stop solution for all AKTU Computer Science Engineering academic needs. All resources are completely free to download and regularly updated with the latest content.
+                            </p>
                         </div>
                     </div>
                 </div>
