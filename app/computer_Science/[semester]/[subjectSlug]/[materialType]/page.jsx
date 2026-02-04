@@ -265,31 +265,119 @@ export default function MaterialDetailPage() {
                         </div>
                     )}
 
-                    {/* PYQ Material - SEO Enhanced */}
+                    {/* PYQ Material - SEO Enhanced with List Format */}
                     {materialType === 'pyq' && (
-                        <div className="text-center py-8">
-                            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-950 rounded-lg flex items-center justify-center mx-auto mb-3">
-                                <MaterialIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                        <div className="space-y-4">
+                            <div className="flex items-start gap-4 mb-6">
+                                <div className="w-16 h-16 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <FileQuestion className="w-8 h-8 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1">
+                                        {subjectName} Previous Year Question Papers (PYQ)
+                                    </h3>
+                                    <p className="text-sm text-gray-600 dark:text-zinc-400 mb-2">
+                                        AKTU BTech CSE {subjectName} ({subjectCode}) - Semester {semester} 
+                                    </p>
+                                </div>
                             </div>
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                                {subjectName} Previous Year Question Papers (PYQ)
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-zinc-400 mb-1">
-                                AKTU BTech CSE {subjectName} ({subjectCode}) - Semester {semester}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-zinc-500 mb-4">
-                                Download previous year question papers with solutions for AKTU examination preparation
-                            </p>
-                            <button
-                                onClick={() => alert(`Download ${materialType} for ${subjectName}`)}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-                            >
-                                <Download className="w-4 h-4" />
-                                Download PYQ Papers PDF
-                            </button>
+
+                            {/* PYQ List */}
+                            <div className="space-y-3">
+                                {/* PYQ Item 1 */}
+                                <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-base font-bold text-gray-900 dark:text-white mb-1">
+                                                AKTU {subjectName} Question Paper 2023-24
+                                            </h4>
+                                            <p className="text-xs text-gray-600 dark:text-zinc-400 mb-2">
+                                                {subjectCode} | BTech CSE Semester {semester}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => alert(`Download ${subjectName} PYQ 2023-24`)}
+                                            className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                            Download
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* PYQ Item 2 */}
+                                <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-base font-bold text-gray-900 dark:text-white mb-1">
+                                                AKTU {subjectName} Question Paper 2022-23
+                                            </h4>
+                                            <p className="text-xs text-gray-600 dark:text-zinc-400 mb-2">
+                                                {subjectCode} | BTech CSE Semester {semester}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => alert(`Download ${subjectName} PYQ 2022-23`)}
+                                            className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                            Download
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* PYQ Item 3 */}
+                                <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-base font-bold text-gray-900 dark:text-white mb-1">
+                                                AKTU {subjectName} Question Paper 2021-22
+                                            </h4>
+                                            <p className="text-xs text-gray-600 dark:text-zinc-400 mb-2">
+                                                {subjectCode} | BTech CSE Semester {semester}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => alert(`Download ${subjectName} PYQ 2021-22`)}
+                                            className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                            Download
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* PYQ Benefits Section */}
+                            <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-200 mb-3 flex items-center gap-2">
+                                    <FileQuestion className="w-4 h-4" />
+                                    Why Practice AKTU Previous Year Questions?
+                                </h4>
+                                <ul className="text-sm text-gray-800 dark:text-gray-300 space-y-2">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-gray-600 dark:text-gray-400 mt-0.5">•</span>
+                                        <span><strong>Understand Exam Pattern:</strong> Get familiar with AKTU question paper format, marking scheme, and difficulty level for {subjectName} ({subjectCode})</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-gray-600 dark:text-gray-400 mt-0.5">•</span>
+                                        <span><strong>Identify Important Topics:</strong> Discover frequently asked questions and high-weightage units in Semester {semester}</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-gray-600 dark:text-gray-400 mt-0.5">•</span>
+                                        <span><strong>Time Management:</strong> Practice solving papers within 3 hours to improve speed and accuracy for AKTU exams</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-gray-600 dark:text-gray-400 mt-0.5">•</span>
+                                        <span><strong>Boost Confidence:</strong> Solve actual AKTU papers with solutions to build confidence and reduce exam anxiety</span>
+                                    </li>
+                                </ul>
+                                <p className="text-xs text-gray-700 dark:text-gray-400 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <strong>Pro Tip:</strong> Solve these PYQ papers in exam conditions (3 hours, no help) and then review solutions to identify your weak areas. Focus on topics that appear repeatedly across multiple years for maximum marks in AKTU exams.
+                                </p>
+                            </div>
                         </div>
                     )}
-
                     {/* Notes Material - SEO Enhanced */}
                     {materialType === 'notes' && (
                         <div className="text-center py-8">
