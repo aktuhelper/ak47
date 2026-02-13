@@ -20,7 +20,7 @@ import { FaIndianRupeeSign } from "react-icons/fa6";
 
 export default function JobDetailPage() {
     const params = useParams();
-    const jobId = params.id;
+    const jobId = params?.id; // Added optional chaining
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,6 +30,12 @@ export default function JobDetailPage() {
     const STRAPI_API_URL = `https://aktuhelperserver-production.up.railway.app/api/jobs/${jobId}?populate=*`;
 
     useEffect(() => {
+        // Validate jobId before fetching
+        if (!jobId) {
+            setError("Invalid job ID");
+            setLoading(false);
+            return;
+        }
         fetchJobDetails();
     }, [jobId]);
 
@@ -39,7 +45,7 @@ export default function JobDetailPage() {
             timer = setTimeout(() => {
                 setCountdown(countdown - 1);
             }, 1000);
-        } else if (isApplying && countdown === 0) {
+        } else if (isApplying && countdown === 0 && job?.applyLink) {
             window.open(job.applyLink, '_blank', 'noopener,noreferrer');
             setIsApplying(false);
             setCountdown(15);
@@ -50,24 +56,45 @@ export default function JobDetailPage() {
     const fetchJobDetails = async () => {
         setLoading(true);
         setError(null);
+
         try {
-            const response = await fetch(STRAPI_API_URL);
-            if (!response.ok) throw new Error("Failed to fetch job");
+            // Add timeout for mobile networks (15 seconds)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            const response = await fetch(STRAPI_API_URL, {
+                signal: controller.signal,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch job. Status: ${response.status}`);
+            }
 
             const data = await response.json();
+
+            // Validate response data
+            if (!data || !data.data) {
+                throw new Error("Job not found or invalid response");
+            }
+
             const item = data.data;
             const attrs = item.attributes || item;
 
             const jobData = {
                 id: item.id,
                 documentId: item.documentId,
-                title: attrs.title,
-                company: attrs.company,
-                location: attrs.location,
-                type: attrs.jobType || attrs.type,
+                title: attrs.title || "Untitled Job",
+                company: attrs.company || "Unknown Company",
+                location: attrs.location || "Not specified",
+                type: attrs.jobType || attrs.type || "Not specified",
                 salary: attrs.salary || "Not specified",
                 postedDate: formatDate(attrs.createdAt || attrs.publishedAt),
-                applyLink: attrs.applyLink || attrs.link,
+                applyLink: attrs.applyLink || attrs.link || "",
                 deadline: attrs.deadline,
                 description: attrs.description || "No description available for this position.",
                 skills: Array.isArray(attrs.skills) ? attrs.skills : [],
@@ -76,10 +103,19 @@ export default function JobDetailPage() {
                 requirements: Array.isArray(attrs.requirements) ? attrs.requirements : [],
                 benefits: Array.isArray(attrs.benefits) ? attrs.benefits : [],
             };
+
             setJob(jobData);
         } catch (err) {
             console.error("Error fetching job details:", err);
-            setError(err.message);
+
+            // Better error messages for different error types
+            if (err.name === 'AbortError') {
+                setError('Connection timeout. Please check your internet connection and try again.');
+            } else if (err.message.includes('Failed to fetch')) {
+                setError('Network error. Please check your connection and try again.');
+            } else {
+                setError(err.message || 'Failed to load job details. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -87,26 +123,41 @@ export default function JobDetailPage() {
 
     const formatDate = (dateString) => {
         if (!dateString) return "Recently";
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffTime = Math.abs(now - date);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "Recently";
 
-        if (diffDays === 0) return "Today";
-        if (diffDays === 1) return "1 day ago";
-        if (diffDays < 7) return `${diffDays}d ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-        return `${Math.floor(diffDays / 30)}mo ago`;
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return "Today";
+            if (diffDays === 1) return "1 day ago";
+            if (diffDays < 7) return `${diffDays}d ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+            return `${Math.floor(diffDays / 30)}mo ago`;
+        } catch (err) {
+            return "Recently";
+        }
     };
 
     const formatDeadline = (deadline) => {
         if (!deadline) return "Not specified";
-        const date = new Date(deadline);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        try {
+            const date = new Date(deadline);
+            if (isNaN(date.getTime())) return "Not specified";
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (err) {
+            return "Not specified";
+        }
     };
 
     const handleApplyClick = (e) => {
         e.preventDefault();
+        if (!job?.applyLink) {
+            alert("Application link not available");
+            return;
+        }
         setIsApplying(true);
         setCountdown(15);
     };
@@ -124,6 +175,7 @@ export default function JobDetailPage() {
         }
     };
 
+    // Loading state
     if (loading) {
         return (
             <div className="min-h-screen bg-theme-gradient flex items-center justify-center">
@@ -135,6 +187,38 @@ export default function JobDetailPage() {
         );
     }
 
+    // Error state
+    if (error) {
+        return (
+            <div className="min-h-screen bg-theme-gradient flex items-center justify-center p-4">
+                <div className="text-center card-theme p-6 rounded-xl max-w-md">
+                    <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Briefcase className="w-7 h-7 text-red-600 dark:text-red-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2">Error Loading Job</h3>
+                    <p className="text-theme-secondary text-sm mb-4">{error}</p>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                        <button
+                            onClick={fetchJobDetails}
+                            className="btn-primary inline-flex items-center justify-center text-sm px-4 py-2"
+                        >
+                            <RefreshCw className="w-4 h-4 mr-1.5" />
+                            Try Again
+                        </button>
+                        <Link
+                            href="/jobs"
+                            className="btn-secondary inline-flex items-center justify-center text-sm px-4 py-2"
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-1.5" />
+                            Back to Jobs
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Job not found state
     if (!job) {
         return (
             <div className="min-h-screen bg-theme-gradient flex items-center justify-center p-4">
@@ -153,6 +237,7 @@ export default function JobDetailPage() {
         );
     }
 
+    // Main content
     return (
         <div className="min-h-screen bg-theme-gradient">
             <div className="max-w-4xl mx-auto px-4 py-6">
@@ -213,8 +298,8 @@ export default function JobDetailPage() {
                     {/* Apply Button */}
                     <button
                         onClick={handleApplyClick}
-                        disabled={isApplying}
-                        className={`w-full sm:w-auto px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 ${isApplying
+                        disabled={isApplying || !job.applyLink}
+                        className={`w-full sm:w-auto px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 ${isApplying || !job.applyLink
                             ? 'bg-gray-400 dark:bg-zinc-700 cursor-not-allowed'
                             : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-md'
                             }`}
@@ -224,6 +309,8 @@ export default function JobDetailPage() {
                                 <RefreshCw className="w-4 h-4 animate-spin" />
                                 Redirecting in {countdown}s
                             </>
+                        ) : !job.applyLink ? (
+                            <>No Application Link Available</>
                         ) : (
                             <>
                                 Apply Now
@@ -324,8 +411,8 @@ export default function JobDetailPage() {
                     <p className="text-theme-secondary text-sm mb-4">Take the next step in your career</p>
                     <button
                         onClick={handleApplyClick}
-                        disabled={isApplying}
-                        className={`px-8 py-3 text-white text-sm font-semibold rounded-lg transition-all inline-flex items-center gap-2 ${isApplying
+                        disabled={isApplying || !job.applyLink}
+                        className={`px-8 py-3 text-white text-sm font-semibold rounded-lg transition-all inline-flex items-center gap-2 ${isApplying || !job.applyLink
                             ? 'bg-gray-400 dark:bg-zinc-700 cursor-not-allowed'
                             : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg'
                             }`}
@@ -335,6 +422,8 @@ export default function JobDetailPage() {
                                 <RefreshCw className="w-4 h-4 animate-spin" />
                                 Redirecting in {countdown}s
                             </>
+                        ) : !job.applyLink ? (
+                            <>No Application Link Available</>
                         ) : (
                             <>
                                 Apply Now

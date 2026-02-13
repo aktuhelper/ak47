@@ -116,7 +116,7 @@ export default function Footer() {
     ];
 
     return (
-        <footer className="relative bg-gradient-to-b from-gray-900 to-gray-950 text-gray-300">
+        <footer className="relative bg-black text-gray-300">
             {/* Top Gradient Border */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"></div>
 
