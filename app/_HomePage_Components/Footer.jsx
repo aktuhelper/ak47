@@ -18,7 +18,7 @@ export default function Footer() {
             const res = await fetch("/api/subscribe", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email,username }),
+                body: JSON.stringify({ email, username }),
             });
 
             const data = await res.json();
@@ -88,7 +88,7 @@ export default function Footer() {
                 </svg>
             ),
         },
-       
+
         {
             name: "LinkedIn",
             href: "https://linkedin.com",
@@ -181,7 +181,7 @@ export default function Footer() {
                                         />
                                     </div>
                                     <span className="text-xl font-bold text-white">AKTUHELPER</span>
-                                    </a>
+                                </a>
                             </div>
                             <p className="text-gray-400 text-sm mb-4">
                                 Your complete study companion for AKTU exams. Empowering 50,000+ students to achieve academic excellence.

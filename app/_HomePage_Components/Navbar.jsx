@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Menu, X, Search, Code, Users, BarChart, Shield, Briefcase, Folder, Notebook } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu, X, Search, Code, Users, BarChart, Shield, Briefcase, Folder, Notebook, Contact, BookOpen, FileText, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { RegisterLink, LoginLink, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
@@ -8,6 +8,9 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
+    const [isPyqOpen, setPyqOpen] = useState(false);
+    const [isQuantumOpen, setQuantumOpen] = useState(false);
+    const [isNotesOpen, setNotesOpen] = useState(false);
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState({});
     const [isSearchOpen, setSearchOpen] = useState(false);
@@ -27,7 +30,7 @@ export default function Navbar() {
                     submenu: [
                         { title: "Computer Science & Engineering", href: "/computer_Science" },
                         { title: "Electronics & Communication", href: "/ece" },
-                        { title: "Electrical Enginerring", href: "/ee" },
+                        { title: "Electrical Engineering", href: "/ee" },
                         { title: "Mechanical Engineering", href: "/me" },
                         { title: "Civil Engineering", href: "/civil" },
                     ]
@@ -53,22 +56,529 @@ export default function Navbar() {
                 { icon: Briefcase, title: "UP Scholarship", href: "/Scloarship" },
                 { icon: BarChart, title: "Privacy Policy", href: "/privacy" },
                 { icon: Shield, title: "Terms & Conditions", href: "/Terms" },
+                { icon: Contact, title: "Contact", href: "/Contact" },
             ]
         },
     ];
 
-    const toggleMobileSubmenu = (itemTitle) => {
-        setMobileSubmenuOpen(prev => ({
-            ...prev,
-            [itemTitle]: !prev[itemTitle]
-        }));
+    // ── PYQ dropdown data ──────────────────────────────────────────────────────
+    const pyqCategories = [
+        {
+            title: "Btech PYQ",
+            items: [
+                {
+                    icon: Code,
+                    title: "CSE",
+                    href: "#",
+                    desc: "Computer Science & Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/cse_1styr_pyq" },
+                        { title: "2nd Year", href: "/pyq/cse/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/cse/3rd-year" },
+                        { title: "4th Year", href: "/pyq/cse/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "ECE",
+                    href: "#",
+                    desc: "Electronics & Communication",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/ece/1st-year" },
+                        { title: "2nd Year", href: "/pyq/ece/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/ece/3rd-year" },
+                        { title: "4th Year", href: "/pyq/ece/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "ME",
+                    href: "#",
+                    desc: "Mechanical Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/me/1st-year" },
+                        { title: "2nd Year", href: "/pyq/me/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/me/3rd-year" },
+                        { title: "4th Year", href: "/pyq/me/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "EE",
+                    href: "#",
+                    desc: "Electrical Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/ee/1st-year" },
+                        { title: "2nd Year", href: "/pyq/ee/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/ee/3rd-year" },
+                        { title: "4th Year", href: "/pyq/ee/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "Civil",
+                    href: "#",
+                    desc: "Civil Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/civil/1st-year" },
+                        { title: "2nd Year", href: "/pyq/civil/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/civil/3rd-year" },
+                        { title: "4th Year", href: "/pyq/civil/4th-year" },
+                    ]
+                },
+            ]
+        },
+        {
+            title: "Other Courses",
+            items: [
+                {
+                    icon: Shield,
+                    title: "BPharma PYQ",
+                    desc: "Bachelor of Pharmacy",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/bpharma/1st-year" },
+                        { title: "2nd Year", href: "/pyq/bpharma/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/bpharma/3rd-year" },
+                        { title: "4th Year", href: "/pyq/bpharma/4th-year" },
+                    ]
+                },
+                {
+                    icon: Briefcase,
+                    title: "MBA PYQ",
+                    desc: "Master of Business Administration",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/mba/1st-year" },
+                        { title: "2nd Year", href: "/pyq/mba/2nd-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "BCA PYQ",
+                    desc: "Bachelor of Computer Applications",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/bca/1st-year" },
+                        { title: "2nd Year", href: "/pyq/bca/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/bca/3rd-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "MCA PYQ",
+                    desc: "Master of Computer Applications",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/pyq/mca/1st-year" },
+                        { title: "2nd Year", href: "/pyq/mca/2nd-year" },
+                        { title: "3rd Year", href: "/pyq/mca/3rd-year" },
+                    ]
+                },
+            ]
+        },
+    ];
+
+    // ── Quantum Books dropdown data ────────────────────────────────────────────
+    const quantumCategories = [
+        {
+            title: "Btech Books",
+            items: [
+                {
+                    icon: Code,
+                    title: "CSE Books",
+                    href: "#",
+                    desc: "Computer Science & Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/cse/1st-year" },
+                        { title: "2nd Year", href: "/quantum/cse/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/cse/3rd-year" },
+                        { title: "4th Year", href: "/quantum/cse/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "ECE Books",
+                    href: "#",
+                    desc: "Electronics & Communication",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/ece/1st-year" },
+                        { title: "2nd Year", href: "/quantum/ece/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/ece/3rd-year" },
+                        { title: "4th Year", href: "/quantum/ece/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "ME Books",
+                    href: "#",
+                    desc: "Mechanical Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/me/1st-year" },
+                        { title: "2nd Year", href: "/quantum/me/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/me/3rd-year" },
+                        { title: "4th Year", href: "/quantum/me/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "EE Books",
+                    href: "#",
+                    desc: "Electrical Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/ee/1st-year" },
+                        { title: "2nd Year", href: "/quantum/ee/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/ee/3rd-year" },
+                        { title: "4th Year", href: "/quantum/ee/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "Civil Books",
+                    href: "#",
+                    desc: "Civil Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/civil/1st-year" },
+                        { title: "2nd Year", href: "/quantum/civil/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/civil/3rd-year" },
+                        { title: "4th Year", href: "/quantum/civil/4th-year" },
+                    ]
+                },
+            ]
+        },
+        {
+            title: "Other Courses",
+            items: [
+                {
+                    icon: Shield,
+                    title: "BPharma Books",
+                    desc: "Bachelor of Pharmacy",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/bpharma/1st-year" },
+                        { title: "2nd Year", href: "/quantum/bpharma/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/bpharma/3rd-year" },
+                        { title: "4th Year", href: "/quantum/bpharma/4th-year" },
+                    ]
+                },
+                {
+                    icon: Briefcase,
+                    title: "MBA Books",
+                    desc: "Master of Business Administration",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/mba/1st-year" },
+                        { title: "2nd Year", href: "/quantum/mba/2nd-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "BCA Books",
+                    desc: "Bachelor of Computer Applications",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/bca/1st-year" },
+                        { title: "2nd Year", href: "/quantum/bca/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/bca/3rd-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "MCA Books",
+                    desc: "Master of Computer Applications",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/quantum/mca/1st-year" },
+                        { title: "2nd Year", href: "/quantum/mca/2nd-year" },
+                        { title: "3rd Year", href: "/quantum/mca/3rd-year" },
+                    ]
+                },
+            ]
+        },
+    ];
+
+    // ── Notes dropdown data ────────────────────────────────────────────────────
+    const notesCategories = [
+        {
+            title: "Btech Notes",
+            items: [
+                {
+                    icon: Code,
+                    title: "CSE Notes",
+                    href: "#",
+                    desc: "Computer Science & Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/cse/1st-year" },
+                        { title: "2nd Year", href: "/notes/cse/2nd-year" },
+                        { title: "3rd Year", href: "/notes/cse/3rd-year" },
+                        { title: "4th Year", href: "/notes/cse/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "ECE Notes",
+                    href: "#",
+                    desc: "Electronics & Communication",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/ece/1st-year" },
+                        { title: "2nd Year", href: "/notes/ece/2nd-year" },
+                        { title: "3rd Year", href: "/notes/ece/3rd-year" },
+                        { title: "4th Year", href: "/notes/ece/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "ME Notes",
+                    href: "#",
+                    desc: "Mechanical Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/me/1st-year" },
+                        { title: "2nd Year", href: "/notes/me/2nd-year" },
+                        { title: "3rd Year", href: "/notes/me/3rd-year" },
+                        { title: "4th Year", href: "/notes/me/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "EE Notes",
+                    href: "#",
+                    desc: "Electrical Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/ee/1st-year" },
+                        { title: "2nd Year", href: "/notes/ee/2nd-year" },
+                        { title: "3rd Year", href: "/notes/ee/3rd-year" },
+                        { title: "4th Year", href: "/notes/ee/4th-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "Civil Notes",
+                    href: "#",
+                    desc: "Civil Engineering",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/civil/1st-year" },
+                        { title: "2nd Year", href: "/notes/civil/2nd-year" },
+                        { title: "3rd Year", href: "/notes/civil/3rd-year" },
+                        { title: "4th Year", href: "/notes/civil/4th-year" },
+                    ]
+                },
+            ]
+        },
+        {
+            title: "Other Courses",
+            items: [
+                {
+                    icon: Shield,
+                    title: "BPharma Notes",
+                    desc: "Bachelor of Pharmacy",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/bpharma/1st-year" },
+                        { title: "2nd Year", href: "/notes/bpharma/2nd-year" },
+                        { title: "3rd Year", href: "/notes/bpharma/3rd-year" },
+                        { title: "4th Year", href: "/notes/bpharma/4th-year" },
+                    ]
+                },
+                {
+                    icon: Briefcase,
+                    title: "MBA Notes",
+                    desc: "Master of Business Administration",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/mba/1st-year" },
+                        { title: "2nd Year", href: "/notes/mba/2nd-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "BCA Notes",
+                    desc: "Bachelor of Computer Applications",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/bca/1st-year" },
+                        { title: "2nd Year", href: "/notes/bca/2nd-year" },
+                        { title: "3rd Year", href: "/notes/bca/3rd-year" },
+                    ]
+                },
+                {
+                    icon: Code,
+                    title: "MCA Notes",
+                    desc: "Master of Computer Applications",
+                    href: "#",
+                    submenu: [
+                        { title: "1st Year", href: "/notes/mca/1st-year" },
+                        { title: "2nd Year", href: "/notes/mca/2nd-year" },
+                        { title: "3rd Year", href: "/notes/mca/3rd-year" },
+                    ]
+                },
+            ]
+        },
+    ];
+
+    // ── Reusable MegaMenu renderer ─────────────────────────────────────────────
+    const MegaMenuDropdown = ({ categories, isOpen, setOpen }) => {
+        if (!isOpen) return null;
+        return (
+            <div
+                onMouseEnter={() => setOpen(true)}
+                onMouseLeave={() => setOpen(false)}
+                className="absolute left-0 mt-2 w-[900px] bg-theme-card shadow-2xl dark:shadow-zinc-900/50 border border-theme rounded-2xl overflow-hidden"
+                style={{ animation: 'fadeIn 0.2s ease-in-out' }}
+            >
+                <div className="p-8">
+                    <div className="grid grid-cols-3 gap-8">
+                        {categories.map((category, catIndex) => (
+                            <div key={catIndex}>
+                                <h3 className="text-xs font-bold text-theme-muted uppercase tracking-wider mb-4 px-2">
+                                    {category.title}
+                                </h3>
+                                <div className="space-y-1">
+                                    {category.items.map((item, itemIndex) => {
+                                        const Icon = item.icon;
+                                        return (
+                                            <div key={itemIndex} className="relative group/item">
+                                                <a
+                                                    href={item.href}
+                                                    className="group/link flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200"
+                                                >
+                                                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover/link:bg-blue-200 dark:group-hover/link:bg-blue-800/50 transition-colors shrink-0">
+                                                        <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-1">
+                                                            <h4 className="font-semibold text-sm text-theme-primary group-hover/link:text-blue-600 dark:group-hover/link:text-blue-400 transition-colors">
+                                                                {item.title}
+                                                            </h4>
+                                                            {item.submenu && (
+                                                                <ChevronRight className="w-3 h-3 text-theme-muted" />
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-theme-secondary mt-0.5">
+                                                            {item.desc}
+                                                        </p>
+                                                    </div>
+                                                </a>
+
+                                                {item.submenu && (
+                                                    <div className="absolute left-full top-0 ml-2 w-64 bg-theme-card shadow-xl dark:shadow-zinc-900/50 border border-theme rounded-xl p-3 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-200 z-10">
+                                                        <div className="space-y-1">
+                                                            {item.submenu.map((subItem, subIndex) => (
+                                                                <a
+                                                                    key={subIndex}
+                                                                    href={subItem.href}
+                                                                    className="block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition group/sub"
+                                                                >
+                                                                    <div className="font-medium text-sm text-theme-primary group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400 transition-colors">
+                                                                        {subItem.title}
+                                                                    </div>
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ── Reusable Mobile Dropdown section ──────────────────────────────────────
+    const MobileMegaSection = ({ label, stateKey, categories }) => {
+        const toggleMobileSubmenu = (key) => {
+            setMobileSubmenuOpen(prev => ({ ...prev, [key]: !prev[key] }));
+        };
+
+        return (
+            <div className="space-y-2">
+                <button
+                    onClick={() => toggleMobileSubmenu(stateKey)}
+                    className="w-full flex items-center justify-between px-4 py-3 font-medium text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                >
+                    {label}
+                    <ChevronDown className={`w-4 h-4 transition-transform ${mobileSubmenuOpen[stateKey] ? 'rotate-180' : ''}`} />
+                </button>
+
+                {mobileSubmenuOpen[stateKey] && (
+                    <div className="pl-4 space-y-2">
+                        {categories.map((category, catIndex) => (
+                            <div key={catIndex} className="space-y-1">
+                                <button
+                                    onClick={() => toggleMobileSubmenu(`${stateKey}_${category.title}`)}
+                                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-theme-muted uppercase tracking-wider rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                                >
+                                    {category.title}
+                                    <ChevronDown className={`w-3 h-3 transition-transform ${mobileSubmenuOpen[`${stateKey}_${category.title}`] ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {mobileSubmenuOpen[`${stateKey}_${category.title}`] && (
+                                    <div className="pl-4 space-y-1">
+                                        {category.items.map((item, itemIndex) => {
+                                            const Icon = item.icon;
+                                            const hasSubmenu = item.submenu && item.submenu.length > 0;
+                                            const itemKey = `${stateKey}_${item.title}`;
+                                            const isOpen = mobileSubmenuOpen[itemKey];
+
+                                            return (
+                                                <div key={itemIndex} className="space-y-1">
+                                                    <div className="flex items-center">
+                                                        <a
+                                                            href={item.href}
+                                                            className="flex items-center gap-3 px-4 py-2 text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition flex-1"
+                                                        >
+                                                            <Icon className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0" />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="font-medium text-sm">{item.title}</div>
+                                                                <div className="text-xs text-theme-secondary">{item.desc}</div>
+                                                            </div>
+                                                        </a>
+
+                                                        {hasSubmenu && (
+                                                            <button
+                                                                onClick={() => toggleMobileSubmenu(itemKey)}
+                                                                className="p-2 text-gray-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                                                            >
+                                                                <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    {hasSubmenu && isOpen && (
+                                                        <div className="pl-6 pr-4 space-y-1 pb-2">
+                                                            {item.submenu.map((subItem, subIndex) => (
+                                                                <a
+                                                                    key={subIndex}
+                                                                    href={subItem.href}
+                                                                    className="block px-4 py-2 text-sm text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                                                                >
+                                                                    <div className="font-medium">{subItem.title}</div>
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
         <div className="sticky top-0 z-50">
             <header className="sticky top-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-md dark:shadow-zinc-900/50 border-b border-theme">
                 <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <a className="flex items-center gap-2" href="#">
+                    <a className="flex items-center gap-2 shrink-0" href="#">
                         <img src="/logo_192.png" alt="Brand Logo" className="w-15 h-15 sm:w-15 sm:h-15" />
                         <span className="hidden sm:block text-xl font-bold tracking-wider uppercase">
                             <span className="text-theme-primary">AKTU</span>
@@ -76,14 +586,15 @@ export default function Navbar() {
                         </span>
                     </a>
 
-                    <nav aria-label="Global" className="hidden lg:block">
-                        <ul className="flex items-center gap-1">
+                    <nav aria-label="Global" className="hidden lg:block ml-auto mr-6">
+                        <ul className="flex items-center gap-0.5">
                             <li>
                                 <a className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" href="/">
                                     Home
                                 </a>
                             </li>
 
+                            {/* ── Explore ── */}
                             <li className="relative group">
                                 <button
                                     onMouseEnter={() => setDropdownOpen(true)}
@@ -93,76 +604,48 @@ export default function Navbar() {
                                     Explore
                                     <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
-
-                                {isDropdownOpen && (
-                                    <div
-                                        onMouseEnter={() => setDropdownOpen(true)}
-                                        onMouseLeave={() => setDropdownOpen(false)}
-                                        className="absolute left-0 mt-2 w-[900px] bg-theme-card shadow-2xl dark:shadow-zinc-900/50 border border-theme rounded-2xl overflow-hidden"
-                                        style={{ animation: 'fadeIn 0.2s ease-in-out' }}
-                                    >
-                                        <div className="p-8">
-                                            <div className="grid grid-cols-3 gap-8">
-                                                {megaMenuCategories.map((category, catIndex) => (
-                                                    <div key={catIndex}>
-                                                        <h3 className="text-xs font-bold text-theme-muted uppercase tracking-wider mb-4 px-2">
-                                                            {category.title}
-                                                        </h3>
-                                                        <div className="space-y-1">
-                                                            {category.items.map((item, itemIndex) => {
-                                                                const Icon = item.icon;
-                                                                return (
-                                                                    <div key={itemIndex} className="relative group/item">
-                                                                        <a
-                                                                            href={item.href}
-                                                                            className="group/link flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200"
-                                                                        >
-                                                                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover/link:bg-blue-200 dark:group-hover/link:bg-blue-800/50 transition-colors shrink-0">
-                                                                                <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                                                            </div>
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <div className="flex items-center gap-1">
-                                                                                    <h4 className="font-semibold text-sm text-theme-primary group-hover/link:text-blue-600 dark:group-hover/link:text-blue-400 transition-colors">
-                                                                                        {item.title}
-                                                                                    </h4>
-                                                                                    {item.submenu && (
-                                                                                        <ChevronRight className="w-3 h-3 text-theme-muted" />
-                                                                                    )}
-                                                                                </div>
-                                                                                <p className="text-xs text-theme-secondary mt-0.5">
-                                                                                    {item.desc}
-                                                                                </p>
-                                                                            </div>
-                                                                        </a>
-
-                                                                        {item.submenu && (
-                                                                            <div className="absolute left-full top-0 ml-2 w-64 bg-theme-card shadow-xl dark:shadow-zinc-900/50 border border-theme rounded-xl p-3 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-200 z-10">
-                                                                                <div className="space-y-1">
-                                                                                    {item.submenu.map((subItem, subIndex) => (
-                                                                                        <a
-                                                                                            key={subIndex}
-                                                                                            href={subItem.href}
-                                                                                            className="block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition group/sub"
-                                                                                        >
-                                                                                            <div className="font-medium text-sm text-theme-primary group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400 transition-colors">
-                                                                                                {subItem.title}
-                                                                                            </div>
-                                                                                        </a>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+                                <MegaMenuDropdown categories={megaMenuCategories} isOpen={isDropdownOpen} setOpen={setDropdownOpen} />
                             </li>
+
+                            {/* ── PYQ ── */}
+                            <li className="relative group">
+                                <button
+                                    onMouseEnter={() => setPyqOpen(true)}
+                                    onMouseLeave={() => setPyqOpen(false)}
+                                    className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 flex items-center gap-1"
+                                >
+                                    PYQ
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${isPyqOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                <MegaMenuDropdown categories={pyqCategories} isOpen={isPyqOpen} setOpen={setPyqOpen} />
+                            </li>
+
+                            {/* ── Quantum Books ── */}
+                            <li className="relative group">
+                                <button
+                                    onMouseEnter={() => setQuantumOpen(true)}
+                                    onMouseLeave={() => setQuantumOpen(false)}
+                                    className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 flex items-center gap-1"
+                                >
+                                    Quantum Books
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${isQuantumOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                <MegaMenuDropdown categories={quantumCategories} isOpen={isQuantumOpen} setOpen={setQuantumOpen} />
+                            </li>
+
+                            {/* ── Notes ── */}
+                            <li className="relative group">
+                                <button
+                                    onMouseEnter={() => setNotesOpen(true)}
+                                    onMouseLeave={() => setNotesOpen(false)}
+                                    className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 flex items-center gap-1"
+                                >
+                                    Notes
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${isNotesOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                <MegaMenuDropdown categories={notesCategories} isOpen={isNotesOpen} setOpen={setNotesOpen} />
+                            </li>
+
                             <li>
                                 <Link className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" href="/campusconnecthome">
                                     CampusConnect
@@ -174,11 +657,6 @@ export default function Navbar() {
                                 </Link>
                             </li>
                             <li>
-                                <Link className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" href="/Contact">
-                                    Contact
-                                </Link>
-                            </li>
-                            <li>
                                 <Link className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" href="/About">
                                     About
                                 </Link>
@@ -186,26 +664,7 @@ export default function Navbar() {
                         </ul>
                     </nav>
 
-                    <div className="hidden lg:flex items-center flex-1 max-w-xl mx-4">
-                        <div className="relative w-full group">
-                            <input
-                                type="text"
-                                placeholder="Search resources, docs, templates..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-10 py-2.5 text-sm bg-gray-50 dark:bg-zinc-900 border border-theme rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent focus:bg-white dark:focus:bg-zinc-800 transition-all duration-200 placeholder:text-gray-400 dark:placeholder:text-zinc-500 text-theme-primary"
-                            />
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors" />
-                            {searchQuery && (
-                                <button
-                                    onClick={() => setSearchQuery("")}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-400 transition-colors"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
-                    </div>
+
 
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <button
@@ -286,14 +745,9 @@ export default function Navbar() {
                                 )}
                             </div>
                         ) : (
-                            <>
-                                <LoginLink className="hidden md:block rounded-lg bg-gray-100 dark:bg-zinc-800 px-4 lg:px-5 py-2 text-sm font-medium text-theme-primary transition-all hover:bg-gray-200 dark:hover:bg-zinc-700 hover:shadow-md">
-                                    Login
-                                </LoginLink>
-                                <RegisterLink className="hidden md:block rounded-lg bg-blue-600 dark:bg-blue-500 px-4 lg:px-5 py-2 text-sm font-medium text-white transition-all hover:bg-blue-700 dark:hover:bg-blue-600 hover:shadow-lg">
-                                    Get Started
-                                </RegisterLink>
-                            </>
+                            <LoginLink className="hidden md:block rounded-lg bg-gray-100 dark:bg-zinc-800 px-4 lg:px-5 py-2 text-sm font-medium text-theme-primary transition-all hover:bg-gray-200 dark:hover:bg-zinc-700 hover:shadow-md">
+                                Login
+                            </LoginLink>
                         )}
 
                         <button
@@ -337,84 +791,18 @@ export default function Navbar() {
                                 Home
                             </Link>
 
-                            <div className="space-y-2">
-                                <button
-                                    onClick={() => setMobileSubmenuOpen(prev => ({ ...prev, explore: !prev.explore }))}
-                                    className="w-full flex items-center justify-between px-4 py-3 font-medium text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                                >
-                                    Explore
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${mobileSubmenuOpen.explore ? 'rotate-180' : ''}`} />
-                                </button>
+                            {/* Mobile: Explore */}
+                            <MobileMegaSection label="Explore" stateKey="explore" categories={megaMenuCategories} />
 
-                                {mobileSubmenuOpen.explore && (
-                                    <div className="pl-4 space-y-2">
-                                        {megaMenuCategories.map((category, catIndex) => (
-                                            <div key={catIndex} className="space-y-1">
-                                                <button
-                                                    onClick={() => toggleMobileSubmenu(category.title)}
-                                                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-theme-muted uppercase tracking-wider rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                                                >
-                                                    {category.title}
-                                                    <ChevronDown className={`w-3 h-3 transition-transform ${mobileSubmenuOpen[category.title] ? 'rotate-180' : ''}`} />
-                                                </button>
+                            {/* Mobile: PYQ */}
+                            <MobileMegaSection label="PYQ" stateKey="pyq" categories={pyqCategories} />
 
-                                                {mobileSubmenuOpen[category.title] && (
-                                                    <div className="pl-4 space-y-1">
-                                                        {category.items.map((item, itemIndex) => {
-                                                            const Icon = item.icon;
-                                                            const hasSubmenu = item.submenu && item.submenu.length > 0;
-                                                            const isOpen = mobileSubmenuOpen[item.title];
+                            {/* Mobile: Quantum Books */}
+                            <MobileMegaSection label="Quantum Books" stateKey="quantum" categories={quantumCategories} />
 
-                                                            return (
-                                                                <div key={itemIndex} className="space-y-1">
-                                                                    <div className="flex items-center">
-                                                                        <a
-                                                                            href={item.href}
-                                                                            className="flex items-center gap-3 px-4 py-2 text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition flex-1"
-                                                                        >
-                                                                            <Icon className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0" />
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <div className="font-medium text-sm">{item.title}</div>
-                                                                                <div className="text-xs text-theme-secondary">{item.desc}</div>
-                                                                            </div>
-                                                                        </a>
+                            {/* Mobile: Notes */}
+                            <MobileMegaSection label="Notes" stateKey="notes" categories={notesCategories} />
 
-                                                                        {hasSubmenu && (
-                                                                            <button
-                                                                                onClick={() => toggleMobileSubmenu(item.title)}
-                                                                                className="p-2 text-gray-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                                                                            >
-                                                                                <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-
-                                                                    {hasSubmenu && isOpen && (
-                                                                        <div className="pl-6 pr-4 space-y-1 pb-2">
-                                                                            {item.submenu.map((subItem, subIndex) => (
-                                                                                <a
-                                                                                    key={subIndex}
-                                                                                    href={subItem.href}
-                                                                                    className="block px-4 py-2 text-sm text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                                                                                >
-                                                                                    <div className="font-medium">{subItem.title}</div>
-                                                                                </a>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            <a href="/campusconnecthome" className="block px-4 py-3 text-theme-primary font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition">
-                                campusconnect
-                            </a>
                             <a href="/jobs" className="block px-4 py-3 text-theme-primary font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition">
                                 Jobs
                             </a>
@@ -466,9 +854,6 @@ export default function Navbar() {
                                         <LoginLink className="block px-4 py-3 text-center text-theme-primary font-medium rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition">
                                             Login
                                         </LoginLink>
-                                        <RegisterLink className="block px-4 py-3 text-center text-white font-medium rounded-lg bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 transition">
-                                            Get Started
-                                        </RegisterLink>
                                     </>
                                 )}
                             </div>
@@ -479,30 +864,14 @@ export default function Navbar() {
 
             <style jsx>{`
                 @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to   { opacity: 1; transform: translateY(0); }
                 }
-                
                 @keyframes slideDown {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to   { opacity: 1; transform: translateY(0); }
                 }
-                
-                .animate-slideDown {
-                    animation: slideDown 0.3s ease-out;
-                }
+                .animate-slideDown { animation: slideDown 0.3s ease-out; }
             `}</style>
         </div>
     );
