@@ -1,43 +1,38 @@
-// app/pyq/cse/1st-year/page.jsx
+// app/notes/cse/1st-year/page.jsx
 
 import Link from "next/link";
-import { FileText, Download, BookOpen, Calendar, ChevronRight, Star, Users, Clock, ArrowRight, GraduationCap, Search } from "lucide-react";
+import { BookOpen, Download, GraduationCap, ChevronRight, NotebookPen } from "lucide-react";
 
 // ── SEO Metadata ──────────────────────────────────────────────────────────────
 export const metadata = {
-    title: "AKTU CSE 1st Year PYQ | Previous Year Question Papers 2024 | AKTU Helper",
+    title: "AKTU CSE 1st Year Notes | Free PDF Download 2024 | AKTU Helper",
     description:
-        "Download AKTU BTech CSE 1st Year Previous Year Question Papers (PYQ) for all subjects — Engineering Mathematics, Physics, Chemistry, Programming, and more. Free PDF download for 2024, 2023, 2022 exams.",
+        "Download AKTU BTech CSE 1st Year Notes for all subjects — Engineering Mathematics, Physics, Chemistry, C Programming, Communication Skills, and Engineering Graphics. Free unit-wise PDF notes.",
     keywords:
-        "AKTU CSE 1st Year PYQ, AKTU BTech Previous Year Papers, Computer Science Engineering question papers, AKTU 2024 PYQ, AKTU first year question papers, Engineering Mathematics PYQ, AKTU exam papers free download",
+        "AKTU CSE 1st Year Notes, AKTU BTech Notes PDF, Computer Science Engineering notes, AKTU 2024 notes, AKTU first year study notes, Engineering Mathematics notes, AKTU exam notes free download",
     openGraph: {
-        title: "AKTU CSE 1st Year PYQ | Free Previous Year Question Papers",
+        title: "AKTU CSE 1st Year Notes | Free PDF Download",
         description:
-            "Get all AKTU BTech CSE 1st Year Previous Year Question Papers. Boost your exam prep with chapter-wise PYQs from 2019 to 2024.",
-        url: "https://aktuhelper.com/cse_1styr_pyq",
+            "Get all AKTU BTech CSE 1st Year Notes for every subject. Unit-wise handwritten and typed notes for Engineering Mathematics, Physics, C Programming, and more.",
+        url: "https://aktuhelper.com/cse_1st_year_notes",
         siteName: "AKTU Helper",
         type: "website",
     },
     alternates: {
-        canonical: "https://aktuhelper.com/cse_1styr_pyq",
+        canonical: "https://aktuhelper.com/cse_1st_year_notes",
     },
 };
 
 // ── Static Data ───────────────────────────────────────────────────────────────
-
-
-
-
-
 const subjects = [
-    { code: "BAS102", name: "Engineering Chemistry PYQ", shortName: "Chemistry PYQ", color: "emerald", href: "/computer_Science/1/engineering-chemistry-BAS102/pyq" },
-    { code: "BAS103", name: "Engineering Mathematics – I PYQ", shortName: "Math I PYQ", color: "blue", href: "/computer_Science/1/engineering-mathematics-i-BAS103/pyq" },
-    { code: "BEE101", name: "Fundamentals of Electrical Engineering PYQ", shortName: "Electrical Engg. PYQ", color: "amber", href: "/computer_Science/1/fundamentals-of-electrical-engineering-BEE101/pyq" },
-    { code: "BEC101", name: "Fundamentals of Electronics Engineering PYQ", shortName: "Electronics Engg. PYQ", color: "violet", href: "/computer_Science/1/fundamentals-of-electronics-engineering-BEC101/pyq" },
-    { code: "BCS101", name: "Programming for Problem Solving PYQ", shortName: "PPS / C Lang PYQ", color: "cyan", href: "/computer_Science/2/programming-for-problem-solving-BCS101/pyq" },
-    { code: "BME101", name: "Fundamentals of Mechanical Engineering PYQ", shortName: "Mechanical Engg. PYQ", color: "rose", href: "/computer_Science/2/fundamentals-of-mechanical-engineering-BME101/pyq" },
-    { code: "BAS104", name: "Environment and Ecology PYQ", shortName: "Env. & Ecology PYQ", color: "indigo", href: "/computer_Science/2/environment-and-ecology-BAS104/pyq" },
-    { code: "BAS105", name: "Soft Skills PYQ", shortName: "Soft Skills PYQ", color: "orange", href: "/computer_Science/2/soft-skills-BAS105/pyq" },
+    { code: "BAS102", name: "Engineering Chemistry Notes", shortName: "Chemistry Notes", color: "emerald", href: "#" },
+    { code: "BAS103", name: "Engineering Mathematics – I Notes", shortName: "Math I Notes", color: "blue", href: "/computer_Science/1/engineering-mathematics-i-BAS103/Notes" },
+    { code: "BEE101", name: "Fundamentals of Electrical Engineering Notes", shortName: "Electrical Engg. Notes", color: "amber", href: "#" },
+    { code: "BEC101", name: "Fundamentals of Electronics Engineering Notes", shortName: "Electronics Engg. Notes", color: "violet", href: "#" },
+    { code: "BCS101", name: "Programming for Problem Solving Notes", shortName: "PPS / C Lang Notes", color: "cyan", href: "#" },
+    { code: "BME101", name: "Fundamentals of Mechanical Engineering Notes", shortName: "Mechanical Engg. Notes", color: "rose", href: "#" },
+    { code: "BAS104", name: "Environment and Ecology Notes", shortName: "Env. & Ecology Notes", color: "indigo", href: "#" },
+    { code: "BAS105", name: "Soft Skills Notes", shortName: "Soft Skills Notes", color: "orange", href: "#" },
 ];
 
 const colorMap = {
@@ -52,12 +47,12 @@ const colorMap = {
 };
 
 // ── Page Component ─────────────────────────────────────────────────────────────
-export default function CSE1stYearPYQ() {
+export default function CSE1stYearNotes() {
     return (
         <main className="min-h-screen bg-theme-primary">
 
             {/* ── Hero Section ── */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-blue-900 dark:via-black dark:to-indigo-950">
+            <section className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-amber-700 dark:from-orange-900 dark:via-black dark:to-amber-950">
                 {/* Decorative grid */}
                 <div
                     className="absolute inset-0 opacity-10 dark:opacity-20"
@@ -67,36 +62,36 @@ export default function CSE1stYearPYQ() {
                     }}
                 />
                 {/* Glow orbs */}
-                <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-indigo-400/20 dark:bg-indigo-500/10 rounded-full blur-3xl" />
+                <div className="absolute -top-32 -right-32 w-96 h-96 bg-orange-400/20 dark:bg-orange-500/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-amber-400/20 dark:bg-amber-500/10 rounded-full blur-3xl" />
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
                     <div className="max-w-3xl">
                         {/* Label pill */}
                         <div className="inline-flex items-center gap-2 bg-white/10 dark:bg-white/5 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-5">
-                            <GraduationCap className="w-4 h-4 text-blue-200" />
-                            <span className="text-sm font-medium text-blue-100">AKTU · BTech CSE · 1st Year</span>
+                            <GraduationCap className="w-4 h-4 text-orange-200" />
+                            <span className="text-sm font-medium text-orange-100">AKTU · BTech CSE · 1st Year</span>
                         </div>
 
                         {/* H1 — SEO primary heading */}
                         <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight">
                             AKTU CSE 1st Year<br />
-                            <span className="text-blue-200 dark:text-blue-300">Previous Year Question Papers</span>
+                            <span className="text-orange-200 dark:text-orange-300">Notes (Unit-wise PDF)</span>
                         </h1>
 
-                        {/* Meta description – shown on page for SEO context */}
-                        <p className="text-lg text-blue-100 dark:text-blue-200 leading-relaxed mb-8 max-w-2xl">
-                            Download free AKTU BTech Computer Science & Engineering 1st Year PYQ PDFs for all subjects — from Engineering Mathematics to C Programming. Papers from <strong className="text-white">2019–2024</strong> with solutions.
+                        {/* Meta description */}
+                        <p className="text-lg text-orange-100 dark:text-orange-200 leading-relaxed mb-8 max-w-2xl">
+                            Download free AKTU BTech Computer Science & Engineering 1st Year Notes for all subjects — from Engineering Mathematics to C Programming. Handwritten & typed unit-wise notes for <strong className="text-white">thorough concept building & exam prep</strong>.
                         </p>
 
                         {/* CTA row */}
                         <div className="flex flex-wrap gap-3">
                             <a
-                                href="#papers"
-                                className="inline-flex items-center gap-2 bg-white text-blue-700 font-semibold px-6 py-3 rounded-xl hover:bg-blue-50 transition-all shadow-lg shadow-black/20"
+                                href="#notes"
+                                className="inline-flex items-center gap-2 bg-white text-orange-700 font-semibold px-6 py-3 rounded-xl hover:bg-orange-50 transition-all shadow-lg shadow-black/20"
                             >
                                 <Download className="w-4 h-4" />
-                                Browse All Papers
+                                Browse All Notes
                             </a>
                             <a
                                 href="#subjects"
@@ -108,29 +103,42 @@ export default function CSE1stYearPYQ() {
                         </div>
                     </div>
                 </div>
-
             </section>
 
-
+            {/* ── Disclaimer Section ── */}
+            <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800/50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex gap-3 items-start">
+                        <span className="text-amber-500 dark:text-amber-400 text-lg leading-tight mt-0.5 shrink-0">⚠️</span>
+                        <div>
+                            <p className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wide mb-1">Disclaimer</p>
+                            <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                                The PDF notes and study materials shared on this website, including content from sources like Quantum Series, educational websites, and Telegram channels, are intended for <strong className="text-amber-800 dark:text-amber-300">educational purposes only</strong>. We do not claim ownership of any materials unless explicitly mentioned. All rights belong to the original creators or publishers.{" "}
+                                If you are the rightful owner of any content published here and wish for it to be removed, please contact us with proper verification. We will promptly take down the content upon receiving your request.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* ── Main Content ── */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
                 {/* SEO Intro Block */}
                 <div className="card-theme p-6 sm:p-8 rounded-2xl mb-10 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 dark:bg-blue-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 dark:bg-orange-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
                     <div className="relative">
                         <h2 className="text-xl font-bold text-theme-primary mb-3">
-                            About AKTU BTech CSE 1st Year PYQ
+                            About AKTU BTech CSE 1st Year Notes
                         </h2>
                         <p className="text-theme-secondary leading-relaxed text-sm sm:text-base mb-4">
-                            AKTU (Dr. A.P.J. Abdul Kalam Technical University) BTech 1st Year forms the backbone of your engineering journey. The first year is common for most branches under AKTU, covering core subjects like Engineering Mathematics I & II, Physics or Chemistry, Programming for Problem Solving (C Language), Communication Skills, and Engineering Graphics.
+                            AKTU BTech 1st Year Notes are unit-wise study materials covering the complete syllabus for all common subjects — Engineering Mathematics I & II, Engineering Physics, Engineering Chemistry, Programming for Problem Solving (C Language), Communication Skills, and Engineering Graphics & Design. These notes are prepared by toppers, faculty, and trusted educational sources strictly aligned with the latest AKTU syllabus.
                         </p>
                         <p className="text-theme-secondary leading-relaxed text-sm sm:text-base">
-                            Practising <strong className="text-theme-primary">AKTU Previous Year Question Papers (PYQ)</strong> is one of the most effective exam preparation strategies. These papers reveal the pattern, marking scheme, and frequently repeated topics for each subject. All papers below are <strong className="text-theme-primary">free to download as PDF</strong>.
+                            Whether you prefer handwritten notes or clean typed PDFs, <strong className="text-theme-primary">AKTU Notes</strong> help you understand concepts deeply and revise efficiently. All notes are <strong className="text-theme-primary">free to download as PDF</strong> — no sign-up needed.
                         </p>
                         <div className="flex flex-wrap gap-2 mt-5">
-                            {["AKTU 2024 PYQ", "1st Year Question Papers", "CSE Branch", "Free PDF", "AKTU Exam Prep", "Semester Papers"].map((tag) => (
+                            {["AKTU Notes 2024", "1st Year Study Material", "CSE Branch", "Free PDF", "Unit-wise Notes", "Handwritten Notes"].map((tag) => (
                                 <span key={tag} className="badge-theme text-xs">{tag}</span>
                             ))}
                         </div>
@@ -140,12 +148,12 @@ export default function CSE1stYearPYQ() {
                 {/* ── Subject Cards ── */}
                 <div id="subjects" className="mb-4 flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-theme-primary">
-                        Subjects & Question Papers
+                        Subjects & Notes
                     </h2>
-                    <span className="text-sm text-theme-muted">{subjects.length} subjects · 2019–2024</span>
+                    <span className="text-sm text-theme-muted">{subjects.length} subjects · Latest Syllabus</span>
                 </div>
 
-                <div id="papers" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div id="notes" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {subjects.map((subject, si) => {
                         const colors = colorMap[subject.color];
                         return (
@@ -156,7 +164,7 @@ export default function CSE1stYearPYQ() {
                             >
                                 {/* Icon */}
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ring-2 ${colors.badge} ${colors.ring}`}>
-                                    <BookOpen className={`w-5 h-5 ${colors.icon}`} />
+                                    <NotebookPen className={`w-5 h-5 ${colors.icon}`} />
                                 </div>
 
                                 {/* Text */}
@@ -164,7 +172,7 @@ export default function CSE1stYearPYQ() {
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${colors.badge} mb-1.5 inline-block`}>
                                         {subject.code}
                                     </span>
-                                    <h3 className="font-semibold text-sm text-theme-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+                                    <h3 className="font-semibold text-sm text-theme-primary group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors leading-snug">
                                         {subject.name}
                                     </h3>
                                     <p className="text-xs text-theme-muted mt-0.5">{subject.shortName}</p>
@@ -183,36 +191,36 @@ export default function CSE1stYearPYQ() {
                 {/* ── SEO FAQ Section ── */}
                 <section className="mt-16" aria-labelledby="faq-heading">
                     <h2 id="faq-heading" className="text-2xl font-bold text-theme-primary mb-6">
-                        Frequently Asked Questions — AKTU CSE 1st Year PYQ
+                        Frequently Asked Questions — AKTU CSE 1st Year Notes
                     </h2>
                     <div className="grid sm:grid-cols-2 gap-4">
                         {[
                             {
-                                q: "What subjects are in AKTU BTech CSE 1st Year?",
-                                a: "AKTU BTech 1st Year (CSE) covers Engineering Mathematics I & II, Engineering Physics or Chemistry, Programming for Problem Solving (C Language), Communication Skills, and Engineering Graphics & Design.",
+                                q: "What subjects are covered in AKTU BTech CSE 1st Year Notes?",
+                                a: "Notes are available for Engineering Mathematics I & II, Engineering Physics, Engineering Chemistry, Programming for Problem Solving (C Language), Communication Skills, and Engineering Graphics & Design — covering the complete AKTU 1st Year syllabus.",
                             },
                             {
-                                q: "Are these PYQ papers free to download?",
-                                a: "Yes, all AKTU previous year question papers available on AKTU Helper are completely free to download as PDF. No sign-up required.",
+                                q: "Are AKTU 1st Year Notes free to download?",
+                                a: "Yes, all AKTU Notes available on AKTU Helper are completely free to download as PDF. No sign-up or registration is required.",
                             },
                             {
-                                q: "How do PYQ papers help in AKTU exam preparation?",
-                                a: "PYQ papers reveal the exam pattern, important topics, frequently repeated questions, marking scheme, and paper difficulty level — making them the most reliable tool for exam preparation.",
+                                q: "Are these notes handwritten or typed?",
+                                a: "AKTU Helper provides both handwritten and typed PDF notes depending on the subject. Handwritten notes are great for visual learners, while typed notes offer cleaner formatting for quick reading.",
                             },
                             {
-                                q: "Are AKTU 1st year papers the same for all branches?",
-                                a: "Yes, most AKTU BTech 1st year papers (Math, Physics/Chemistry, Communication Skills, etc.) are common across branches. Only the Programming (KCS101) paper may have some branch-specific variants.",
+                                q: "Are AKTU 1st Year Notes the same for all branches?",
+                                a: "Yes, most 1st Year subjects — including Mathematics, Physics/Chemistry, Communication Skills, and Engineering Graphics — are common across all AKTU BTech branches. The notes for these subjects apply to all branches.",
                             },
                             {
-                                q: "Which year's PYQ should I focus on most?",
-                                a: "Focus on the latest 3 years (2022–2024) for pattern accuracy. Older papers (2019–2021) are great for practising additional variety of questions.",
+                                q: "How should I use these notes for exam preparation?",
+                                a: "Use unit-wise notes to build strong conceptual clarity, then combine them with Quantum Books for short-answer revision and Notes practice for understanding exam patterns. This three-pronged approach is the most effective strategy for AKTU exams.",
                             },
                             {
-                                q: "Where can I find AKTU PYQ solutions?",
-                                a: "AKTU Helper provides solved PYQ PDFs for select subjects. Refer to the 'Solutions' tag next to available papers, or check our Quantum Books section for subject-wise solutions.",
+                                q: "What is the difference between Notes and Quantum Books?",
+                                a: "Notes provide detailed, topic-wise explanations and derivations for deep understanding. Quantum Books are concise question-answer guides designed for last-minute revision. Notes are best for learning concepts; Quantum Books are best for exam revision.",
                             },
                         ].map((faq, i) => (
-                            <div key={i} className="card-theme rounded-xl p-5 border-l-4 border-blue-500 dark:border-blue-600">
+                            <div key={i} className="card-theme rounded-xl p-5 border-l-4 border-orange-500 dark:border-orange-600">
                                 <h3 className="font-semibold text-theme-primary text-sm mb-2">{faq.q}</h3>
                                 <p className="text-theme-secondary text-sm leading-relaxed">{faq.a}</p>
                             </div>
@@ -227,9 +235,9 @@ export default function CSE1stYearPYQ() {
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
                             "@type": "CollectionPage",
-                            "name": "AKTU CSE 1st Year Previous Year Question Papers",
-                            "description": "Free download AKTU BTech Computer Science Engineering 1st Year PYQ papers for 2019–2024.",
-                            "url": "https://aktuhelper.com/cse_1styr_pyq",
+                            "name": "AKTU CSE 1st Year Notes",
+                            "description": "Free download AKTU BTech Computer Science Engineering 1st Year Notes (unit-wise PDF) for all subjects.",
+                            "url": "https://aktuhelper.com/notes/cse/1st-year",
                             "provider": { "@type": "Organization", "name": "AKTU Helper", "url": "https://aktuhelper.com" },
                             "about": {
                                 "@type": "Course",
@@ -239,8 +247,9 @@ export default function CSE1stYearPYQ() {
                             "mainEntity": {
                                 "@type": "FAQPage",
                                 "mainEntity": [
-                                    { "@type": "Question", "name": "What subjects are in AKTU BTech CSE 1st Year?", "acceptedAnswer": { "@type": "Answer", "text": "Engineering Mathematics I & II, Physics or Chemistry, Programming for Problem Solving, Communication Skills, and Engineering Graphics." } },
-                                    { "@type": "Question", "name": "Are AKTU PYQ papers free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, all papers on AKTU Helper are free to download as PDF." } },
+                                    { "@type": "Question", "name": "What subjects are covered in AKTU BTech CSE 1st Year Notes?", "acceptedAnswer": { "@type": "Answer", "text": "Engineering Mathematics I & II, Engineering Physics, Engineering Chemistry, Programming for Problem Solving, Communication Skills, and Engineering Graphics & Design." } },
+                                    { "@type": "Question", "name": "Are AKTU 1st Year Notes free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, all Notes on AKTU Helper are free to download as PDF with no sign-up required." } },
+                                    { "@type": "Question", "name": "What is the difference between Notes and Quantum Books?", "acceptedAnswer": { "@type": "Answer", "text": "Notes provide detailed topic-wise explanations for deep understanding, while Quantum Books are concise Q&A guides for last-minute exam revision." } },
                                 ],
                             },
                         }),

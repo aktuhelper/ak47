@@ -190,7 +190,7 @@ export default function Navbar() {
                     href: "#",
                     desc: "Computer Science & Engineering",
                     submenu: [
-                        { title: "1st Year", href: "/quantum/cse/1st-year" },
+                        { title: "1st Year", href: "/cse_1st_yr_quantums" },
                         { title: "2nd Year", href: "/quantum/cse/2nd-year" },
                         { title: "3rd Year", href: "/quantum/cse/3rd-year" },
                         { title: "4th Year", href: "/quantum/cse/4th-year" },
@@ -308,7 +308,7 @@ export default function Navbar() {
                     href: "#",
                     desc: "Computer Science & Engineering",
                     submenu: [
-                        { title: "1st Year", href: "/notes/cse/1st-year" },
+                        { title: "1st Year", href: "/cse_1st_year_notes" },
                         { title: "2nd Year", href: "/notes/cse/2nd-year" },
                         { title: "3rd Year", href: "/notes/cse/3rd-year" },
                         { title: "4th Year", href: "/notes/cse/4th-year" },
