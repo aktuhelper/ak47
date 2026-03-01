@@ -10,7 +10,6 @@ export default function Navbar() {
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [isPyqOpen, setPyqOpen] = useState(false);
     const [isQuantumOpen, setQuantumOpen] = useState(false);
-    const [isNotesOpen, setNotesOpen] = useState(false);
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState({});
     const [isSearchOpen, setSearchOpen] = useState(false);
@@ -73,7 +72,7 @@ export default function Navbar() {
                     desc: "Computer Science & Engineering",
                     submenu: [
                         { title: "1st Year", href: "/cse_1styr_pyq" },
-                        { title: "2nd Year", href: "/pyq/cse/2nd-year" },
+                        { title: "2nd Year", href: "/cse_2ndyr_pyq" },
                         { title: "3rd Year", href: "/pyq/cse/3rd-year" },
                         { title: "4th Year", href: "/pyq/cse/4th-year" },
                     ]
@@ -191,9 +190,9 @@ export default function Navbar() {
                     desc: "Computer Science & Engineering",
                     submenu: [
                         { title: "1st Year", href: "/cse_1st_yr_quantums" },
-                        { title: "2nd Year", href: "/quantum/cse/2nd-year" },
-                        { title: "3rd Year", href: "/quantum/cse/3rd-year" },
-                        { title: "4th Year", href: "/quantum/cse/4th-year" },
+                        { title: "2nd Year", href: "/cse_2nd_yr_quantums" },
+                        { title: "3rd Year", href: "/cse_3rd_yr_quantums" },
+                        { title: "4th Year", href: "/cse_4th_yr_quantums" },
                     ]
                 },
                 {
@@ -246,201 +245,42 @@ export default function Navbar() {
                 },
             ]
         },
-        {
-            title: "Other Courses",
-            items: [
-                {
-                    icon: Shield,
-                    title: "BPharma Books",
-                    desc: "Bachelor of Pharmacy",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/quantum/bpharma/1st-year" },
-                        { title: "2nd Year", href: "/quantum/bpharma/2nd-year" },
-                        { title: "3rd Year", href: "/quantum/bpharma/3rd-year" },
-                        { title: "4th Year", href: "/quantum/bpharma/4th-year" },
-                    ]
-                },
-                {
-                    icon: Briefcase,
-                    title: "MBA Books",
-                    desc: "Master of Business Administration",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/quantum/mba/1st-year" },
-                        { title: "2nd Year", href: "/quantum/mba/2nd-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "BCA Books",
-                    desc: "Bachelor of Computer Applications",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/quantum/bca/1st-year" },
-                        { title: "2nd Year", href: "/quantum/bca/2nd-year" },
-                        { title: "3rd Year", href: "/quantum/bca/3rd-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "MCA Books",
-                    desc: "Master of Computer Applications",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/quantum/mca/1st-year" },
-                        { title: "2nd Year", href: "/quantum/mca/2nd-year" },
-                        { title: "3rd Year", href: "/quantum/mca/3rd-year" },
-                    ]
-                },
-            ]
-        },
-    ];
-
-    // ── Notes dropdown data ────────────────────────────────────────────────────
-    const notesCategories = [
-        {
-            title: "Btech Notes",
-            items: [
-                {
-                    icon: Code,
-                    title: "CSE Notes",
-                    href: "#",
-                    desc: "Computer Science & Engineering",
-                    submenu: [
-                        { title: "1st Year", href: "/cse_1st_year_notes" },
-                        { title: "2nd Year", href: "/notes/cse/2nd-year" },
-                        { title: "3rd Year", href: "/notes/cse/3rd-year" },
-                        { title: "4th Year", href: "/notes/cse/4th-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "ECE Notes",
-                    href: "#",
-                    desc: "Electronics & Communication",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/ece/1st-year" },
-                        { title: "2nd Year", href: "/notes/ece/2nd-year" },
-                        { title: "3rd Year", href: "/notes/ece/3rd-year" },
-                        { title: "4th Year", href: "/notes/ece/4th-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "ME Notes",
-                    href: "#",
-                    desc: "Mechanical Engineering",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/me/1st-year" },
-                        { title: "2nd Year", href: "/notes/me/2nd-year" },
-                        { title: "3rd Year", href: "/notes/me/3rd-year" },
-                        { title: "4th Year", href: "/notes/me/4th-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "EE Notes",
-                    href: "#",
-                    desc: "Electrical Engineering",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/ee/1st-year" },
-                        { title: "2nd Year", href: "/notes/ee/2nd-year" },
-                        { title: "3rd Year", href: "/notes/ee/3rd-year" },
-                        { title: "4th Year", href: "/notes/ee/4th-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "Civil Notes",
-                    href: "#",
-                    desc: "Civil Engineering",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/civil/1st-year" },
-                        { title: "2nd Year", href: "/notes/civil/2nd-year" },
-                        { title: "3rd Year", href: "/notes/civil/3rd-year" },
-                        { title: "4th Year", href: "/notes/civil/4th-year" },
-                    ]
-                },
-            ]
-        },
-        {
-            title: "Other Courses",
-            items: [
-                {
-                    icon: Shield,
-                    title: "BPharma Notes",
-                    desc: "Bachelor of Pharmacy",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/bpharma/1st-year" },
-                        { title: "2nd Year", href: "/notes/bpharma/2nd-year" },
-                        { title: "3rd Year", href: "/notes/bpharma/3rd-year" },
-                        { title: "4th Year", href: "/notes/bpharma/4th-year" },
-                    ]
-                },
-                {
-                    icon: Briefcase,
-                    title: "MBA Notes",
-                    desc: "Master of Business Administration",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/mba/1st-year" },
-                        { title: "2nd Year", href: "/notes/mba/2nd-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "BCA Notes",
-                    desc: "Bachelor of Computer Applications",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/bca/1st-year" },
-                        { title: "2nd Year", href: "/notes/bca/2nd-year" },
-                        { title: "3rd Year", href: "/notes/bca/3rd-year" },
-                    ]
-                },
-                {
-                    icon: Code,
-                    title: "MCA Notes",
-                    desc: "Master of Computer Applications",
-                    href: "#",
-                    submenu: [
-                        { title: "1st Year", href: "/notes/mca/1st-year" },
-                        { title: "2nd Year", href: "/notes/mca/2nd-year" },
-                        { title: "3rd Year", href: "/notes/mca/3rd-year" },
-                    ]
-                },
-            ]
-        },
     ];
 
     // ── Reusable MegaMenu renderer ─────────────────────────────────────────────
+    // Width & grid columns adapt to number of categories.
+    // Submenus for the last 2 items open UPWARD to avoid clipping off screen.
     const MegaMenuDropdown = ({ categories, isOpen, setOpen }) => {
         if (!isOpen) return null;
+
+        const colCount = categories.length;
+        const widthClass = colCount === 1 ? "w-72" : colCount === 2 ? "w-[600px]" : "w-[900px]";
+        const gridClass = colCount === 1 ? "grid-cols-1" : colCount === 2 ? "grid-cols-2" : "grid-cols-3";
+
         return (
             <div
                 onMouseEnter={() => setOpen(true)}
                 onMouseLeave={() => setOpen(false)}
-                className="absolute left-0 mt-2 w-[900px] bg-theme-card shadow-2xl dark:shadow-zinc-900/50 border border-theme rounded-2xl overflow-hidden"
+                className={`absolute left-0 mt-2 ${widthClass} bg-theme-card shadow-2xl dark:shadow-zinc-900/50 border border-theme rounded-2xl overflow-visible`}
                 style={{ animation: 'fadeIn 0.2s ease-in-out' }}
             >
-                <div className="p-8">
-                    <div className="grid grid-cols-3 gap-8">
+                <div className="p-6">
+                    <div className={`grid ${gridClass} gap-6`}>
                         {categories.map((category, catIndex) => (
                             <div key={catIndex}>
-                                <h3 className="text-xs font-bold text-theme-muted uppercase tracking-wider mb-4 px-2">
+                                <h3 className="text-xs font-bold text-theme-muted uppercase tracking-wider mb-3 px-2">
                                     {category.title}
                                 </h3>
-                                <div className="space-y-1">
+                                <div className="space-y-0.5">
                                     {category.items.map((item, itemIndex) => {
                                         const Icon = item.icon;
+                                        const totalItems = category.items.length;
+                                        // Last 2 items open submenu upward
+                                        const openUpward = itemIndex >= totalItems - 2;
+
                                         return (
                                             <div key={itemIndex} className="relative group/item">
-                                                <a
-                                                    href={item.href}
-                                                    className="group/link flex items-start gap-3 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200"
-                                                >
+                                                <a href={item.href} className="group/link flex items-start gap-3 p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200">
                                                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover/link:bg-blue-200 dark:group-hover/link:bg-blue-800/50 transition-colors shrink-0">
                                                         <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                                     </div>
@@ -460,14 +300,10 @@ export default function Navbar() {
                                                 </a>
 
                                                 {item.submenu && (
-                                                    <div className="absolute left-full top-0 ml-2 w-64 bg-theme-card shadow-xl dark:shadow-zinc-900/50 border border-theme rounded-xl p-3 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-200 z-10">
-                                                        <div className="space-y-1">
+                                                    <div className={`absolute left-full ml-2 w-56 bg-theme-card shadow-xl dark:shadow-zinc-900/50 border border-theme rounded-xl p-2 opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-200 z-50 ${openUpward ? "bottom-0" : "top-0"}`}>
+                                                        <div className="space-y-0.5">
                                                             {item.submenu.map((subItem, subIndex) => (
-                                                                <a
-                                                                    key={subIndex}
-                                                                    href={subItem.href}
-                                                                    className="block p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition group/sub"
-                                                                >
+                                                                <a key={subIndex} href={subItem.href} className="block px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition group/sub">
                                                                     <div className="font-medium text-sm text-theme-primary group-hover/sub:text-blue-600 dark:group-hover/sub:text-blue-400 transition-colors">
                                                                         {subItem.title}
                                                                     </div>
@@ -527,10 +363,7 @@ export default function Navbar() {
                                             return (
                                                 <div key={itemIndex} className="space-y-1">
                                                     <div className="flex items-center">
-                                                        <a
-                                                            href={item.href}
-                                                            className="flex items-center gap-3 px-4 py-2 text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition flex-1"
-                                                        >
+                                                        <a href={item.href} className="flex items-center gap-3 px-4 py-2 text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition flex-1">
                                                             <Icon className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0" />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="font-medium text-sm">{item.title}</div>
@@ -548,14 +381,11 @@ export default function Navbar() {
                                                         )}
                                                     </div>
 
+                                                    {/* Mobile: years expand inline (no flyout) so nothing gets clipped */}
                                                     {hasSubmenu && isOpen && (
-                                                        <div className="pl-6 pr-4 space-y-1 pb-2">
+                                                        <div className="pl-6 pr-4 space-y-0.5 pb-2">
                                                             {item.submenu.map((subItem, subIndex) => (
-                                                                <a
-                                                                    key={subIndex}
-                                                                    href={subItem.href}
-                                                                    className="block px-4 py-2 text-sm text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                                                                >
+                                                                <a key={subIndex} href={subItem.href} className="block px-4 py-2 text-sm text-theme-primary rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition">
                                                                     <div className="font-medium">{subItem.title}</div>
                                                                 </a>
                                                             ))}
@@ -633,19 +463,6 @@ export default function Navbar() {
                                 <MegaMenuDropdown categories={quantumCategories} isOpen={isQuantumOpen} setOpen={setQuantumOpen} />
                             </li>
 
-                            {/* ── Notes ── */}
-                            <li className="relative group">
-                                <button
-                                    onMouseEnter={() => setNotesOpen(true)}
-                                    onMouseLeave={() => setNotesOpen(false)}
-                                    className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 flex items-center gap-1"
-                                >
-                                    Notes
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${isNotesOpen ? 'rotate-180' : ''}`} />
-                                </button>
-                                <MegaMenuDropdown categories={notesCategories} isOpen={isNotesOpen} setOpen={setNotesOpen} />
-                            </li>
-
                             <li>
                                 <Link className="px-4 py-2 text-theme-primary font-medium transition hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" href="/campusconnecthome">
                                     CampusConnect
@@ -663,8 +480,6 @@ export default function Navbar() {
                             </li>
                         </ul>
                     </nav>
-
-
 
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <button
@@ -684,11 +499,7 @@ export default function Navbar() {
                                 >
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 flex items-center justify-center text-white font-semibold shadow-lg hover:shadow-xl transition-shadow">
                                         {user?.picture ? (
-                                            <img
-                                                src={user.picture}
-                                                alt={user.given_name || "User"}
-                                                className="w-full h-full rounded-full object-cover"
-                                            />
+                                            <img src={user.picture} alt={user.given_name || "User"} className="w-full h-full rounded-full object-cover" />
                                         ) : (
                                             <span className="text-lg">
                                                 {user?.given_name?.charAt(0)?.toUpperCase() || "U"}
@@ -699,38 +510,25 @@ export default function Navbar() {
 
                                 {isProfileOpen && (
                                     <>
-                                        <div
-                                            className="fixed inset-0 z-40"
-                                            onClick={() => setProfileOpen(false)}
-                                        ></div>
-
+                                        <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)}></div>
                                         <div className="absolute right-0 mt-3 w-72 bg-theme-card rounded-2xl shadow-2xl dark:shadow-zinc-900/50 border border-theme overflow-hidden z-50 animate-slideDown">
                                             <div className="bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 p-6 text-white">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl font-bold border-2 border-white/30">
                                                         {user?.picture ? (
-                                                            <img
-                                                                src={user.picture}
-                                                                alt={user.given_name || "User"}
-                                                                className="w-full h-full rounded-full object-cover"
-                                                            />
+                                                            <img src={user.picture} alt={user.given_name || "User"} className="w-full h-full rounded-full object-cover" />
                                                         ) : (
-                                                            <span>
-                                                                {user?.given_name?.charAt(0)?.toUpperCase() || "U"}
-                                                            </span>
+                                                            <span>{user?.given_name?.charAt(0)?.toUpperCase() || "U"}</span>
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="font-bold text-lg truncate">
                                                             {user?.given_name} {user?.family_name}
                                                         </h3>
-                                                        <p className="text-sm text-white/80 truncate">
-                                                            {user?.email}
-                                                        </p>
+                                                        <p className="text-sm text-white/80 truncate">{user?.email}</p>
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <div className="p-2">
                                                 <div className="my-2 border-t border-theme"></div>
                                                 <LogoutLink className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all group w-full">
@@ -773,10 +571,7 @@ export default function Navbar() {
                             />
                             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-zinc-500 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors" />
                             {searchQuery && (
-                                <button
-                                    onClick={() => setSearchQuery("")}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-400 transition-colors"
-                                >
+                                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-400 transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             )}
@@ -800,9 +595,6 @@ export default function Navbar() {
                             {/* Mobile: Quantum Books */}
                             <MobileMegaSection label="Quantum Books" stateKey="quantum" categories={quantumCategories} />
 
-                            {/* Mobile: Notes */}
-                            <MobileMegaSection label="Notes" stateKey="notes" categories={notesCategories} />
-
                             <a href="/jobs" className="block px-4 py-3 text-theme-primary font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition">
                                 Jobs
                             </a>
@@ -820,27 +612,16 @@ export default function Navbar() {
                                             <div className="flex items-center gap-3 mb-4">
                                                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl font-bold border-2 border-white/30">
                                                     {user?.picture ? (
-                                                        <img
-                                                            src={user.picture}
-                                                            alt={user.given_name || "User"}
-                                                            className="w-full h-full rounded-full object-cover"
-                                                        />
+                                                        <img src={user.picture} alt={user.given_name || "User"} className="w-full h-full rounded-full object-cover" />
                                                     ) : (
-                                                        <span>
-                                                            {user?.given_name?.charAt(0)?.toUpperCase() || "U"}
-                                                        </span>
+                                                        <span>{user?.given_name?.charAt(0)?.toUpperCase() || "U"}</span>
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="font-bold truncate">
-                                                        {user?.given_name} {user?.family_name}
-                                                    </h3>
-                                                    <p className="text-sm text-white/80 truncate">
-                                                        {user?.email}
-                                                    </p>
+                                                    <h3 className="font-bold truncate">{user?.given_name} {user?.family_name}</h3>
+                                                    <p className="text-sm text-white/80 truncate">{user?.email}</p>
                                                 </div>
                                             </div>
-
                                             <div className="space-y-1">
                                                 <LogoutLink className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-500/80 hover:bg-red-600 transition backdrop-blur-sm w-full">
                                                     <X className="w-4 h-4" />
@@ -850,11 +631,9 @@ export default function Navbar() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <>
-                                        <LoginLink className="block px-4 py-3 text-center text-theme-primary font-medium rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition">
-                                            Login
-                                        </LoginLink>
-                                    </>
+                                    <LoginLink className="block px-4 py-3 text-center text-theme-primary font-medium rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition">
+                                        Login
+                                    </LoginLink>
                                 )}
                             </div>
                         </nav>
