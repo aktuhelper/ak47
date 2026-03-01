@@ -26,7 +26,7 @@ export const metadata = {
 // ── Static Data ───────────────────────────────────────────────────────────────
 const subjects = [
     // Semester 5
-    { code: "BCS501", name: "DBMS(Database Management System) Quantum Book", shortName: "DBMS Quantum", color: "emerald", href: "/computer_Science/5/dbmsdatabase-management-system-BCS501/books" },
+    { code: "BCS501", name: "DBMS(Database Management System) Quantum Book", shortName: "DBMS Quantum", color: "emerald", href: "/computer_Science/5/dbms-database-management-system-BCS501/books" },
     { code: "BCS502", name: "Web Technology Quantum Book", shortName: "Web Tech Quantum", color: "blue", href: "/computer_Science/5/web-technology-BCS502/books" },
     { code: "BCS503", name: "Design and Analysis of Algorithm Quantum Book", shortName: "DAA Quantum", color: "amber", href: "/computer_Science/5/design-and-analysis-of-algorithm-BCS503/books" },
     { code: "BNC501", name: "Constitution of India Quantum Book", shortName: "Constitution Quantum", color: "violet", href: "/computer_Science/5/constitution-of-india-BNC501/books" },
