@@ -73,8 +73,7 @@ export default function Navbar() {
                     submenu: [
                         { title: "1st Year", href: "/cse_1styr_pyq" },
                         { title: "2nd Year", href: "/cse_2ndyr_pyq" },
-                        { title: "3rd Year", href: "/pyq/cse/3rd-year" },
-                        { title: "4th Year", href: "/pyq/cse/4th-year" },
+                        { title: "3rd Year", href: "/cse_3rdyr_pyq" },
                     ]
                 },
                 {
@@ -86,7 +85,6 @@ export default function Navbar() {
                         { title: "1st Year", href: "/pyq/ece/1st-year" },
                         { title: "2nd Year", href: "/pyq/ece/2nd-year" },
                         { title: "3rd Year", href: "/pyq/ece/3rd-year" },
-                        { title: "4th Year", href: "/pyq/ece/4th-year" },
                     ]
                 },
                 {
@@ -98,7 +96,6 @@ export default function Navbar() {
                         { title: "1st Year", href: "/pyq/me/1st-year" },
                         { title: "2nd Year", href: "/pyq/me/2nd-year" },
                         { title: "3rd Year", href: "/pyq/me/3rd-year" },
-                        { title: "4th Year", href: "/pyq/me/4th-year" },
                     ]
                 },
                 {
@@ -110,7 +107,6 @@ export default function Navbar() {
                         { title: "1st Year", href: "/pyq/ee/1st-year" },
                         { title: "2nd Year", href: "/pyq/ee/2nd-year" },
                         { title: "3rd Year", href: "/pyq/ee/3rd-year" },
-                        { title: "4th Year", href: "/pyq/ee/4th-year" },
                     ]
                 },
                 {
@@ -122,7 +118,6 @@ export default function Navbar() {
                         { title: "1st Year", href: "/pyq/civil/1st-year" },
                         { title: "2nd Year", href: "/pyq/civil/2nd-year" },
                         { title: "3rd Year", href: "/pyq/civil/3rd-year" },
-                        { title: "4th Year", href: "/pyq/civil/4th-year" },
                     ]
                 },
             ]
@@ -139,7 +134,6 @@ export default function Navbar() {
                         { title: "1st Year", href: "/pyq/bpharma/1st-year" },
                         { title: "2nd Year", href: "/pyq/bpharma/2nd-year" },
                         { title: "3rd Year", href: "/pyq/bpharma/3rd-year" },
-                        { title: "4th Year", href: "/pyq/bpharma/4th-year" },
                     ]
                 },
                 {
@@ -171,7 +165,7 @@ export default function Navbar() {
                     submenu: [
                         { title: "1st Year", href: "/pyq/mca/1st-year" },
                         { title: "2nd Year", href: "/pyq/mca/2nd-year" },
-                        { title: "3rd Year", href: "/pyq/mca/3rd-year" },
+                     
                     ]
                 },
             ]
@@ -248,8 +242,6 @@ export default function Navbar() {
     ];
 
     // ── Reusable MegaMenu renderer ─────────────────────────────────────────────
-    // Width & grid columns adapt to number of categories.
-    // Submenus for the last 2 items open UPWARD to avoid clipping off screen.
     const MegaMenuDropdown = ({ categories, isOpen, setOpen }) => {
         if (!isOpen) return null;
 
@@ -275,7 +267,6 @@ export default function Navbar() {
                                     {category.items.map((item, itemIndex) => {
                                         const Icon = item.icon;
                                         const totalItems = category.items.length;
-                                        // Last 2 items open submenu upward
                                         const openUpward = itemIndex >= totalItems - 2;
 
                                         return (
@@ -381,7 +372,6 @@ export default function Navbar() {
                                                         )}
                                                     </div>
 
-                                                    {/* Mobile: years expand inline (no flyout) so nothing gets clipped */}
                                                     {hasSubmenu && isOpen && (
                                                         <div className="pl-6 pr-4 space-y-0.5 pb-2">
                                                             {item.submenu.map((subItem, subIndex) => (
