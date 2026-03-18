@@ -16,7 +16,7 @@ const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"
 const Page = () => {
     const [activeTab, setActiveTab] = useState('home')
     const { isRegistered, checkingRegistration, user } = useProtectedRoute()
-    const userEmail = user?.email || user?.given_name || user?.id
+    const userEmail = user ? (user.email || user.given_name || user.id) : null
 
     // User data state
     const [userData, setUserData] = useState(null)
@@ -41,8 +41,8 @@ const Page = () => {
         // Clean up the status string (remove extra spaces and convert to lowercase)
         const status = (latestRequest.statuss || latestRequest.status || '').trim().toLowerCase()
 
-   
-       
+        console.log('📋 Latest verification request:', latestRequest)
+        console.log('📋 Status:', status)
 
         // Return standardized status
         if (status === 'pending') return 'pending'
@@ -79,33 +79,31 @@ const Page = () => {
     // Fetch user data after registration is confirmed
     useEffect(() => {
         const fetchUserData = async () => {
+            // ✅ FIX 1: Don't set loadingUserData(false) when conditions aren't met
+            // Keep it true so the LoadingScreen stays visible
             if (!isRegistered || !userEmail) {
-                setLoadingUserData(false)
-                return
+                return  // ← Removed setLoadingUserData(false)
             }
 
             try {
-               
+                console.log('📊 Fetching user data for:', userEmail)
                 setLoadingUserData(true)
                 setError(null)
 
-                // ✅ USE SECURE API FUNCTION
                 const data = await fetchFromStrapi(
                     `user-profiles?filters[email][$eq]=${encodeURIComponent(userEmail)}&populate=*`
                 )
-                
+
+                console.log('🔍 Raw Strapi Response:', JSON.stringify(data, null, 2))
 
                 if (data?.data && data.data.length > 0) {
                     const user = data.data[0]
-                    
+                    console.log('🔍 User object:', user)
 
-                    // Strapi 5 doesn't use attributes wrapper
                     const userData = user.attributes || user
 
-                    // ✅ Get profile image URL - check both profileImage relation and profilePic field
                     let profileImageUrl = null;
 
-                    // First, try to get from profileImage relation
                     if (userData.profileImage) {
                         const profileImage = userData.profileImage.data || userData.profileImage;
                         if (profileImage) {
@@ -116,22 +114,18 @@ const Page = () => {
                         }
                     }
 
-                    // If profileImage relation is null, use profilePic field
                     if (!profileImageUrl && userData.profilePic) {
                         profileImageUrl = userData.profilePic;
                     }
 
-                   
+                    console.log('🖼️ Profile Image URL:', profileImageUrl)
 
-                    // ✅ Get verification status from verification_requests relation
                     const verificationStatus = getVerificationStatus(userData.verification_requests)
-                    
+                    console.log('🔐 Verification Status:', verificationStatus)
 
-                    // ✅ Get rejection reason if status is rejected
                     const verificationRejectionReason = getRejectionReason(userData.verification_requests)
-                    
+                    console.log('📝 Rejection Reason:', verificationRejectionReason)
 
-                    // Format user data with profile image URL and verification status
                     const formattedUser = {
                         id: user.id,
                         documentId: user.documentId,
@@ -163,31 +157,28 @@ const Page = () => {
                         totalViews: userData?.totalViews ?? 0,
                     }
 
-                    // ✅ Store in localStorage
                     localStorage.setItem('userDocumentId', user.documentId)
                     localStorage.setItem('userEmail', userData.email)
-                    
+                    console.log('📥 Stored userDocumentId and userEmail in localStorage')
 
-                    // ✅ Calculate and update badges
                     try {
-                      
+                        console.log('🎖️ Calculating badges...')
                         await calculateAndUpdateBadges(formattedUser)
-                       
+                        console.log('✅ Badges calculated successfully')
                     } catch (badgeError) {
-                        
-                        // Don't throw - continue with user data even if badges fail
+                        console.error('❌ Error calculating badges:', badgeError)
                     }
 
-                   
+                    console.log('✅ User data fetched:', formattedUser)
                     setUserData(formattedUser)
                 } else {
                     throw new Error('User profile not found')
                 }
             } catch (err) {
-              
+                console.error('❌ Error fetching user data:', err)
                 setError(err.message)
             } finally {
-                setLoadingUserData(false)
+                setLoadingUserData(false)  // ✅ Only runs after a real fetch attempt
             }
         }
 
@@ -198,7 +189,7 @@ const Page = () => {
         if (!userEmail) return
 
         try {
-          
+            console.log('🔄 Refreshing user data...')
             setLoadingUserData(true)
 
             // ✅ USE SECURE API FUNCTION
@@ -231,15 +222,15 @@ const Page = () => {
                     profileImageUrl = userData.profilePic;
                 }
 
-           
+                console.log('🖼️ Refreshed Profile Image URL:', profileImageUrl)
 
                 // ✅ Get updated verification status from verification_requests relation
                 const verificationStatus = getVerificationStatus(userData.verification_requests)
-                
+                console.log('🔐 Updated Verification Status:', verificationStatus)
 
                 // ✅ Get updated rejection reason if status is rejected
                 const verificationRejectionReason = getRejectionReason(userData.verification_requests)
-              
+                console.log('📝 Updated Rejection Reason:', verificationRejectionReason)
 
                 const formattedUser = {
                     id: user.id,
@@ -275,11 +266,11 @@ const Page = () => {
                 localStorage.setItem('userDocumentId', user.documentId)
                 localStorage.setItem('userEmail', userData.email)
 
-          
+                console.log('✅ User data refreshed:', formattedUser)
                 setUserData(formattedUser)
             }
         } catch (err) {
-         
+            console.error('❌ Error refreshing user data:', err)
         } finally {
             setLoadingUserData(false)
         }
@@ -290,7 +281,7 @@ const Page = () => {
         return <LoadingScreen message="Verifying your access..." />
     }
 
-    if (loadingUserData) {
+    if (loadingUserData || !userData) {
         return <LoadingScreen message="Loading your profile..." />
     }
 
