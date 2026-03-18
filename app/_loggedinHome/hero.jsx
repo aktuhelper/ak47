@@ -11,9 +11,7 @@ import { Users, MessageSquare } from 'lucide-react';
 
 export default function HomePagee({ userData }) {
     // Early validation
-    if (!userData) {
-        return <div className="p-8 text-center text-red-600">Error: User data not available</div>;
-    }
+
 
     const [activeTab, setActiveTab] = useState('queries');
     const [selectedBadge, setSelectedBadge] = useState(null);
@@ -48,7 +46,9 @@ export default function HomePagee({ userData }) {
 
     // ✅ Get Socket.IO online users
     const { onlineUsers, isConnected } = useSocket();
-
+    if (!userData) {
+        return <div className="p-8 text-center text-red-600">Error: User data not available</div>;
+    }
     const userName = userData?.name || "Guest";
     const userCollege = userData?.college || "Your College";
     const userCourse = userData?.course || "Your Course";
@@ -161,6 +161,7 @@ export default function HomePagee({ userData }) {
             skills: user.interests || [],
             isActive: false,
             answeredQueries: user.answeredQueries || 0,
+
             helpfulAnswers: user.helpfulAnswers || 0,
             views: user.views || user.totalViews || 0,
             queriesPosted: user.queriesPosted || user.queriesAsked || 0,
@@ -306,10 +307,10 @@ export default function HomePagee({ userData }) {
 
     // Modal handlers
     const handleAskQuery = (receiver) => {
+        console.log('handleAskQuery fired, userData:', userData);  // ✅ add this
         setSelectedReceiver(receiver);
         setIsModalOpen(true);
     };
-
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedReceiver(null);
@@ -512,12 +513,13 @@ export default function HomePagee({ userData }) {
                             students={otherCollegeJuniors}
                             currentUserId={currentUserId}
                             onAskQuery={handleAskQuery}
+                            userData={userData}
                             emptyMessage="No juniors found from other colleges"
                         />
                     </div>
                 )}
             </div>
-
+            {console.log('HomePagee userData before modal:', userData)}
             {/* Ask Query Modal */}
             <AskQueryModal
                 isOpen={isModalOpen}
@@ -525,6 +527,7 @@ export default function HomePagee({ userData }) {
                 receiverData={selectedReceiver}
                 currentUserId={currentUserId}
                 onQuerySent={handleQuerySent}
+                userData={userData}
             />
 
             {/* Next Badge Modal */}

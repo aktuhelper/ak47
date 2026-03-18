@@ -17,7 +17,8 @@ export default function AskQueryModal({
     onClose,
     receiverData,
     currentUserId,
-    onQuerySent
+    onQuerySent,
+    userData
 }) {
     const [category, setCategory] = useState('');
     const [queryTitle, setQueryTitle] = useState('');
@@ -33,6 +34,7 @@ export default function AskQueryModal({
     const isFormValid = category && queryTitle.trim().length > 0 && queryTitle.trim().length <= 100 && queryText.trim().length > 0 && queryText.trim().length <= 1000;
 
     const getPrimaryBadge = () => {
+
         if (!receiverData) return null;
         if (receiverData.eliteMentor) {
             return { name: 'Elite', color: 'from-violet-500 via-purple-500 to-fuchsia-500', dot: 'bg-violet-400' };
@@ -113,6 +115,11 @@ export default function AskQueryModal({
     };
 
     const handleSubmit = async (e) => {
+        console.log('=== DEBUG ===');
+        console.log('userData:', userData);
+        console.log('userData?.name:', userData?.name);
+        console.log('typeof userData:', typeof userData);
+        console.log('=== END DEBUG ===');
         if (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -170,10 +177,31 @@ export default function AskQueryModal({
 
             // Use secure wrapper
             await postToStrapi('personal-queries', queryData);
+            if (receiverData.email) {
+                try {
+                    console.log('sendername', userData?.name);
+                    await fetch('/api/send-query-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            receiverEmail: receiverData.email,
+                            receiverName: receiverData.name || receiverData.username,
+                            senderName: userData?.name || userData?.username || 'A user',
+                            queryTitle: queryTitle.trim(),
+                            queryDescription: queryText.trim(),
+                        }),
+                    });
+
+                } catch (emailError) {
+                    console.error('Email notification failed:', emailError);
+                    // ❌ Don't throw — query already saved, email is non-critical
+                }
+            }
 
             toast.success('Your query has been sent successfully!', {
                 id: loadingToast,
             });
+
 
             setTimeout(() => {
                 resetForm();

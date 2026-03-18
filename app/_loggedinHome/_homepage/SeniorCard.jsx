@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AskQueryModal from '../AskQueryModal';
 import { BADGE_DEFINITIONS, assignBadges } from "../badges/page";
 
-const SeniorCard = ({ senior, currentUserId, isLive }) => {
+const SeniorCard = ({ senior, currentUserId, isLive, userData }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleViewProfile = () => {
@@ -77,6 +77,7 @@ const SeniorCard = ({ senior, currentUserId, isLive }) => {
         name: senior.name,
         username: senior.username || senior.name,
         avatar: senior.avatar,
+        email: senior.email,
         role: senior.role,
         college: senior.college,
         course: senior.course,
@@ -243,9 +244,10 @@ const SeniorCard = ({ senior, currentUserId, isLive }) => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 receiverData={receiverData}
+                userData={userData}
                 currentUserId={currentUserId}
                 onQuerySent={() => {
-         
+                    console.log('Query sent successfully from SeniorCard!');
                 }}
             />
         </>

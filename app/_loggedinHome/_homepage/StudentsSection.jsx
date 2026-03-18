@@ -9,6 +9,7 @@ const StudentsSection = ({
     viewAllLink,
     students,
     currentUserId,
+    userData,
     emptyMessage = "No students found"
 }) => {
     return (
@@ -27,6 +28,7 @@ const StudentsSection = ({
                             key={student.id}
                             senior={student}
                             currentUserId={currentUserId}
+                            userData={userData}
                         />
                     ))}
                 </CardGrid>
