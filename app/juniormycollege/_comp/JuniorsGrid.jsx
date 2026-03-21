@@ -1,6 +1,7 @@
 import React from 'react';
 import SeniorCard from '@/app/_loggedinHome/_homepage/SeniorCard';
 
+
 export default function JuniorsGrid({
     juniors,
     currentUserId,

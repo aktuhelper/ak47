@@ -56,7 +56,7 @@ export default function JuniorsOtherCollegePage() {
             if (!user?.email) return;
 
             try {
-           
+                console.log('🔍 Fetching current user profile...');
 
                 // ✅ Use secure wrapper instead of direct fetch
                 const result = await fetchFromStrapi(
@@ -73,7 +73,12 @@ export default function JuniorsOtherCollegePage() {
                         ...userData
                     });
 
-               
+                    console.log('✅ Current User Data:', {
+                        id: userRecord.id,
+                        documentId: userRecord.documentId,
+                        name: userData.name,
+                        college: userData.college
+                    });
                 }
             } catch (error) {
                 console.error('❌ Error fetching current user:', error);
@@ -100,11 +105,20 @@ export default function JuniorsOtherCollegePage() {
 
     // ✅ Debug log when selectedCourse changes
     useEffect(() => {
-     
+        console.log('📚 selectedCourse changed to:', selectedCourse);
     }, [selectedCourse]);
 
     // ✅ Debug log when filters are ready
-
+    useEffect(() => {
+        console.log('🔍 Current state:', {
+            hasStrapiUser: !!strapiUser,
+            strapiUserId: strapiUser?.id,
+            selectedCourse,
+            selectedBranch,
+            selectedYear,
+            userYear: strapiUser?.year
+        });
+    }, [strapiUser, selectedCourse, selectedBranch, selectedYear]);
 
     // Use custom hook for fetching juniors from OTHER colleges
     const {
@@ -126,11 +140,19 @@ export default function JuniorsOtherCollegePage() {
         searchQuery
     });
 
-    
+    // Debug Socket.IO connection and online users
+    useEffect(() => {
+        console.log('🔌 Socket.IO Status (Other Colleges):', {
+            isConnected,
+            onlineUsersCount: onlineUsers?.length || 0,
+            onlineUsers: onlineUsers,
+            rawJuniorsCount: rawJuniors.length
+        });
+    }, [isConnected, onlineUsers, rawJuniors]);
 
     // ✅ Apply client-side filtering with Socket.IO online status
     const filteredJuniors = useMemo(() => {
-    
+        console.log('🔄 Processing juniors for filter:', userTypeFilter);
 
         // Always update online status from Socket.IO for all juniors
         const juniorsWithOnlineStatus = rawJuniors.map(junior => {
@@ -151,12 +173,23 @@ export default function JuniorsOtherCollegePage() {
             };
         });
 
-       
+        console.log(`📊 Total juniors with online status: ${juniorsWithOnlineStatus.length}`);
+        console.log(`🟢 Online juniors:`, juniorsWithOnlineStatus.filter(j => j.isActive).map(j => ({
+            name: j.name,
+            id: j.documentId || j.id,
+            college: j.college
+        })));
 
         // Apply active filter - only show currently online users
         if (userTypeFilter === "active") {
             const activeUsers = juniorsWithOnlineStatus.filter(junior => junior.isActive);
-          
+            console.log(`🟢 Active Filter Applied - Found ${activeUsers.length} active juniors from other colleges`);
+            console.log('Active users details:', activeUsers.map(u => ({
+                name: u.name,
+                id: u.documentId || u.id,
+                college: u.college,
+                isActive: u.isActive
+            })));
             return activeUsers;
         }
 
@@ -167,7 +200,7 @@ export default function JuniorsOtherCollegePage() {
                 junior.superMentor === true ||
                 junior.eliteMentor === true
             );
-           
+            console.log(`🏆 Mentor Filter Applied - Found ${mentors.length} mentors from other colleges`);
 
             // Sort mentors by priority
             return mentors.sort((a, b) => {
@@ -184,13 +217,13 @@ export default function JuniorsOtherCollegePage() {
         }
 
         // For "all" filter, return all juniors with updated online status
-       
+        console.log(`📋 All Filter Applied - Returning ${juniorsWithOnlineStatus.length} juniors`);
         return juniorsWithOnlineStatus;
     }, [rawJuniors, onlineUsers, userTypeFilter]);
 
     // Handlers
     const handleUserTypeChange = (type) => {
-       
+        console.log('🎯 Changing filter to:', type);
         setUserTypeFilter(type);
         resetPagination();
     };
@@ -315,6 +348,7 @@ export default function JuniorsOtherCollegePage() {
                         currentUserId={strapiUser?.documentId || strapiUser?.id}
                         onlineUsers={onlineUsers}
                         isSocketConnected={isConnected}
+                        userData={strapiUser}
                     />
 
                     {/* Loading State - Initial */}

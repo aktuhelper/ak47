@@ -55,7 +55,7 @@ export default function JuniorsPage() {
             if (!user?.email) return;
 
             try {
-               
+                console.log('🔍 Fetching current user profile...');
 
                 // ✅ Use secure wrapper
                 const result = await fetchFromStrapi(
@@ -72,7 +72,11 @@ export default function JuniorsPage() {
                         ...userData
                     });
 
-                   
+                    console.log('✅ Current User Data:', {
+                        id: userRecord.id,
+                        documentId: userRecord.documentId,
+                        name: userData.name
+                    });
                 }
             } catch (error) {
                 console.error('❌ Error fetching current user:', error);
@@ -128,7 +132,7 @@ export default function JuniorsPage() {
         // Apply active filter - only show currently online users
         if (userTypeFilter === "active") {
             const activeUsers = juniorsWithOnlineStatus.filter(junior => junior.isActive);
-           
+            console.log(`🟢 Filtered ${activeUsers.length} active juniors out of ${juniorsWithOnlineStatus.length}`);
             return activeUsers;
         }
 
@@ -140,7 +144,7 @@ export default function JuniorsPage() {
                 junior.superMentor === true ||
                 junior.eliteMentor === true
             );
-          
+            console.log(`🏆 Filtered ${mentors.length} mentors out of ${juniorsWithOnlineStatus.length}`);
 
             // Sort mentors by priority: eliteMentor > superMentor > isMentor
             // Then by answeredQueries and helpfulAnswers
@@ -272,6 +276,7 @@ export default function JuniorsPage() {
                         currentUserId={strapiUser?.documentId || strapiUser?.id}
                         onlineUsers={onlineUsers}
                         isSocketConnected={isConnected}
+                        userData={strapiUser}
                     />
 
                     {/* Loading State - Initial */}
