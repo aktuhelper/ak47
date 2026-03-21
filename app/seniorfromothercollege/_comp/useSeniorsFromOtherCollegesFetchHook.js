@@ -43,6 +43,7 @@ const transformStrapiUser = (user) => {
         college: userData.college || '',
         course: userData.course || '',
         branch: userData.branch || null,
+        email: userData.email || null,
         year: userData.year || '',
         yearBadge: yearBadgeMap[userData.year] || "3rd-year",
         showYearBadge: true,

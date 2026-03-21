@@ -55,7 +55,7 @@ export default function SeniorsPage() {
             if (!user?.email) return;
 
             try {
-               
+                console.log('🔍 Fetching current user profile...');
 
                 // ✅ Use secure wrapper instead of direct fetch
                 const result = await fetchFromStrapi(
@@ -72,7 +72,12 @@ export default function SeniorsPage() {
                         ...userData
                     });
 
-                 
+                    console.log('✅ Current User Data:', {
+                        id: userRecord.id,
+                        documentId: userRecord.documentId,
+                        name: userData.name,
+                        year: userData.year
+                    });
                 }
             } catch (error) {
                 console.error('❌ Error fetching current user:', error);
@@ -145,7 +150,11 @@ export default function SeniorsPage() {
 
         setSeniorsWithStatus(updatedSeniors);
 
-       
+        console.log('🔄 Updated seniors with online status:', {
+            total: updatedSeniors.length,
+            online: updatedSeniors.filter(s => s.isActive).length,
+            onlineUsers: onlineUsers.length
+        });
 
     }, [fetchedSeniors, onlineUsers]);
 
@@ -190,7 +199,12 @@ export default function SeniorsPage() {
                 return b.engagement - a.engagement;
             });
 
-           
+            console.log('🏆 Mentors sorted by tier:', {
+                elite: filtered.filter(s => s.eliteMentor).length,
+                super: filtered.filter(s => s.superMentor && !s.eliteMentor).length,
+                regular: filtered.filter(s => s.isMentor && !s.superMentor && !s.eliteMentor).length,
+                total: filtered.length
+            });
         }
 
         return filtered;
@@ -309,6 +323,7 @@ export default function SeniorsPage() {
                         onlineUsers={onlineUsers}
                         isSocketConnected={isConnected}
                         isSeniorPage={true}
+                        userData={strapiUser}
                     />
 
                     {/* Loading State - Initial */}

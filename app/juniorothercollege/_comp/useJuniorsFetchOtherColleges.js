@@ -48,6 +48,7 @@ const transformStrapiUser = (user) => {
         skills: userData.interests || [],
         isMentor: userData.isMentor || false,
         isActive: isActive,
+        email: userData.email || null,
         isVerified: userData.isVerified || false,
         username: userData.username || '',
         answeredQueries: userData.answeredQueries || 0,

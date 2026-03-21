@@ -54,6 +54,8 @@ export default function SeniorsFromOtherCollegesPage() {
             if (!user?.email) return;
 
             try {
+                console.log('🔍 Fetching current user profile...');
+
                 // ✅ Use secure wrapper instead of direct fetch
                 const result = await fetchFromStrapi(
                     `user-profiles?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`
@@ -68,9 +70,16 @@ export default function SeniorsFromOtherCollegesPage() {
                         documentId: userRecord.documentId || userRecord.id,
                         ...userData
                     });
+
+                    console.log('✅ Current User Data:', {
+                        id: userRecord.id,
+                        documentId: userRecord.documentId,
+                        name: userData.name,
+                        college: userData.college
+                    });
                 }
             } catch (error) {
-                // Error handling without logging
+                console.error('❌ Error fetching current user:', error);
             }
         };
 
@@ -112,6 +121,49 @@ export default function SeniorsFromOtherCollegesPage() {
         searchQuery
     });
 
+    // 🔍 DEBUG: Log current user info
+    useEffect(() => {
+        if (strapiUser) {
+            console.log('🔍 Current User Info:', {
+                id: strapiUser?.id,
+                documentId: strapiUser?.documentId,
+                name: strapiUser?.name,
+                college: strapiUser?.college,
+                year: strapiUser?.year,
+                course: strapiUser?.course,
+                branch: strapiUser?.branch
+            });
+        }
+    }, [strapiUser]);
+
+    // 🔍 DEBUG: Log active filters
+    useEffect(() => {
+        console.log('🔍 Active Filters:', {
+            selectedCourse,
+            selectedBranch,
+            selectedYear,
+            userTypeFilter,
+            searchQuery,
+            availableYears: getAvailableYears()
+        });
+    }, [selectedCourse, selectedBranch, selectedYear, userTypeFilter, searchQuery]);
+
+    // 🔍 DEBUG: Log fetched seniors
+    useEffect(() => {
+        console.log('🔍 Fetched Seniors (raw):', {
+            count: fetchedSeniors?.length || 0,
+            seniors: fetchedSeniors?.map(s => ({
+                id: s.id,
+                documentId: s.documentId,
+                name: s.name,
+                college: s.college,
+                year: s.year,
+                course: s.course,
+                branch: s.branch
+            }))
+        });
+    }, [fetchedSeniors]);
+
     // Sync Socket.IO online status with fetched seniors
     const [seniorsWithStatus, setSeniorsWithStatus] = useState([]);
 
@@ -139,7 +191,28 @@ export default function SeniorsFromOtherCollegesPage() {
 
         setSeniorsWithStatus(updatedSeniors);
 
+        console.log('🔄 Updated seniors from other colleges with online status:', {
+            total: updatedSeniors.length,
+            online: updatedSeniors.filter(s => s.isActive).length,
+            onlineUsers: onlineUsers.length
+        });
+
     }, [fetchedSeniors, onlineUsers]);
+
+    // 🔍 DEBUG: Log seniors with status
+    useEffect(() => {
+        console.log('🔍 Seniors with Status:', {
+            count: seniorsWithStatus?.length || 0,
+            online: seniorsWithStatus?.filter(s => s.isActive).length || 0,
+            seniors: seniorsWithStatus?.map(s => ({
+                id: s.id,
+                documentId: s.documentId,
+                name: s.name,
+                college: s.college,
+                isActive: s.isActive
+            }))
+        });
+    }, [seniorsWithStatus]);
 
     // Apply filters and sorting on the merged data
     const displayedSeniors = React.useMemo(() => {
@@ -178,10 +251,44 @@ export default function SeniorsFromOtherCollegesPage() {
                 }
                 return b.engagement - a.engagement;
             });
+
+            console.log('🏆 Mentors from other colleges sorted by tier:', {
+                elite: filtered.filter(s => s.eliteMentor).length,
+                super: filtered.filter(s => s.superMentor && !s.eliteMentor).length,
+                regular: filtered.filter(s => s.isMentor && !s.superMentor && !s.eliteMentor).length,
+                total: filtered.length
+            });
         }
 
         return filtered;
     }, [seniorsWithStatus, userTypeFilter]);
+
+    // 🔍 DEBUG: Log displayed seniors
+    useEffect(() => {
+        console.log('🔍 Displayed Seniors (after filtering):', {
+            count: displayedSeniors?.length || 0,
+            userTypeFilter,
+            seniors: displayedSeniors?.map(s => ({
+                id: s.id,
+                documentId: s.documentId,
+                name: s.name,
+                college: s.college,
+                isActive: s.isActive,
+                isMentor: s.isMentor,
+                superMentor: s.superMentor,
+                eliteMentor: s.eliteMentor
+            }))
+        });
+    }, [displayedSeniors, userTypeFilter]);
+
+    // 🔍 DEBUG: Log socket status
+    useEffect(() => {
+        console.log('🌐 Socket Status:', {
+            isConnected,
+            onlineUsersCount: onlineUsers?.length || 0,
+            onlineUserIds: onlineUsers
+        });
+    }, [isConnected, onlineUsers]);
 
     // Handlers
     const handleUserTypeChange = (type) => {
@@ -300,6 +407,7 @@ export default function SeniorsFromOtherCollegesPage() {
                         onlineUsers={onlineUsers}
                         isSocketConnected={isConnected}
                         isSeniorPage={true}
+                        userData={strapiUser}
                     />
 
                     {/* Loading State - Initial */}

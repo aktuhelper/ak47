@@ -41,6 +41,7 @@ const transformStrapiUser = (user) => {
         documentId: user.documentId || user.id,
         name: userData.name || 'Unknown User',
         role: userData.role || 'Junior Student',
+        email: userData.email || null,
         college: userData.college || '',
         course: userData.course || '',
         branch: userData.branch || null,

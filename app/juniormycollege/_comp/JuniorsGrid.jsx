@@ -5,6 +5,7 @@ export default function JuniorsGrid({
     juniors,
     currentUserId,
     onlineUsers,
+    userData,
     isSeniorPage = false
 }) {
     if (!juniors || juniors.length === 0) return null;
@@ -24,6 +25,7 @@ export default function JuniorsGrid({
                         senior={junior}
                         currentUserId={currentUserId}
                         isLive={isLive}
+                        userData={userData}
                     />
                 );
             })}
