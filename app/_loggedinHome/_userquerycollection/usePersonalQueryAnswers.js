@@ -19,7 +19,12 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You cannot answer your own query');
             }
 
-           
+            console.log('🔵 STEP 1: Submitting personal query answer with documentIds:', {
+                answerText,
+                personalQueryDocumentId,
+                userDocumentId,
+                querySenderDocumentId
+            });
 
             // ✅ Use secure wrapper
             const data = await postToStrapi('personal-query-answers', {
@@ -30,10 +35,10 @@ export function usePersonalQueryAnswers() {
                 helpfulCount: 0
             });
 
-
+            console.log('✅ STEP 2: Personal answer submitted:', data);
 
             const newCount = await getPersonalAnswerCount(personalQueryDocumentId);
-      
+            console.log('✅ STEP 3: New answer count:', newCount);
 
             return {
                 data,
@@ -62,14 +67,14 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You can only edit your own answers');
             }
 
-        
+            console.log('✏️ Updating personal answer:', answerDocumentId);
 
             // ✅ Use secure wrapper
             const data = await updateStrapi(`personal-query-answers/${answerDocumentId}`, {
                 answerText: answerText
             });
 
-          
+            console.log('✅ Personal answer updated:', data);
 
             return {
                 data,
@@ -94,12 +99,12 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You can only delete your own answers or answers to your query');
             }
 
-
+            console.log('🗑️ Deleting personal answer:', answerDocumentId);
 
             // ✅ Use secure wrapper
             await deleteFromStrapi(`personal-query-answers/${answerDocumentId}`);
 
-     
+            console.log('✅ Personal answer deleted');
             return true;
         } catch (err) {
             console.error('❌ Error deleting personal answer:', err);
@@ -119,7 +124,7 @@ export function usePersonalQueryAnswers() {
 
             const count = data.data?.length || 0;
 
-
+            console.log(`📊 Personal answer count:`, count);
             return count;
         } catch (err) {
             console.error('❌ Error fetching personal answer count:', err);
@@ -142,7 +147,7 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You cannot mark your own answer as best');
             }
 
-   
+            console.log('⭐ Marking as best answer:', answerDocumentId);
 
             // First, unmark all other answers for this query
             const allAnswersData = await fetchFromStrapi(
@@ -165,6 +170,7 @@ export function usePersonalQueryAnswers() {
                 isBestAnswer: true
             });
 
+            console.log('✅ Marked as best answer');
             return true;
         } catch (err) {
             console.error('❌ Error marking best answer:', err);
@@ -182,14 +188,14 @@ export function usePersonalQueryAnswers() {
                 throw new Error('Only the query sender can unmark best answers');
             }
 
-        
+            console.log('⭐ Unmarking best answer:', answerDocumentId);
 
             // ✅ Use secure wrapper
             await updateStrapi(`personal-query-answers/${answerDocumentId}`, {
                 isBestAnswer: false
             });
 
-            
+            console.log('✅ Unmarked best answer');
             return true;
         } catch (err) {
             console.error('❌ Error unmarking best answer:', err);

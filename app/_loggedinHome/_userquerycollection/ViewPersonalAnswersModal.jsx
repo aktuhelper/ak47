@@ -7,7 +7,7 @@ import { useFetchPersonalAnswers } from "../_userquerycollection/useFetchPersona
 import { usePersonalQueryAnswers } from "../_userquerycollection/usePersonalQueryAnswers";
 import { DeleteConfirmationModal } from "../_userquerycollection/DeleteConfirmationModal";
 
-
+const STRAPI_URL = "http://localhost:1337";
 
 export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onAnswerDeleted }) => {
     const {
@@ -30,14 +30,33 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
     const [votingAnswerId, setVotingAnswerId] = useState(null);
     const [markingBestAnswerId, setMarkingBestAnswerId] = useState(null);
 
+    // ⭐ CRITICAL: Define who can do what
     const isQuerySender = userData?.documentId === query?.fromUser?.documentId;
     const isQueryReceiver = userData?.documentId === query?.toUser?.documentId;
 
     useEffect(() => {
         if (isOpen && query?.documentId) {
+            console.log('🔄 Modal opened - fetching fresh answers for:', query.documentId);
             refreshPersonalAnswers();
         }
     }, [isOpen, query?.documentId]);
+
+    useEffect(() => {
+        if (answers.length > 0) {
+            console.log('📊 Answers loaded:', {
+                count: answers.length,
+                answers: answers.map(a => ({
+                    id: a.documentId,
+                    author: a.user_profile?.name || 'Unknown',
+                    authorDocId: a.user_profile?.documentId,
+                    text: a.answerText?.substring(0, 30) + '...',
+                    isBestAnswer: a.isBestAnswer,
+                    helpfulCount: a.helpfulCount,
+                    voters: a.voters?.length || 0
+                }))
+            });
+        }
+    }, [answers]);
 
     const handleUpvote = async (answer) => {
         if (!userData?.documentId) {
@@ -63,7 +82,10 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
 
             await new Promise(resolve => setTimeout(resolve, 300));
             await refreshPersonalAnswers();
+
+            console.log('✅ Vote processed successfully');
         } catch (error) {
+            console.error('❌ Failed to process vote:', error);
             alert(error.message || 'Failed to update vote. Please try again.');
         } finally {
             setVotingAnswerId(null);
@@ -71,11 +93,13 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
     };
 
     const handleMarkBestAnswer = async (answer) => {
+        // ⭐ SECURITY: Only the query SENDER (who asked the question) can mark best answer
         if (!isQuerySender) {
             alert('Only the person who sent this query can mark the best answer!');
             return;
         }
 
+        // ⭐ VALIDATION: Prevent marking sender's own answer as best
         if (answer.user_profile?.documentId === query.fromUser?.documentId) {
             alert('You cannot mark your own answer as best!');
             return;
@@ -98,6 +122,7 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
                 onAnswerDeleted();
             }
         } catch (error) {
+            console.error('❌ Failed to mark best answer:', error);
             alert(error.message || 'Failed to mark best answer. Please try again.');
         } finally {
             setMarkingBestAnswerId(null);
@@ -135,6 +160,7 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
             setDeleteModalOpen(false);
             setAnswerToDelete(null);
         } catch (err) {
+            console.error('❌ Error deleting personal answer:', err);
             alert('Failed to delete answer. Please try again.');
         } finally {
             setIsDeleting(false);
@@ -160,6 +186,8 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
 
     const querySender = query.fromUser || query.user;
 
+    // ⭐ Resolve sender's profile image URL with fallbacks
+    // If the sender is the current user, use userData's image as ultimate fallback
     let senderProfileImageUrl = '/default-avatar.png';
 
     if (querySender?.profileImage?.url) {
@@ -171,11 +199,29 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
     } else if (typeof querySender?.profilePic === 'string' && querySender.profilePic) {
         senderProfileImageUrl = querySender.profilePic;
     } else if (querySender?.documentId === userData?.documentId) {
+        // If sender is current user, use their userData image
         senderProfileImageUrl = userData?.profileImage?.url ||
             userData?.profileImageUrl ||
             userData?.profilePic ||
             '/default-avatar.png';
     }
+
+    console.log('🖼️ Sender image resolution:', {
+        senderName: querySender?.name,
+        senderDocId: querySender?.documentId,
+        currentUserDocId: userData?.documentId,
+        resolvedUrl: senderProfileImageUrl,
+        querySenderFields: {
+            profileImage: querySender?.profileImage,
+            profileImageUrl: querySender?.profileImageUrl,
+            profilePic: querySender?.profilePic
+        },
+        userDataFields: userData?.documentId === querySender?.documentId ? {
+            profileImage: userData?.profileImage,
+            profileImageUrl: userData?.profileImageUrl,
+            profilePic: userData?.profilePic
+        } : 'Not current user'
+    });
 
     return (
         <>
@@ -211,6 +257,9 @@ export const ViewPersonalAnswersModal = ({ query, isOpen, onClose, userData, onA
                                     className="w-10 h-10 rounded-full border border-zinc-200 dark:border-zinc-700 object-cover"
                                     alt={querySender?.name || 'User'}
                                     onError={(e) => {
+                                        console.warn('⚠️ Sender image load failed');
+                                        console.warn('⚠️ Tried URL:', e.target.src);
+                                        console.warn('⚠️ querySender data:', querySender);
                                         e.target.src = '/default-avatar.png';
                                     }}
                                 />

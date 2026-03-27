@@ -62,13 +62,13 @@ export function useQueries(userData) {
         try {
             if (isRefreshing) {
                 setRefreshing(true);
-              
+                console.log('🔄 Refreshing queries...');
             } else {
                 setLoading(true);
             }
             setError(null);
 
-
+            console.log('📊 Fetching queries for user:', userData.documentId);
 
             // Add timestamp to prevent caching
             const timestamp = new Date().getTime();
@@ -78,17 +78,21 @@ export function useQueries(userData) {
                 `queries?filters[user_profile][documentId][$eq]=${userData.documentId}&populate[attachments][populate]=*&populate[user_profile][populate]=*&_t=${timestamp}`
             );
 
+            console.log('🔍 Raw queries data:', data);
 
             if (data?.data) {
                 const formattedQueries = formatQueryData(data);
-             
-         
+                console.log('✅ Formatted queries:', formattedQueries);
+                console.log('📊 Answer counts:', formattedQueries.map(q => ({
+                    title: q.title,
+                    answerCount: q.answerCount
+                })));
                 setQueries(formattedQueries);
             } else {
                 setQueries([]);
             }
         } catch (err) {
-           
+            console.error('❌ Error fetching queries:', err);
             setError(err.message);
         } finally {
             setLoading(false);

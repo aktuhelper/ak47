@@ -11,8 +11,8 @@ import { AddPersonalAnswerModal } from "./_userquerycollection/AddPersonalAnswer
 import { DeleteConfirmationModal } from "./_userquerycollection/DeleteConfirmationModal";
 import { useFetchPersonalAnswers } from "./_userquerycollection/useFetchPersonalAnswers";
 import { fetchFromStrapi, deleteFromStrapi } from '@/secure/strapi';
-
-export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsChange, onQueryClick }) {
+import { useDeadlineCountdown } from './_userquerycollection/useDeadlineCountdown';
+export default function QueryCardFull({ query, userData, onAswerAdded, onStatsChange, onQueryClick }) {
     const [previewFile, setPreviewFile] = useState(null);
     const [openAnswers, setOpenAnswers] = useState(false);
     const [openAddAnswer, setOpenAddAnswer] = useState(false);
@@ -29,6 +29,10 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
 
     // ⭐ Detect if this is a personal query
     const isPersonalQuery = query.isPersonalQuery || query.isSentQuery || false;
+    const { timeLeft, isExpired } = useDeadlineCountdown(
+        query.createdAt,
+        query.deadline_hours
+    );
     const isQueryAuthor = isPersonalQuery
         ? (query.isSentQuery || userData?.documentId === query.fromUser?.documentId)
         : userData?.documentId === query.user?.documentId;
@@ -303,6 +307,28 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
                             <MessageSquare className="w-3 h-3" />
                             {loading ? "..." : answerCount}
                         </span>
+                        {/* ⭐ Paid / Free + Deadline badge — next to message count */}
+                        {isPersonalQuery && (() => {
+                            const paise = query.amount_paise ?? 0;
+                            const isPaid = paise > 0;
+                            const deadlineLabel = query.deadline_label ?? null;
+                            return (
+                                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[12px] font-semibold ${isPaid
+                                    ? 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200/50 dark:border-amber-700/50'
+                                    : 'bg-green-100/80 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-700/50'
+                                    }`}>
+                                    {isPaid ? `₹${(paise / 100).toFixed(0)}` : 'Free'}
+                                    {isPaid && timeLeft && (
+                                        <>
+                                            <span className="opacity-40 mx-0.5">•</span>
+                                            <span className={isExpired ? 'text-red-500' : ''}>
+                                                {timeLeft}
+                                            </span>
+                                        </>
+                                    )}
+                                </span>
+                            );
+                        })()}
                     </div>
 
                     <div className="flex gap-2">
@@ -347,12 +373,12 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
                                     </>
                                 ) : (
                                     /* If user hasn't answered - show Answer button */
-                                        <button
-                                            onClick={() => { setIsEditMode(false); setOpenAddAnswer(true); }}
-                                            className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                                        >
-                                            Answer
-                                        </button>
+                                    <button
+                                        onClick={() => { setIsEditMode(false); setOpenAddAnswer(true); }}
+                                        className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg shadow-md hover:shadow-lg hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105 transition-all duration-200 ease-out"
+                                    >
+                                        Answer
+                                    </button>
                                 )}
                             </>
                         )}

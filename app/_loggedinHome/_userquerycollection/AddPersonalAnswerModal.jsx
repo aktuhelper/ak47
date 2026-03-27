@@ -4,7 +4,7 @@ import { X, Send, CheckCircle, Loader2, Lock } from "lucide-react";
 import { MiniBadge } from "../_card/MiniBadge";
 import { getUserBadges } from "../_card/getUserBadges";
 import { usePersonalQueryAnswers } from "../_userquerycollection/usePersonalQueryAnswers";
-
+import { useDeadlineCountdown } from '../_userquerycollection/useDeadlineCountdown';
 export const AddPersonalAnswerModal = ({
     query,
     isOpen,
@@ -16,7 +16,10 @@ export const AddPersonalAnswerModal = ({
 }) => {
 
     const [answerText, setAnswerText] = useState("");
-
+    const { timeLeft, isExpired } = useDeadlineCountdown(
+        query.createdAt,
+        query.deadline_hours
+    );
     const {
         submitPersonalAnswer,
         updatePersonalAnswer,
@@ -85,11 +88,11 @@ export const AddPersonalAnswerModal = ({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={onClose}
         >
             <div
-                className="bg-white dark:bg-zinc-900 max-w-lg w-full rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800"
+                className="bg-white dark:bg-zinc-900 w-full h-full md:h-auto md:max-w-2xl md:rounded-xl md:max-h-[90vh] overflow-y-auto shadow-lg border-0 md:border border-zinc-200 dark:border-zinc-800 flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* HEADER with Private Badge */}
@@ -102,6 +105,27 @@ export const AddPersonalAnswerModal = ({
                             <Lock className="w-3 h-3" />
                             Private
                         </div>
+                        {(() => {
+                            const paise = query.amount_paise ?? 0;
+                            const isPaid = paise > 0;
+                            const deadlineLabel = query.deadline_label ?? null;
+                            return (
+                                <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${isPaid
+                                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200/50 dark:border-amber-700/50'
+                                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-700/50'
+                                    }`}>
+                                    {isPaid ? `₹${(paise / 100).toFixed(0)}` : 'Free'}
+                                    {isPaid && timeLeft && (
+                                        <>
+                                            <span className="opacity-40 mx-0.5">•</span>
+                                            <span className={isExpired ? 'text-red-500' : ''}>
+                                                {timeLeft}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                     <button
                         onClick={onClose}
@@ -139,6 +163,7 @@ export const AddPersonalAnswerModal = ({
                         <p className="text-md font-extrabold text-zinc-900 dark:text-zinc-100">
                             {query.title}
                         </p>
+                        
                         {query.description && (
                             <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300 mt-1">
                                 {query.description}
@@ -150,7 +175,7 @@ export const AddPersonalAnswerModal = ({
                     <textarea
                         value={answerText}
                         onChange={(e) => setAnswerText(e.target.value)}
-                        className="w-full h-32 p-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:ring-2 focus:ring-purple-500"
+                        className="w-full h-48 md:h-40 p-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:ring-2 focus:ring-purple-500"
                         placeholder="Type your answer to this personal query..."
                         disabled={submitting}
                     />

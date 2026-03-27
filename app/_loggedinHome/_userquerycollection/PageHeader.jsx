@@ -26,7 +26,7 @@ export default function PageHeader({
         if (!userData?.documentId) return;
 
         try {
-       
+            console.log('📊 Fetching live stats for user:', userData.documentId);
 
             // ============================================
             // 1. Fetch all PUBLIC queries posted by this user
@@ -44,7 +44,8 @@ export default function PageHeader({
             );
             const personalQueries = personalQueriesData.data || [];
 
-     
+            console.log('📊 Public queries:', queries.length);
+            console.log('💌 Personal queries:', personalQueries.length);
 
             // ============================================
             // 3. Calculate TOTAL queries (public + personal)
@@ -93,6 +94,8 @@ export default function PageHeader({
             );
             const personalAnswers = personalAnswersData.data || [];
 
+            console.log('📝 Public answers by user:', userAnswers.length);
+            console.log('💌 Personal answers by user:', personalAnswers.length);
 
             // Combine both public and personal answers
             const allAnswers = [...userAnswers, ...personalAnswers];
@@ -109,6 +112,10 @@ export default function PageHeader({
                 0
             );
 
+            console.log('🏆 Best Answers:', bestAnswersCount);
+            console.log('👍 Helpful Votes:', helpfulVotesCount);
+            console.log('📊 Response Rate:', responseRate + '%');
+            console.log('📝 Total Answers Given:', totalAnswersGiven);
 
             // ============================================
             // 7. Update state with all stats
@@ -129,7 +136,7 @@ export default function PageHeader({
             // 8. Save stats to user_profile collection
             // ============================================
             try {
-          
+                console.log('💾 Attempting to save stats for documentId:', userData.documentId);
 
                 await updateStrapi(`user-profiles/${userData.documentId}`, {
                     totalQueries: totalQueries,
@@ -139,7 +146,7 @@ export default function PageHeader({
                     totalAnswersGiven: totalAnswersGiven // ✅ Save this too
                 });
 
-          
+                console.log('✅ Stats saved to user profile successfully');
             } catch (saveError) {
                 console.error('❌ Error saving stats to user profile:', saveError);
             }
@@ -149,10 +156,21 @@ export default function PageHeader({
             // ============================================
             
 
-        
+            console.log('✅ Live stats calculated:', {
+                publicQueries: queries.length,
+                personalQueries: personalQueries.length,
+                total: totalQueries,
+                publicAnswers: userAnswers.length,
+                personalAnswers: personalAnswers.length,
+                totalAnswers: allAnswers.length,
+                bestAnswers: bestAnswersCount,
+                helpfulVotes: helpfulVotesCount,
+                views: totalViews,
+                responseRate: responseRate + '%'
+            });
 
         } catch (err) {
-          
+            console.error('❌ Error fetching live stats:', err);
             setStats(prev => ({ ...prev, loading: false }));
         }
     };
@@ -165,7 +183,7 @@ export default function PageHeader({
     // Refresh stats when trigger changes
     useEffect(() => {
         if (statsRefreshTrigger > 0) {
-         
+            console.log('🔄 Stats refresh triggered:', statsRefreshTrigger);
             fetchLiveStats();
         }
     }, [statsRefreshTrigger]);
@@ -180,7 +198,7 @@ export default function PageHeader({
             onRefresh ? onRefresh() : Promise.resolve()
         ]);
 
-       
+        console.log('✅ All data refreshed successfully');
     };
 
     return (
