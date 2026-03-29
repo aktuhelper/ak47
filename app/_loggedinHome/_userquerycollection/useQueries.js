@@ -36,7 +36,7 @@ export function useQueries(userData) {
 
             // ✅ Pull actual query author from populated user_profile
             const userProfile = queryData.user_profile || {};
-      
+           
             return {
                 id: query.id,
                 documentId: query.documentId,
@@ -78,13 +78,13 @@ export function useQueries(userData) {
         try {
             if (isRefreshing) {
                 setRefreshing(true);
-                
+            
             } else {
                 setLoading(true);
             }
             setError(null);
 
-   
+           
 
             const timestamp = new Date().getTime();
 
@@ -93,11 +93,11 @@ export function useQueries(userData) {
                 `queries?filters[user_profile][documentId][$eq]=${userData.documentId}&populate[attachments][populate]=*&populate[user_profile][populate]=*&_t=${timestamp}`
             );
 
-     ;
+        
 
             if (data?.data) {
                 const formattedQueries = formatQueryData(data);
-               
+                
                 setQueries(formattedQueries);
             } else {
                 setQueries([]);

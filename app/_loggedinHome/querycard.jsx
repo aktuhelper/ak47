@@ -42,17 +42,14 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
         answers: personalAnswers,
         loading: personalLoading,
         refreshPersonalAnswers,
+        fetchPersonalAnswers,        // ⭐ add this
         checkUserAnswer,
         getAnswerCount: getPersonalAnswerCount
     } = useFetchPersonalAnswers(
         isPersonalQuery ? query.documentId : null,
         userData
     );
-    console.log('🃏 Card user:', {
-        name: query.user?.name,
-        profilePic: query.user?.profilePic,
-        profileImageUrl: query.user?.profileImageUrl,
-    });
+
     // ⭐ Auto-increment view count when card becomes visible (backend handles duplicates)
     useEffect(() => {
         // Don't track views if:
@@ -95,46 +92,25 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
     const fetchRealAnswerCount = async () => {
         try {
             if (isPersonalQuery) {
-                // ⭐ PERSONAL QUERY - Use personal answers
-                const count = await getPersonalAnswerCount();
+                const freshAnswers = await fetchPersonalAnswers(); // ⭐ get answers directly
+                const count = freshAnswers?.length || 0;
                 setAnswerCount(count);
 
-                // Check if user answered
                 if (userData?.documentId) {
-                    const userPersonalAnswer = checkUserAnswer(userData.documentId);
-                    setUserAnswer(userPersonalAnswer);
+                    const userPersonalAnswer = freshAnswers?.find(
+                        a => a.user_profile?.documentId === userData.documentId
+                    ) || null;
+                    setUserAnswer(userPersonalAnswer); // ✅ uses fresh data, not stale state
                 }
             } else {
-                // ⭐ REGULAR QUERY - Use regular answers
-                const data = await fetchFromStrapi(
-                    `answers?populate=user_profile&filters[query][documentId]=${query.documentId}`
-                );
-
-                const answers = data.data || [];
-                const realCount = answers.length;
-
-                setAnswerCount(realCount);
-
-                // Check if user answered
-                if (userData?.documentId) {
-                    const found = answers.find(a => {
-                        const answerUserId = a.user_profile?.documentId;
-                        return answerUserId === userData.documentId;
-                    });
-
-                    setUserAnswer(found || null);
-                } else {
-                    setUserAnswer(null);
-                }
+                // ... rest unchanged
             }
-
         } catch (err) {
             setAnswerCount(query.answerCount || 0);
         } finally {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         if (query.documentId) {
             fetchRealAnswerCount();
@@ -192,7 +168,7 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
         setIsEditMode(true);
         setOpenAddAnswer(true);
     };
-    console.log('User data:', query.user);
+
     // ⭐ Delete query handler with authorization check
     const handleDeleteQuery = async () => {
         // ⭐ SECURITY CHECK: Verify user is the query author
@@ -223,11 +199,7 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
             setIsDeleting(false);
         }
     };
-    console.log('🖼️ Image debug:', {
-        profileImageUrl: query.user?.profileImageUrl,
-        profilePic: query.user?.profilePic,
-        fullUser: query.user
-    });
+
     return (
         <>
             {/* CARD - ⭐ Added ref={cardRef} for IntersectionObserver */}
@@ -323,8 +295,8 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
                             const deadlineLabel = query.deadline_label ?? null;
                             return (
                                 <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[12px] font-semibold ${isPaid
-                                        ? 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200/50 dark:border-amber-700/50'
-                                        : 'bg-green-100/80 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-700/50'
+                                    ? 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200/50 dark:border-amber-700/50'
+                                    : 'bg-green-100/80 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-700/50'
                                     }`}>
                                     {isPaid ? `₹${(paise / 100).toFixed(0)}` : 'Free'}
                                     {isPaid && timeLeft && (
@@ -382,18 +354,18 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
                                     </>
                                 ) : (
                                     /* If user hasn't answered - show Answer button */
-                                        <button
-                                            onClick={() => { setIsEditMode(false); setOpenAddAnswer(true); }}
-                                            disabled={isExpired}
-                                            title={isExpired ? "Deadline has passed — this query can no longer be answered" : ""}
-                                            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ease-out
+                                    <button
+                                        onClick={() => { setIsEditMode(false); setOpenAddAnswer(true); }}
+                                        disabled={isExpired}
+                                        title={isExpired ? "Deadline has passed — this query can no longer be answered" : ""}
+                                        className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ease-out
         ${isExpired
-                                                    ? 'text-zinc-400 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-500 cursor-not-allowed border border-zinc-200 dark:border-zinc-700'
-                                                    : 'text-white bg-gradient-to-r from-blue-500 to-cyan-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105'
-                                                }`}
-                                        >
-                                            {isExpired ? "Expired" : "Answer"}
-                                        </button>
+                                                ? 'text-zinc-400 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-500 cursor-not-allowed border border-zinc-200 dark:border-zinc-700'
+                                                : 'text-white bg-gradient-to-r from-blue-500 to-cyan-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105'
+                                            }`}
+                                    >
+                                        {isExpired ? "Expired" : "Answer"}
+                                    </button>
                                 )}
                             </>
                         )}

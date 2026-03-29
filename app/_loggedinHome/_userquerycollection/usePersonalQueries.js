@@ -8,17 +8,30 @@ export function usePersonalQueries(userData) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
-
+    const fetchAnswerCounts = async (transformedQueries) => {
+        const withCounts = await Promise.all(
+            transformedQueries.map(async (query) => {
+                try {
+                    const data = await fetchFromStrapi(
+                        `personal-query-answers?filters[personal_query][documentId]=${query.documentId}`
+                    );
+                    return { ...query, answerCount: data.data?.length || 0 };
+                } catch {
+                    return { ...query, answerCount: 0 };
+                }
+            })
+        );
+        return withCounts;
+    };
     // Fetch personal queries RECEIVED by current user
     const fetchPersonalQueries = async () => {
         try {
             const endpoint = `personal-queries?filters[toUser][documentId]=${userData.documentId}&populate[fromUser][populate][0]=profileImage&populate[toUser][populate][0]=profileImage&populate=attachment&sort=createdAt:desc`;
-         
+           
 
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(endpoint);
 
-            console.log('📨 Raw personal queries data:', data);
 
             // Transform to match query format
             const transformed = data.data?.map(pq => {
@@ -104,8 +117,9 @@ export function usePersonalQueries(userData) {
                 };
             }) || [];
 
-            setPersonalQueries(transformed);
-           
+            const withCounts = await fetchAnswerCounts(transformed);
+            setPersonalQueries(withCounts);
+         
             return transformed;
         } catch (err) {
             console.error('❌ Failed to fetch personal queries:', err);
@@ -117,12 +131,12 @@ export function usePersonalQueries(userData) {
     const fetchSentQueries = async () => {
         try {
             const endpoint = `personal-queries?filters[fromUser][documentId]=${userData.documentId}&populate[fromUser][populate][0]=profileImage&populate[toUser][populate][0]=profileImage&populate=attachment&sort=createdAt:desc`;
-            
+           
 
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(endpoint);
 
-            console.log('📤 Raw sent queries data:', data);
+        
 
             // Transform to match query format
             const transformed = data.data?.map(pq => {
@@ -203,8 +217,9 @@ export function usePersonalQueries(userData) {
                 };
             }) || [];
 
-            setSentQueries(transformed);
-            
+            const withCounts = await fetchAnswerCounts(transformed);
+            setSentQueries(withCounts);
+          
             return transformed;
         } catch (err) {
             console.error('❌ Failed to fetch sent queries:', err);
@@ -259,7 +274,7 @@ export function usePersonalQueries(userData) {
     // Mark personal query as read
     const markAsRead = async (queryDocumentId) => {
         try {
-            
+            console.log('📖 Marking query as read:', queryDocumentId);
 
             // ✅ Use secure wrapper
             const updatedData = await updateStrapi(`personal-queries/${queryDocumentId}`, {
@@ -267,7 +282,7 @@ export function usePersonalQueries(userData) {
                 readAt: new Date().toISOString()
             });
 
-          
+            console.log('✅ Query marked as read:', updatedData);
 
             // Update local state
             setPersonalQueries(prev =>

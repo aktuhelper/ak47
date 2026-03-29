@@ -16,7 +16,7 @@ export function useFetchPersonalAnswers(personalQueryDocumentId, userData) {
         }
 
         try {
-            console.log('🔍 Fetching personal answers for:', personalQueryDocumentId);
+
 
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(
@@ -27,9 +27,7 @@ export function useFetchPersonalAnswers(personalQueryDocumentId, userData) {
                 `sort=createdAt:desc`
             );
 
-            console.log('📨 Raw personal answers data:', data);
-            console.log('📨 First answer user_profile:', data.data?.[0]?.user_profile);
-            console.log('📨 First answer profileImage (from Strapi):', data.data?.[0]?.user_profile?.profileImage);
+
 
             // ⭐ IMPROVED: Better data transformation with proper media field handling
             const transformedAnswers = data.data?.map(answer => {
@@ -55,10 +53,6 @@ export function useFetchPersonalAnswers(personalQueryDocumentId, userData) {
                     profileImageUrl = '/default-avatar.png';
                 }
 
-                console.log('🖼️ Profile image resolved:', {
-                    userName: userProfile.name,
-                    resolvedUrl: profileImageUrl
-                });
 
                 // Transform voters array
                 const voters = (answer.voters || []).map(voter => ({
@@ -67,14 +61,7 @@ export function useFetchPersonalAnswers(personalQueryDocumentId, userData) {
                     user_profile: voter.user_profile || null
                 }));
 
-                console.log('📋 Transformed answer:', {
-                    answerId: answer.documentId,
-                    hasUserProfile: !!answer.user_profile,
-                    userProfileDocId: userProfile.documentId,
-                    userName: userProfile.name,
-                    profileImageUrl,
-                    votersCount: voters.length
-                });
+
 
                 return {
                     id: answer.id,
@@ -111,16 +98,7 @@ export function useFetchPersonalAnswers(personalQueryDocumentId, userData) {
             setAnswers(transformedAnswers);
             setAnswerCount(transformedAnswers.length);
 
-            console.log('✅ Personal answers fetched:', {
-                total: transformedAnswers.length,
-                answers: transformedAnswers.map(a => ({
-                    id: a.documentId,
-                    author: a.user_profile?.name,
-                    authorDocId: a.user_profile?.documentId,
-                    profileImageUrl: a.user_profile?.profileImageUrl,
-                    voters: a.voters.length
-                }))
-            });
+
 
             return transformedAnswers;
         } catch (err) {
@@ -138,7 +116,7 @@ export function useFetchPersonalAnswers(personalQueryDocumentId, userData) {
         setRefreshing(true);
         try {
             await fetchPersonalAnswers();
-            console.log('✅ Personal answers refreshed');
+           
         } catch (err) {
             console.error('❌ Refresh failed:', err);
         } finally {
@@ -153,11 +131,7 @@ export function useFetchPersonalAnswers(personalQueryDocumentId, userData) {
             answer => answer.user_profile?.documentId === userDocumentId
         );
 
-        console.log('🔍 User answer check:', {
-            userDocumentId,
-            found: !!userAnswer,
-            answerId: userAnswer?.documentId
-        });
+       
 
         return userAnswer || null;
     };
