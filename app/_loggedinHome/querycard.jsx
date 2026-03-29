@@ -12,7 +12,7 @@ import { DeleteConfirmationModal } from "./_userquerycollection/DeleteConfirmati
 import { useFetchPersonalAnswers } from "./_userquerycollection/useFetchPersonalAnswers";
 import { fetchFromStrapi, deleteFromStrapi } from '@/secure/strapi';
 import { useDeadlineCountdown } from './_userquerycollection/useDeadlineCountdown';
-export default function QueryCardFull({ query, userData, onAswerAdded, onStatsChange, onQueryClick }) {
+export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsChange, onQueryClick }) {
     const [previewFile, setPreviewFile] = useState(null);
     const [openAnswers, setOpenAnswers] = useState(false);
     const [openAddAnswer, setOpenAddAnswer] = useState(false);
@@ -48,7 +48,11 @@ export default function QueryCardFull({ query, userData, onAswerAdded, onStatsCh
         isPersonalQuery ? query.documentId : null,
         userData
     );
-
+    console.log('🃏 Card user:', {
+        name: query.user?.name,
+        profilePic: query.user?.profilePic,
+        profileImageUrl: query.user?.profileImageUrl,
+    });
     // ⭐ Auto-increment view count when card becomes visible (backend handles duplicates)
     useEffect(() => {
         // Don't track views if:
@@ -188,7 +192,7 @@ export default function QueryCardFull({ query, userData, onAswerAdded, onStatsCh
         setIsEditMode(true);
         setOpenAddAnswer(true);
     };
-
+    console.log('User data:', query.user);
     // ⭐ Delete query handler with authorization check
     const handleDeleteQuery = async () => {
         // ⭐ SECURITY CHECK: Verify user is the query author
@@ -219,7 +223,11 @@ export default function QueryCardFull({ query, userData, onAswerAdded, onStatsCh
             setIsDeleting(false);
         }
     };
-
+    console.log('🖼️ Image debug:', {
+        profileImageUrl: query.user?.profileImageUrl,
+        profilePic: query.user?.profilePic,
+        fullUser: query.user
+    });
     return (
         <>
             {/* CARD - ⭐ Added ref={cardRef} for IntersectionObserver */}
@@ -315,8 +323,8 @@ export default function QueryCardFull({ query, userData, onAswerAdded, onStatsCh
                             const deadlineLabel = query.deadline_label ?? null;
                             return (
                                 <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[12px] font-semibold ${isPaid
-                                    ? 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200/50 dark:border-amber-700/50'
-                                    : 'bg-green-100/80 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-700/50'
+                                        ? 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200/50 dark:border-amber-700/50'
+                                        : 'bg-green-100/80 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-700/50'
                                     }`}>
                                     {isPaid ? `₹${(paise / 100).toFixed(0)}` : 'Free'}
                                     {isPaid && timeLeft && (
@@ -374,18 +382,18 @@ export default function QueryCardFull({ query, userData, onAswerAdded, onStatsCh
                                     </>
                                 ) : (
                                     /* If user hasn't answered - show Answer button */
-                                    <button
-                                        onClick={() => { setIsEditMode(false); setOpenAddAnswer(true); }}
-                                        disabled={isExpired}
-                                        title={isExpired ? "Deadline has passed — this query can no longer be answered" : ""}
-                                        className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ease-out
+                                        <button
+                                            onClick={() => { setIsEditMode(false); setOpenAddAnswer(true); }}
+                                            disabled={isExpired}
+                                            title={isExpired ? "Deadline has passed — this query can no longer be answered" : ""}
+                                            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ease-out
         ${isExpired
-                                                ? 'text-zinc-400 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-500 cursor-not-allowed border border-zinc-200 dark:border-zinc-700'
-                                                : 'text-white bg-gradient-to-r from-blue-500 to-cyan-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105'
-                                            }`}
-                                    >
-                                        {isExpired ? "Expired" : "Answer"}
-                                    </button>
+                                                    ? 'text-zinc-400 bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-500 cursor-not-allowed border border-zinc-200 dark:border-zinc-700'
+                                                    : 'text-white bg-gradient-to-r from-blue-500 to-cyan-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105'
+                                                }`}
+                                        >
+                                            {isExpired ? "Expired" : "Answer"}
+                                        </button>
                                 )}
                             </>
                         )}
