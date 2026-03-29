@@ -13,7 +13,7 @@ export function usePersonalQueries(userData) {
     const fetchPersonalQueries = async () => {
         try {
             const endpoint = `personal-queries?filters[toUser][documentId]=${userData.documentId}&populate[fromUser][populate][0]=profileImage&populate[toUser][populate][0]=profileImage&populate=attachment&sort=createdAt:desc`;
-            console.log('📨 Fetching personal queries from:', endpoint);
+         
 
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(endpoint);
@@ -78,6 +78,9 @@ export function usePersonalQueries(userData) {
                     fromUser: senderUser,
                     toUser: receiverUser,
                     attachmentUrl: attachmentUrl,
+                    amount_paise: pq.amount_paise ?? 0,
+                    deadline_hours: pq.deadline_hours ?? null,
+                    deadline_label: pq.deadline_label ?? null,
                     attachment: pq.attachment,
                     user: {
                         documentId: senderUser.documentId || 'unknown',
@@ -102,9 +105,7 @@ export function usePersonalQueries(userData) {
             }) || [];
 
             setPersonalQueries(transformed);
-            console.log('✅ Personal queries fetched:', transformed.length);
-            console.log('🆕 New queries:', transformed.filter(q => q.isNew).length);
-            console.log('📎 Queries with attachments:', transformed.filter(q => q.attachmentUrl).length);
+           
             return transformed;
         } catch (err) {
             console.error('❌ Failed to fetch personal queries:', err);
@@ -116,7 +117,7 @@ export function usePersonalQueries(userData) {
     const fetchSentQueries = async () => {
         try {
             const endpoint = `personal-queries?filters[fromUser][documentId]=${userData.documentId}&populate[fromUser][populate][0]=profileImage&populate[toUser][populate][0]=profileImage&populate=attachment&sort=createdAt:desc`;
-            console.log('📤 Fetching sent queries from:', endpoint);
+            
 
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(endpoint);
@@ -203,8 +204,7 @@ export function usePersonalQueries(userData) {
             }) || [];
 
             setSentQueries(transformed);
-            console.log('✅ Sent queries fetched:', transformed.length);
-            console.log('📎 Sent queries with attachments:', transformed.filter(q => q.attachmentUrl).length);
+            
             return transformed;
         } catch (err) {
             console.error('❌ Failed to fetch sent queries:', err);
@@ -259,7 +259,7 @@ export function usePersonalQueries(userData) {
     // Mark personal query as read
     const markAsRead = async (queryDocumentId) => {
         try {
-            console.log('📖 Marking query as read:', queryDocumentId);
+            
 
             // ✅ Use secure wrapper
             const updatedData = await updateStrapi(`personal-queries/${queryDocumentId}`, {
@@ -267,7 +267,7 @@ export function usePersonalQueries(userData) {
                 readAt: new Date().toISOString()
             });
 
-            console.log('✅ Query marked as read:', updatedData);
+          
 
             // Update local state
             setPersonalQueries(prev =>

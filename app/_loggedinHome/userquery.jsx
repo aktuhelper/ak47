@@ -10,7 +10,7 @@ import LoadingState from '../_loggedinHome/_userquerycollection/LoadingState';
 import ErrorState from '../_loggedinHome/_userquerycollection/ErrorState';
 import EmptyState from '../_loggedinHome/_userquerycollection/EmptyState';
 import { usePersonalQueries } from '../_loggedinHome/_userquerycollection/usePersonalQueries';
-import { fetchFromStrapi } from '@/secure/strapi';
+import { fetchFromStrapi } from '@/secure/strapi'; // ✅ Import secure wrapper
 
 export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
     const [activeFilter, setActiveFilter] = useState('all');
@@ -33,27 +33,58 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
         getNewQueriesCount
     } = usePersonalQueries(userData);
 
+    // ⭐ Update new queries count when personalQueries change
     useEffect(() => {
         if (personalQueries.length >= 0) {
             const count = getNewQueriesCount();
+     
             setNewPersonalQueriesCount(count);
 
+            // 🔥 Notify parent component about the count change
             if (onNewQueriesCountChange) {
                 onNewQueriesCountChange(count);
             }
         }
     }, [personalQueries, getNewQueriesCount, onNewQueriesCountChange]);
 
+    // ⭐ Debug logging
+    useEffect(() => {
+        console.log('🔍 DEBUG - Personal Queries:', {
+            totalQueries: personalQueries.length,
+            queries: personalQueries.map(q => ({
+                id: q.documentId,
+                title: q.title,
+                isNew: q.isNew,
+                isPersonalQuery: q.isPersonalQuery
+            })),
+            newQueriesCount: personalQueries.filter(q => q.isNew).length,
+            badgeCount: newPersonalQueriesCount
+        });
+    }, [personalQueries, newPersonalQueriesCount]);
+
+    // 🔍 Debug: Log all unique categories
+    useEffect(() => {
+        const allQueries = [...queries, ...personalQueries, ...sentQueries];
+        const uniqueCategories = [...new Set(allQueries.map(q => q.category))];
+      
+    }, [queries, personalQueries, sentQueries]);
+
+    // ✅ NEW: Mark all new queries as read when viewing the personal-query tab
     useEffect(() => {
         const markAllAsRead = async () => {
             if (activeFilter === 'personal-query' && personalQueries.length > 0) {
                 const newQueries = personalQueries.filter(q => q.isNew);
 
                 if (newQueries.length > 0) {
+                    
+
+                    // Mark all new queries as read
                     for (const query of newQueries) {
                         await markAsRead(query.documentId);
                     }
 
+                 
+                    // 🔥 Update count after marking as read
                     const updatedCount = getNewQueriesCount();
                     setNewPersonalQueriesCount(updatedCount);
                     if (onNewQueriesCountChange) {
@@ -64,19 +95,33 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
         };
 
         markAllAsRead();
-    }, [activeFilter]);
+    }, [activeFilter]); // Only trigger when activeFilter changes
 
+    // ⭐ Handle query click to mark as read (keeping this for individual query clicks)
     const handleQueryClick = async (query) => {
+       
+
         if (query.isPersonalQuery && query.isNew) {
+           
             const success = await markAsRead(query.documentId);
 
             if (success) {
+             
                 const updatedCount = getNewQueriesCount();
+                
+
+                // 🔥 Update count after marking individual query as read
                 setNewPersonalQueriesCount(updatedCount);
                 if (onNewQueriesCountChange) {
                     onNewQueriesCountChange(updatedCount);
                 }
+            } else {
+                console.log('❌ Failed to mark query as read');
             }
+        } else {
+            console.log('⏭️ Skipping mark as read:', {
+                reason: !query.isPersonalQuery ? 'Not a personal query' : 'Already read'
+            });
         }
     };
 
@@ -91,44 +136,57 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
         { id: 'answered', label: 'Answered' },
     ];
 
+    // ✅ FIXED: Categories now match Strapi database exactly
     const categories = [
         { id: 'academics', label: 'Academic' },
         { id: 'career', label: 'Career' },
         { id: 'college-life', label: 'College Life' },
-        { id: 'general', label: 'General Query' },
+        { id: 'General Query', label: 'General Query' },  // ⚠️ Note: Capital letters & space
     ];
 
+    // ⭐ Fetch all queries where user has answered
     const fetchUserAnsweredQueries = async () => {
         try {
+            // ✅ Use secure wrapper
             const data = await fetchFromStrapi(
                 `answers?populate=query&filters[user_profile][documentId]=${userData.documentId}`
             );
 
+            // Extract unique query documentIds
             const queryIds = [...new Set(
                 data.data
                     ?.map(answer => answer.query?.documentId)
                     .filter(Boolean) || []
             )];
 
+            console.log('📝 User answered these queries:', queryIds);
             setUserAnsweredQueryIds(queryIds);
         } catch (err) {
-            // Error handling without logging
+            console.error('❌ Failed to fetch user answers:', err);
         }
     };
 
+    // ⭐ Fetch on mount and when userData changes
     useEffect(() => {
         if (userData?.documentId) {
             fetchUserAnsweredQueries();
         }
     }, [userData?.documentId]);
 
+    // 🔥 NEW: Combined refresh function for ALL data
     const handleRefreshAll = async () => {
+        console.log('🔄 Refreshing all queries (regular + personal)...');
+
+        // Refresh both regular queries and personal queries in parallel
         await Promise.all([
             refreshQueries(),
             refreshPersonalQueries()
         ]);
+
+        console.log('✅ All queries refreshed successfully');
     };
 
+    // Sorting function
     const sortQueries = (queries) => {
         const sorted = [...queries];
 
@@ -145,63 +203,94 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
         }
     };
 
+    // ⭐ Combine queries based on active filter
     const getQueriesForFilter = () => {
         if (activeFilter === 'personal-query') {
-            return personalQueries;
+            return personalQueries; // Show received personal queries
         }
 
         if (activeFilter === 'sent-queries') {
-            return sentQueries;
+            return sentQueries; // Show sent personal queries
         }
 
+        // For other filters, show regular queries only
         return queries;
     };
 
+    // ✅ FIXED: Simplified category filtering with exact match
     const filteredAndSortedQueries = sortQueries(
         getQueriesForFilter().filter((query) => {
+            console.log('🔍 Filtering query:', {
+                title: query.title,
+                category: query.category,
+                activeCategory: activeCategory,
+                activeFilter: activeFilter,
+                answerCount: query.answerCount
+            });
+
+            // Search filter
             if (searchQuery) {
                 const searchLower = searchQuery.toLowerCase();
                 const matchesTitle = query.title?.toLowerCase().includes(searchLower);
                 const matchesDescription = query.description?.toLowerCase().includes(searchLower);
                 if (!matchesTitle && !matchesDescription) {
+                    console.log('❌ Failed search filter');
                     return false;
                 }
             }
 
+            // ✅ Category filter - Apply to ALL tabs with exact match
             if (activeCategory) {
                 const matches = query.category === activeCategory;
+                console.log('🔍 Category filter:', {
+                    queryCategory: query.category,
+                    activeCategory: activeCategory,
+                    matches: matches
+                });
+
                 if (!matches) {
+                    console.log('❌ Failed category filter');
                     return false;
                 }
             }
 
+            // Skip other filters for personal/sent queries
             if (activeFilter === 'personal-query' || activeFilter === 'sent-queries') {
-                return true;
+           
+                return true; // Category already filtered above
             }
 
+            // Regular query filters (for 'all', 'answered', 'my-answers', etc.)
             if (activeFilter === 'answered' && query.answerCount === 0) {
+                console.log('❌ Failed answered filter (no answers)');
                 return false;
             }
 
             if (activeFilter === 'my-answers') {
                 const hasAnswered = userAnsweredQueryIds.includes(query.documentId);
+              
                 if (!hasAnswered) {
+                    console.log('❌ Failed my-answers filter');
                     return false;
                 }
             }
 
             if (activeFilter === 'popular' && query.views < 200) {
+                console.log('❌ Failed popular filter (views < 200)');
                 return false;
             }
 
+           
             return true;
         })
     );
 
+    // Loading state
     if (loading || personalLoading) {
         return <LoadingState />;
     }
 
+    // Error state
     if (error || personalError) {
         return <ErrorState error={error || personalError} onRetry={() => window.location.reload()} />;
     }
@@ -241,10 +330,12 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
                                 query={query}
                                 userData={userData}
                                 onAnswerAdded={async () => {
+                                 
                                     await handleRefreshAll();
                                     await fetchUserAnsweredQueries();
                                 }}
                                 onStatsChange={() => {
+                               
                                     setStatsRefreshTrigger(prev => prev + 1);
                                 }}
                                 onQueryClick={() => handleQueryClick(query)}

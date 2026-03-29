@@ -11,7 +11,7 @@ export function useQueries(userData) {
     const formatQueryData = (data) => {
         return data.data.map(query => {
             const queryData = query.attributes || query;
-
+            ;
             // Check if attachments is already an array or wrapped in data
             const attachmentsArray = Array.isArray(queryData.attachments)
                 ? queryData.attachments
@@ -22,7 +22,7 @@ export function useQueries(userData) {
                 const attData = att.attributes || att;
                 return {
                     type: attData.mime?.startsWith('image/') ? 'image' : 'file',
-                    url: attData.url, // URLs are already absolute from the API proxy
+                    url: attData.url,
                     name: attData.name
                 };
             });
@@ -34,6 +34,9 @@ export function useQueries(userData) {
                 ? `${diffInHours} hours ago`
                 : `${Math.floor(diffInHours / 24)} days ago`;
 
+            // ✅ Pull actual query author from populated user_profile
+            const userProfile = queryData.user_profile || {};
+      
             return {
                 id: query.id,
                 documentId: query.documentId,
@@ -47,7 +50,20 @@ export function useQueries(userData) {
                 timestamp: timestamp,
                 createdAt: queryData.createdAt,
                 attachments: attachments,
-                user: userData,
+                user: {
+                    documentId: userProfile.documentId,
+                    name: userProfile.name || 'Anonymous',
+                    profilePic: userProfile.profilePic || userProfile.profileImage?.url || null,
+                    profileImageUrl: userProfile.profileImageUrl || userProfile.profileImage?.url || null,
+                    course: userProfile.course || '',
+                    branch: userProfile.branch || '',
+                    year: userProfile.year || '',
+                    college: userProfile.college || '',
+                    isVerified: userProfile.isVerified || false,
+                    isMentor: userProfile.isMentor || false,
+                    superMentor: userProfile.superMentor || false,
+                    eliteMentor: userProfile.eliteMentor || false,
+                },
                 answers: []
             };
         });
@@ -62,15 +78,14 @@ export function useQueries(userData) {
         try {
             if (isRefreshing) {
                 setRefreshing(true);
-                console.log('🔄 Refreshing queries...');
+                
             } else {
                 setLoading(true);
             }
             setError(null);
 
-            console.log('📊 Fetching queries for user:', userData.documentId);
+   
 
-            // Add timestamp to prevent caching
             const timestamp = new Date().getTime();
 
             // ✅ Use secure wrapper
@@ -78,15 +93,11 @@ export function useQueries(userData) {
                 `queries?filters[user_profile][documentId][$eq]=${userData.documentId}&populate[attachments][populate]=*&populate[user_profile][populate]=*&_t=${timestamp}`
             );
 
-            console.log('🔍 Raw queries data:', data);
+     ;
 
             if (data?.data) {
                 const formattedQueries = formatQueryData(data);
-                console.log('✅ Formatted queries:', formattedQueries);
-                console.log('📊 Answer counts:', formattedQueries.map(q => ({
-                    title: q.title,
-                    answerCount: q.answerCount
-                })));
+               
                 setQueries(formattedQueries);
             } else {
                 setQueries([]);
