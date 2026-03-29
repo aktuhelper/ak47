@@ -5,6 +5,7 @@ import { MiniBadge } from "../_card/MiniBadge";
 import { getUserBadges } from "../_card/getUserBadges";
 import { usePersonalQueryAnswers } from "../_userquerycollection/usePersonalQueryAnswers";
 import { useDeadlineCountdown } from '../_userquerycollection/useDeadlineCountdown';
+import toast from 'react-hot-toast';
 
 export const AddPersonalAnswerModal = ({
     query,
@@ -44,7 +45,7 @@ export const AddPersonalAnswerModal = ({
 
         const querySenderDocId = query.fromUser?.documentId || query.user_profile?.documentId || query.user?.documentId;
 
-        try {
+        const submitAction = async () => {
             let result;
 
             if (isEdit && existingAnswer) {
@@ -75,9 +76,9 @@ export const AddPersonalAnswerModal = ({
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                senderEmail,       // query asker's email
-                                senderName,        // query asker's name
-                                receiverName,      // answerer's name (current user)
+                                senderEmail,
+                                senderName,
+                                receiverName,
                                 queryTitle: query.title,
                                 queryDescription: query.description,
                                 amountPaise: query.amount_paise ?? 0,
@@ -97,6 +98,16 @@ export const AddPersonalAnswerModal = ({
                 }
             }
 
+            return result;
+        };
+
+        try {
+            const result = await toast.promise(submitAction(), {
+                loading: isEdit ? 'Saving changes...' : 'Posting answer...',
+                success: isEdit ? 'Answer updated successfully!' : 'Answer posted successfully!',
+                error: (err) => err.message || 'Failed to submit answer. Please try again.',
+            });
+
             if (onAnswerSubmitted && result?.newCount !== undefined) {
                 onAnswerSubmitted(result.newCount);
             }
@@ -106,7 +117,6 @@ export const AddPersonalAnswerModal = ({
 
         } catch (err) {
             console.error("❌ Failed to submit personal answer:", err);
-            alert(err.message || 'Failed to submit answer. Please try again.');
         }
     };
 
@@ -214,12 +224,6 @@ export const AddPersonalAnswerModal = ({
                         placeholder={isExpired ? "This query has expired and cannot be answered." : "Type your answer to this personal query..."}
                         disabled={submitting || isExpired}
                     />
-
-                    {error && (
-                        <p className="text-xs text-red-500 mt-2">
-                            {error || 'Failed to submit answer. Please try again.'}
-                        </p>
-                    )}
 
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 flex items-center gap-1">
                         <Lock className="w-3 h-3" />
