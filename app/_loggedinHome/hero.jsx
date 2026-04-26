@@ -161,7 +161,7 @@ export default function HomePagee({ userData }) {
             skills: user.interests || [],
             isActive: false,
             answeredQueries: user.answeredQueries || 0,
-
+       
             helpfulAnswers: user.helpfulAnswers || 0,
             views: user.views || user.totalViews || 0,
             queriesPosted: user.queriesPosted || user.queriesAsked || 0,
@@ -307,7 +307,7 @@ export default function HomePagee({ userData }) {
 
     // Modal handlers
     const handleAskQuery = (receiver) => {
-        console.log('handleAskQuery fired, userData:', userData);  // ✅ add this
+      
         setSelectedReceiver(receiver);
         setIsModalOpen(true);
     };
@@ -482,7 +482,8 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/seniormycollege"
                             students={sameCollegeSeniors}
                             currentUserId={currentUserId}
-                            onAskQuery={handleAskQuery}
+                                onAskQuery={handleAskQuery}
+                                userData={userData}
                             emptyMessage="No seniors found in your college"
                         />
 
@@ -492,7 +493,8 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/juniormycollege"
                             students={sameCollegeJuniors}
                             currentUserId={currentUserId}
-                            onAskQuery={handleAskQuery}
+                                onAskQuery={handleAskQuery}
+                                userData={userData}
                             emptyMessage="No juniors found in your college"
                         />
 
@@ -502,7 +504,8 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/seniorfromothercollege"
                             students={otherCollegeSeniors}
                             currentUserId={currentUserId}
-                            onAskQuery={handleAskQuery}
+                                onAskQuery={handleAskQuery}
+                                  userData={userData}
                             emptyMessage="No seniors found from other colleges"
                         />
 
@@ -512,14 +515,14 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/juniorothercollege"
                             students={otherCollegeJuniors}
                             currentUserId={currentUserId}
-                            onAskQuery={handleAskQuery}
-                            userData={userData}
+                                onAskQuery={handleAskQuery}
+                                userData={userData} 
                             emptyMessage="No juniors found from other colleges"
                         />
                     </div>
                 )}
             </div>
-            {console.log('HomePagee userData before modal:', userData)}
+          
             {/* Ask Query Modal */}
             <AskQueryModal
                 isOpen={isModalOpen}
@@ -528,6 +531,7 @@ export default function HomePagee({ userData }) {
                 currentUserId={currentUserId}
                 onQuerySent={handleQuerySent}
                 userData={userData}
+                senderName={userData?.name || userData?.username || ''} 
             />
 
             {/* Next Badge Modal */}

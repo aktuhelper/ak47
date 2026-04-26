@@ -192,6 +192,7 @@ export const calculateAndUpdateBadges = async (userData) => {
             throw new Error('Invalid user data provided');
         }
 
+        console.log('📊 Calculating badges for user:', userData.email);
 
         // Get stats directly from userData
         const stats = {
@@ -202,7 +203,7 @@ export const calculateAndUpdateBadges = async (userData) => {
             views: userData.totalViews || 0
         };
 
-
+        console.log('📊 Stats from userData:', stats);
 
         // Determine badge flags based on NEW criteria
         const badgeFlags = {
@@ -227,11 +228,12 @@ export const calculateAndUpdateBadges = async (userData) => {
             badgeFlags.isMentor = false;
         }
 
-   
+        console.log('🎖️ Badge Flags to update:', badgeFlags);
 
         // Update Strapi with badge flags
         await updateStrapi(`user-profiles/${userData.documentId}`, badgeFlags);
 
+        console.log('✅ Badges updated in Strapi');
 
         return badgeFlags;
     } catch (error) {

@@ -170,15 +170,16 @@ export function useFetchQueries(activeFilter, activeCategory, sortBy, searchQuer
             }
 
             const endpoint = `queries?${params.toString()}`;
-           
+            console.log('🔍 Fetching trending queries with visibility filters');
 
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(endpoint);
 
-     
+            console.log('✅ API Response:', data);
+            console.log('📊 Number of queries returned:', data.data?.length || 0);
 
             if (!data.data || !Array.isArray(data.data)) {
-          
+                console.error('❌ Invalid API response structure:', data);
                 throw new Error('Invalid API response structure');
             }
 
@@ -306,10 +307,10 @@ export function useFetchQueries(activeFilter, activeCategory, sortBy, searchQuer
             setHasMore(pageNum < (pagination.pageCount || 1));
             setPage(pageNum);
 
-          
+            console.log(`📊 Loaded ${transformedQueries.length} queries, Page ${pageNum}/${pagination.pageCount || 1}`);
 
         } catch (err) {
-      
+            console.error('❌ Error fetching queries:', err);
             setError(err.message || 'Failed to load queries');
             setHasMore(false);
         } finally {
@@ -347,13 +348,13 @@ export function useFetchQueries(activeFilter, activeCategory, sortBy, searchQuer
 
     // Callback to refresh queries when answers are added/deleted
     const handleQueryUpdate = () => {
-
+        console.log('🔄 Query updated, refreshing list...');
         fetchQueriesFromAPI(1, true);
     };
 
     // New refresh function that triggers fresh data fetch
     const handleRefresh = useCallback(() => {
-     
+        console.log('🔄 Manual refresh triggered...');
         setPage(1);
         setHasMore(true);
         setRefreshTrigger(prev => prev + 1);

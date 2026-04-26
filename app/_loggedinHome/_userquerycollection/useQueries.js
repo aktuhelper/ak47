@@ -11,7 +11,7 @@ export function useQueries(userData) {
     const formatQueryData = (data) => {
         return data.data.map(query => {
             const queryData = query.attributes || query;
-            ;
+        ;
             // Check if attachments is already an array or wrapped in data
             const attachmentsArray = Array.isArray(queryData.attachments)
                 ? queryData.attachments
@@ -78,13 +78,13 @@ export function useQueries(userData) {
         try {
             if (isRefreshing) {
                 setRefreshing(true);
-            
+           
             } else {
                 setLoading(true);
             }
             setError(null);
 
-           
+     
 
             const timestamp = new Date().getTime();
 
@@ -93,11 +93,12 @@ export function useQueries(userData) {
                 `queries?filters[user_profile][documentId][$eq]=${userData.documentId}&populate[attachments][populate]=*&populate[user_profile][populate]=*&_t=${timestamp}`
             );
 
-        
+  
 
             if (data?.data) {
                 const formattedQueries = formatQueryData(data);
-                
+              
+              
                 setQueries(formattedQueries);
             } else {
                 setQueries([]);

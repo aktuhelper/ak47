@@ -49,13 +49,9 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
         isPersonalQuery ? query.documentId : null,
         userData
     );
-
-    // ⭐ Auto-increment view count when card becomes visible (backend handles duplicates)
+    const deadlineLabel = query.deadline_label ?? null;
     useEffect(() => {
-        // Don't track views if:
-        // - Personal query (no view tracking)
-        // - Already tracked in this component instance
-        // - No onQueryClick handler provided
+
         if (isPersonalQuery || hasTrackedView.current || !onQueryClick) {
             return;
         }
@@ -292,21 +288,27 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
                         {isPersonalQuery && (() => {
                             const paise = query.amount_paise ?? 0;
                             const isPaid = paise > 0;
-                            const deadlineLabel = query.deadline_label ?? null;
                             return (
                                 <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[12px] font-semibold ${isPaid
                                     ? 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200/50 dark:border-amber-700/50'
                                     : 'bg-green-100/80 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-700/50'
                                     }`}>
                                     {isPaid ? `₹${(paise / 100).toFixed(0)}` : 'Free'}
-                                    {isPaid && timeLeft && (
-                                        <>
-                                            <span className="opacity-40 mx-0.5">•</span>
-                                            <span className={isExpired ? 'text-red-500' : ''}>
-                                                {timeLeft}
-                                            </span>
-                                        </>
-                                    )}
+                                    <>
+                                        <span className="opacity-40 mx-0.5">•</span>
+                                        {userAnswer ? (
+                                            <span className="text-green-500">Answered</span>
+                                        ) : (
+                                            // ⭐ FIX: If user is the query author, show "Answered" if answerCount > 0
+                                            isQueryAuthor && answerCount > 0 ? (
+                                                <span className="text-green-500">Answered</span>
+                                            ) : (
+                                                isPaid
+                                                    ? <span className={isExpired ? 'text-red-500' : ''}>{timeLeft}</span>
+                                                    : <span className={isExpired ? 'text-red-500' : 'text-zinc-500'}>{isExpired ? 'Expired' : timeLeft}</span>
+                                            )
+                                        )}
+                                    </>
                                 </span>
                             );
                         })()}
@@ -321,8 +323,8 @@ export default function QueryCardFull({ query, userData, onAnswerAdded, onStatsC
                             View
                         </button>
 
-                        {/* ⭐ SCENARIO 1: User is the QUERY AUTHOR */}
-                        {isQueryAuthor && (
+                        {/* ⭐ SCENARIO 1: User is the QUERY AUTHOR — delete hidden for personal queries */}
+                        {isQueryAuthor && !isPersonalQuery && (
                             <button
                                 onClick={() => setOpenDeleteModal(true)}
                                 className="px-3 py-1.5 text-xs font-semibold border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1"

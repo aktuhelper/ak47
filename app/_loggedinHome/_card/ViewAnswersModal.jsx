@@ -284,8 +284,8 @@ export const ViewAnswersModal = ({ query, isOpen, onClose, userData, onAnswerDel
                                                 <div
                                                     key={answer.id}
                                                     className={`va-answer-card rounded-2xl border transition-all duration-200 ${answer.isBestAnswer
-                                                        ? "border-amber-200 dark:border-amber-800/50 bg-amber-50/60 dark:bg-amber-900/10"
-                                                        : "border-zinc-200 dark:border-zinc-800/70 bg-white dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700"
+                                                            ? "border-amber-200 dark:border-amber-800/50 bg-amber-50/60 dark:bg-amber-900/10"
+                                                            : "border-zinc-200 dark:border-zinc-800/70 bg-white dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700"
                                                         }`}
                                                     style={{ animationDelay: `${index * 0.05}s` }}
                                                 >
@@ -362,8 +362,8 @@ export const ViewAnswersModal = ({ query, isOpen, onClose, userData, onAnswerDel
                                                                 onClick={() => handleUpvote(answer)}
                                                                 disabled={isVoting}
                                                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 ${answer.userHasVoted
-                                                                    ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40"
-                                                                    : "bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700/60"
+                                                                        ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                                                                        : "bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700/60"
                                                                     } ${isVoting ? "opacity-50 cursor-not-allowed" : ""}`}
                                                             >
                                                                 {isVoting ? (
@@ -386,8 +386,8 @@ export const ViewAnswersModal = ({ query, isOpen, onClose, userData, onAnswerDel
                                                                     onClick={() => handleMarkBestAnswer(answer)}
                                                                     disabled={isMarkingBest}
                                                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 ${isMarkingBest
-                                                                        ? "opacity-50 cursor-not-allowed bg-amber-50 dark:bg-amber-900/20 text-amber-500"
-                                                                        : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                                                                            ? "opacity-50 cursor-not-allowed bg-amber-50 dark:bg-amber-900/20 text-amber-500"
+                                                                            : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40"
                                                                         }`}
                                                                 >
                                                                     {isMarkingBest ? (

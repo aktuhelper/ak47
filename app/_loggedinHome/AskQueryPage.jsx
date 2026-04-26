@@ -34,16 +34,16 @@ const AskQueryPage = ({ userData }) => {
 
     const createQuery = async (queryData, files) => {
         try {
-       
+            console.log('🚀 Starting query creation...');
 
             // Step 1: Upload files first if they exist
             let uploadedFileIds = [];
 
             if (files && Array.isArray(files) && files.length > 0) {
-                
+                console.log('📎 Uploading files:', files.length);
                 const uploadedFiles = await uploadMultipleFilesToStrapi(files);
                 uploadedFileIds = uploadedFiles.map(file => file.id);
-                
+                console.log('✅ Files uploaded successfully:', uploadedFileIds);
             }
 
             // Step 2: Create the query with attached file IDs
@@ -60,12 +60,12 @@ const AskQueryPage = ({ userData }) => {
                 ...(uploadedFileIds.length > 0 && { attachments: uploadedFileIds })
             };
 
-          
+            console.log('📤 Sending payload:', JSON.stringify(payload, null, 2));
 
             // ✅ Use secure API wrapper instead of direct axios call
             const response = await postToStrapi('queries', payload);
 
-           
+            console.log('✅ Query created successfully:', response);
             return response;
 
         } catch (error) {
@@ -76,7 +76,11 @@ const AskQueryPage = ({ userData }) => {
     };
 
     const confirmPost = async () => {
-    
+        console.log('📋 Confirming post with userData:', {
+            id: userData?.id,
+            documentId: userData?.documentId,
+            name: userData?.name
+        });
 
         // Check if user is logged in
         if (!userData || !userData.documentId) {
@@ -98,11 +102,11 @@ const AskQueryPage = ({ userData }) => {
                 userDocumentId: userData.documentId
             };
 
-         
+            console.log('📝 Query data being sent:', queryData);
 
             const response = await createQuery(queryData, files);
 
-    
+            console.log('🎉 Query posted successfully:', response);
             toast.success('Query posted successfully!');
 
             // Reset form

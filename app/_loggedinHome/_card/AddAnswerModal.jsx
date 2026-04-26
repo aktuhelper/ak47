@@ -39,13 +39,13 @@ export const AddAnswerModal = ({
     // ⭐ NEW: Track view when modal opens
     useEffect(() => {
         if (isOpen && query?.documentId && userData?.documentId) {
-        
+            console.log('👁️ AddAnswerModal opened - tracking view');
 
             // Track the view
             trackQueryView(query.documentId, userData.documentId).then((result) => {
                 // If view was counted, refresh the parent
                 if (result?.counted && onAnswerSubmitted) {
-              
+                    console.log('✅ View counted, refreshing UI...');
                     onAnswerSubmitted(); // This triggers parent to refresh
                 }
             });

@@ -136,16 +136,20 @@ export async function fetchQueriesByCollege(userData, filters = {}) {
     const endpoint = `queries?${params.toString()}`;
 
     try {
-   
+        console.log('🔍 Fetching queries by college:', endpoint);
 
         // ✅ Use secure wrapper
         const data = await fetchFromStrapi(endpoint);
 
-       
+        console.log('✅ Queries fetched successfully:', {
+            total: data.meta?.pagination?.total || 0,
+            page: data.meta?.pagination?.page || 1,
+            pageCount: data.meta?.pagination?.pageCount || 0
+        });
 
         return data;
     } catch (error) {
-    
+        console.error('❌ Error fetching queries by college:', error);
         throw error;
     }
 }

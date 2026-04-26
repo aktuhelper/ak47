@@ -17,14 +17,10 @@ import BadgeSystem from "../badges/page";
 
 const { BADGE_DEFINITIONS, assignBadges } = BadgeSystem;
 
-// Helper to extract year number from year string
 const extractYearNumber = (year) => {
     if (!year) return null;
     if (typeof year === 'number') return year;
-
-    // Check if it's "Passout" (case-insensitive) - return 5 for alumni badge
     if (String(year).toLowerCase() === 'passout') return 5;
-
     const match = String(year).match(/\d+/);
     return match ? parseInt(match[0]) : null;
 };
@@ -36,14 +32,13 @@ export default function ProfileHeader({
     onAskDoubt,
     onOpenVerificationModal,
     onOpenRejectionModal,
+    isPartner,
+    onOpenPartnerModal,
     isSaving
 }) {
     const seniorityBadge = getSeniorityBadge(profile.year, profile.course);
 
-    // Get user's earned badges
     const userActivity = {
-        // Handle both numeric years and 'Passout' string from Strapi
-        // Convert 'passout' to year 5 for badge matching
         year: profile.year?.toString().toLowerCase() === 'passout'
             ? 5
             : extractYearNumber(profile.year),
@@ -57,17 +52,12 @@ export default function ProfileHeader({
 
     let badges = assignBadges(userActivity);
 
-    // Remove verified user badge (shown as checkmark next to name instead)
     badges = badges.filter(b => b && b.id !== 'verified_user');
 
-    // Handle mentor badges - show only highest achieved (SIMPLIFIED LOGIC FROM FIRST CODE)
     if (profile.isMentor === true || profile.isMentor === 1) {
-        // Remove any existing mentor badges to avoid duplicates
         badges = badges.filter(b =>
             b && b.id !== 'mentor' && b.id !== 'super_mentor' && b.id !== 'elite_mentor'
         );
-
-        // Add only the highest mentor badge based on profile data
         if (profile.eliteMentor === true) {
             badges.push(BADGE_DEFINITIONS.achievementBadges.eliteMentor);
         } else if (profile.superMentor === true) {
@@ -77,7 +67,6 @@ export default function ProfileHeader({
         }
     }
 
-    // Handle active participant badge
     if (profile.activeParticipant === true) {
         const hasActiveParticipantBadge = badges.some(b => b && b.id === 'active_participant');
         if (!hasActiveParticipantBadge) {
@@ -85,7 +74,6 @@ export default function ProfileHeader({
         }
     }
 
-    // Sort badges
     badges.sort((a, b) => {
         const priority = {
             'fresher_1st_year': 1,
@@ -133,7 +121,6 @@ export default function ProfileHeader({
                                     : 'U'}
                             </AvatarFallback>
                         </Avatar>
-                        {/* Verified badge on avatar */}
                         {profile.isVerified === true && (
                             <div className="absolute bottom-0 right-0 w-8 h-8 bg-[#0A66C2] rounded-full flex items-center justify-center ring-4 ring-background shadow-lg">
                                 <CheckCircle2 className="w-5 h-5 text-white fill-[#0A66C2] stroke-white stroke-[2.5]" />
@@ -147,8 +134,6 @@ export default function ProfileHeader({
                     <div className="flex flex-col items-center gap-2">
                         <div className="flex items-center gap-1.5">
                             <h2 className="text-xl font-bold">{profile.fullName || 'User'}</h2>
-
-                            {/* Verified tick badge next to name */}
                             {profile.isVerified === true && (
                                 <div className="relative">
                                     <CheckCircle2 className="w-5 h-5 text-foreground fill-background stroke-foreground stroke-[2.5]" />
@@ -156,7 +141,6 @@ export default function ProfileHeader({
                             )}
                         </div>
 
-                        {/* Verification Status */}
                         {profile.isVerified !== true && profile.verificationStatus === 'pending' && (
                             <Badge
                                 variant="outline"
@@ -192,12 +176,11 @@ export default function ProfileHeader({
                         )}
                     </div>
 
-                    {/* Username */}
                     {profile.username && (
                         <p className="text-sm text-muted-foreground">@{profile.username}</p>
                     )}
 
-                    {/* Badge Icons - New Section */}
+                    {/* Badge Icons */}
                     {badges.length > 0 && (
                         <div className="flex justify-center items-center gap-2 flex-wrap mt-3">
                             {badges.slice(0, 6).map((badge, index) => {
@@ -209,12 +192,9 @@ export default function ProfileHeader({
                                         title={`${badge.name} - ${badge.subtitle}`}
                                     >
                                         {Icon && <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />}
-
-                                        {/* Tooltip on hover */}
                                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-40 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
                                             <div className="font-bold">{badge.name}</div>
                                             <div className="text-gray-300 text-xs">{badge.subtitle}</div>
-                                            {/* Arrow */}
                                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
                                                 <div className="border-4 border-transparent border-t-gray-900"></div>
                                             </div>
@@ -229,9 +209,6 @@ export default function ProfileHeader({
                             )}
                         </div>
                     )}
-
-                    {/* Badges */}
-                   
                 </div>
 
                 {/* Bio */}
@@ -281,7 +258,18 @@ export default function ProfileHeader({
                             Edit Profile
                         </Button>
                     )}
-
+                    {isOwner && (
+                        <Button
+                            onClick={onOpenPartnerModal}
+                            variant="outline"
+                            className={`w-full gap-2 transition-all ${isPartner
+                                ? "border-green-500/40 bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                                : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                                }`}
+                        >
+                            {isPartner ? "₹ Your Earnings" : " Become a Partner"}
+                        </Button>
+                    )}
                     {!isOwner && (profile.isMentor === 1 || profile.isMentor === true) && (
                         <Button
                             onClick={onAskDoubt}

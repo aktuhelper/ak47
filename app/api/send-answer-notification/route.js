@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
+
 const resend = new Resend(process.env.RESEND_API_KEY);
+
 export async function POST(request) {
     try {
         const {
@@ -16,7 +18,7 @@ export async function POST(request) {
         }
 
         const isFree = !amountPaise || amountPaise === 0;
-        const amountRupees = isFree ? 0 : (amountPaise / 100).toFixed(2);
+      const amountRupees = isFree ? 0 : Math.floor(amountPaise / 100);
 
         const pricingBadgeBg = isFree ? '#d1fae5' : '#ede9fe';
         const pricingBadgeColor = isFree ? '#065f46' : '#4c1d95';

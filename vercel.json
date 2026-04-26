@@ -1,9 +1,12 @@
 {
-    "redirects": [
+    "crons": [
         {
-            "source": "/ads.txt",
-            "destination": "https://srv.adstxtmanager.com/19390/aktuhelper.com",
-            "permanent": true
+            "path": "/api/cron/expire-queries",
+            "schedule": "*/15 * * * *"
+        },
+        {
+            "path": "/api/cron/auto-accept",
+            "schedule": "*/15 * * * *"
         }
     ]
 }

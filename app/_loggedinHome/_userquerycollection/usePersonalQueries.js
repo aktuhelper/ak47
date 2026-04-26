@@ -27,11 +27,12 @@ export function usePersonalQueries(userData) {
     const fetchPersonalQueries = async () => {
         try {
             const endpoint = `personal-queries?filters[toUser][documentId]=${userData.documentId}&populate[fromUser][populate][0]=profileImage&populate[toUser][populate][0]=profileImage&populate=attachment&sort=createdAt:desc`;
-           
+     
 
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(endpoint);
 
+           
 
             // Transform to match query format
             const transformed = data.data?.map(pq => {
@@ -72,7 +73,7 @@ export function usePersonalQueries(userData) {
                         attachmentUrl = pq.attachment;
                     }
                 }
-
+               
                 // ✅ Check both isNew and readAt fields
                 const isQueryNew = pq.isNew === true && !pq.readAt;
 
@@ -116,7 +117,7 @@ export function usePersonalQueries(userData) {
                     }] : []
                 };
             }) || [];
-
+           
             const withCounts = await fetchAnswerCounts(transformed);
             setPersonalQueries(withCounts);
          
@@ -136,7 +137,7 @@ export function usePersonalQueries(userData) {
             // ✅ Use secure wrapper
             const data = await fetchFromStrapi(endpoint);
 
-        
+           
 
             // Transform to match query format
             const transformed = data.data?.map(pq => {
@@ -219,7 +220,7 @@ export function usePersonalQueries(userData) {
 
             const withCounts = await fetchAnswerCounts(transformed);
             setSentQueries(withCounts);
-          
+           
             return transformed;
         } catch (err) {
             console.error('❌ Failed to fetch sent queries:', err);
@@ -230,7 +231,7 @@ export function usePersonalQueries(userData) {
     // Fetch both on mount
     const fetchAllPersonalQueries = async () => {
         if (!userData?.documentId) {
-            console.warn('⚠️ No userData.documentId, skipping personal queries fetch');
+          
             setLoading(false);
             return;
         }
@@ -274,7 +275,7 @@ export function usePersonalQueries(userData) {
     // Mark personal query as read
     const markAsRead = async (queryDocumentId) => {
         try {
-            console.log('📖 Marking query as read:', queryDocumentId);
+           
 
             // ✅ Use secure wrapper
             const updatedData = await updateStrapi(`personal-queries/${queryDocumentId}`, {
@@ -282,7 +283,7 @@ export function usePersonalQueries(userData) {
                 readAt: new Date().toISOString()
             });
 
-            console.log('✅ Query marked as read:', updatedData);
+           
 
             // Update local state
             setPersonalQueries(prev =>

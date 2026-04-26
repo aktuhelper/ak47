@@ -3,12 +3,17 @@ import { MessageSquare, AlertCircle } from 'lucide-react';
 import { CATEGORIES, CATEGORY_META } from './constant';
 
 export default function CategoryField({ T, category, setCategory, errors, setErrors }) {
+    const isDark = T.bg === '#09090b';
+
+    const secondaryText = isDark ? 'rgba(255,255,255,0.75)' : '#374151';  // pill names (unselected)
+    const tertiaryText = isDark ? 'rgba(255,255,255,0.45)' : '#6b7280';  // section label
+
     return (
         <div className="aqm-field">
 
             {/* Section label */}
-            <div className="aqm-section-label" style={{ color: T.sectionLabelColor }}>
-                <MessageSquare size={11} />
+            <div className="aqm-section-label" style={{ color: tertiaryText }}>
+                <MessageSquare size={11} color={tertiaryText} />
                 Category
                 <div style={{ flex: 1, height: 1, background: T.sectionLabelLine }} />
             </div>
@@ -49,7 +54,7 @@ export default function CategoryField({ T, category, setCategory, errors, setErr
                             <span style={{
                                 fontSize: 13,
                                 fontWeight: 500,
-                                color: sel ? T.pillSelName : T.pillNameColor,
+                                color: sel ? T.pillSelName : secondaryText,
                                 textTransform: 'capitalize',
                             }}>
                                 {cat}
@@ -61,7 +66,7 @@ export default function CategoryField({ T, category, setCategory, errors, setErr
 
             {/* Error */}
             {errors.category && (
-                <div className="aqm-error-msg">
+                <div className="aqm-error-msg" style={{ color: T.inputErrorBorder }}>
                     <AlertCircle size={12} />
                     {errors.category}
                 </div>

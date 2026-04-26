@@ -14,14 +14,14 @@ export async function POST(request) {
             deadlineHours,   // numeric
             amountPaise,     // numeric, 0 for free
         } = await request.json();
-
+    
         if (!receiverEmail || !senderName || !queryTitle || !queryDescription) {
             return Response.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
         const isFree = !amountPaise || amountPaise === 0;
-        const amountRupees = isFree ? 0 : (amountPaise / 100).toFixed(2);
-        const payout = isFree ? 0 : ((amountPaise * 0.8) / 100).toFixed(2);
+      const amountRupees = isFree ? 0 : Math.floor(amountPaise / 100);
+      const payout = isFree ? 0 : Math.floor((amountPaise * 0.8) / 100);
 
         // ── Pricing badge copy ──
         const pricingBadgeBg = isFree ? '#d1fae5' : '#ede9fe';
@@ -50,7 +50,7 @@ export async function POST(request) {
                     ₹${payout}
                   </p>
                   <p style="margin:6px 0 0; font-size:12px; color:#4b5563;">
-                    (₹${amountRupees} paid by asker · platform retains 20%)
+               (₹${amountRupees} paid by asker · platform retains 20%)
                   </p>
                 </td>
               </tr>
@@ -64,7 +64,7 @@ export async function POST(request) {
           <td style="padding: 0 32px 24px;">
             <p style="margin:0; font-size:12px; color:#6b7280; line-height:1.6;">
               If you do not respond within <strong style="color:#374151;">${deadlineLabel}</strong>,
-              ₹${payout} will be automatically refunded to the asker.
+             ₹${Math.floor((amountPaise * 0.8) / 100)} will be automatically refunded to the asker.
               The platform retains 20% in all cases.
             </p>
           </td>

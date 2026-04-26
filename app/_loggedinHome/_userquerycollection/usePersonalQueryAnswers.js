@@ -6,9 +6,6 @@ export function usePersonalQueryAnswers() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
 
-    // ============================================
-    // 1. SUBMIT NEW PERSONAL ANSWER
-    // ============================================
     const submitPersonalAnswer = async (personalQueryDocumentId, answerText, userDocumentId, querySenderDocumentId) => {
         setSubmitting(true);
         setError(null);
@@ -19,7 +16,12 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You cannot answer your own query');
             }
 
-           
+            console.log('🔵 STEP 1: Submitting personal query answer with documentIds:', {
+                answerText,
+                personalQueryDocumentId,
+                userDocumentId,
+                querySenderDocumentId
+            });
 
             // ✅ Use secure wrapper
             const data = await postToStrapi('personal-query-answers', {
@@ -30,10 +32,24 @@ export function usePersonalQueryAnswers() {
                 helpfulCount: 0
             });
 
-          
+            console.log('✅ STEP 2: Personal answer submitted:', data);
+
+            // Set review deadline on the query (24hrs from now)
+            const reviewDeadlineAt = new Date(
+                Date.now() + 24 * 60 * 60 * 1000
+            ).toISOString();
+
+            await updateStrapi(`personal-queries/${personalQueryDocumentId}`, {
+                query_status: 'answered',
+                answered_at: new Date().toISOString(),
+                review_deadline_at: reviewDeadlineAt,
+            });
+
+            console.log('✅ STEP 3: Query marked as answered, review deadline:', reviewDeadlineAt);
 
             const newCount = await getPersonalAnswerCount(personalQueryDocumentId);
-          
+            console.log('✅ STEP 4: New answer count:', newCount);
+
             return {
                 data,
                 newCount,
@@ -61,13 +77,14 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You can only edit your own answers');
             }
 
+            console.log('✏️ Updating personal answer:', answerDocumentId);
 
             // ✅ Use secure wrapper
             const data = await updateStrapi(`personal-query-answers/${answerDocumentId}`, {
                 answerText: answerText
             });
 
-          
+            console.log('✅ Personal answer updated:', data);
 
             return {
                 data,
@@ -92,12 +109,12 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You can only delete your own answers or answers to your query');
             }
 
-   
+            console.log('🗑️ Deleting personal answer:', answerDocumentId);
 
             // ✅ Use secure wrapper
             await deleteFromStrapi(`personal-query-answers/${answerDocumentId}`);
 
-       
+            console.log('✅ Personal answer deleted');
             return true;
         } catch (err) {
             console.error('❌ Error deleting personal answer:', err);
@@ -117,7 +134,7 @@ export function usePersonalQueryAnswers() {
 
             const count = data.data?.length || 0;
 
-     
+            console.log(`📊 Personal answer count:`, count);
             return count;
         } catch (err) {
             console.error('❌ Error fetching personal answer count:', err);
@@ -140,7 +157,7 @@ export function usePersonalQueryAnswers() {
                 throw new Error('You cannot mark your own answer as best');
             }
 
-         
+            console.log('⭐ Marking as best answer:', answerDocumentId);
 
             // First, unmark all other answers for this query
             const allAnswersData = await fetchFromStrapi(
@@ -163,6 +180,7 @@ export function usePersonalQueryAnswers() {
                 isBestAnswer: true
             });
 
+            console.log('✅ Marked as best answer');
             return true;
         } catch (err) {
             console.error('❌ Error marking best answer:', err);
@@ -170,9 +188,6 @@ export function usePersonalQueryAnswers() {
         }
     };
 
-    // ============================================
-    // 6. UNMARK BEST ANSWER
-    // ============================================
     const unmarkBestAnswer = async (answerDocumentId, userDocumentId, querySenderDocumentId) => {
         try {
             // ⭐ VALIDATION: Only query SENDER can unmark best answer
@@ -180,12 +195,14 @@ export function usePersonalQueryAnswers() {
                 throw new Error('Only the query sender can unmark best answers');
             }
 
+            console.log('⭐ Unmarking best answer:', answerDocumentId);
 
             // ✅ Use secure wrapper
             await updateStrapi(`personal-query-answers/${answerDocumentId}`, {
                 isBestAnswer: false
             });
-   
+
+            console.log('✅ Unmarked best answer');
             return true;
         } catch (err) {
             console.error('❌ Error unmarking best answer:', err);
@@ -193,6 +210,59 @@ export function usePersonalQueryAnswers() {
         }
     };
 
+    const acceptAnswer = async (answerDocumentId, personalQueryDocumentId, userDocumentId, answerAuthorDocumentId) => {
+        try {
+            console.log('✅ Accepting answer:', answerDocumentId);
+
+            // Unmark any previously accepted answer for this query
+            const previouslyAccepted = await fetchFromStrapi(
+                `personal-query-answers?filters[personal_query][documentId]=${personalQueryDocumentId}&filters[isAccepted][$eq]=true`
+            );
+
+            const unaccepting = (previouslyAccepted.data || [])
+                .filter(answer => answer.documentId !== answerDocumentId)
+                .map(answer =>
+                    updateStrapi(`personal-query-answers/${answer.documentId}`, {
+                        isAccepted: false
+                    })
+                );
+
+            await Promise.all(unaccepting);
+
+            // Accept this answer, clear rejected if previously set
+            await updateStrapi(`personal-query-answers/${answerDocumentId}`, {
+                isAccepted: true,
+                isRejected: false
+            });
+
+            console.log('✅ Answer accepted');
+            return true;
+        } catch (err) {
+            console.error('❌ Error accepting answer:', err);
+            throw err;
+        }
+    };
+
+    // ============================================
+    // 8. REJECT ANSWER
+    // ============================================
+    const rejectAnswer = async (answerDocumentId, personalQueryDocumentId, userDocumentId, answerAuthorDocumentId) => {
+        try {
+            console.log('❌ Rejecting answer:', answerDocumentId);
+
+            // Reject this answer, clear accepted if previously set
+            await updateStrapi(`personal-query-answers/${answerDocumentId}`, {
+                isAccepted: false,
+                isRejected: true
+            });
+
+            console.log('✅ Answer rejected');
+            return true;
+        } catch (err) {
+            console.error('❌ Error rejecting answer:', err);
+            throw err;
+        }
+    };
     return {
         submitPersonalAnswer,
         updatePersonalAnswer,
@@ -200,6 +270,8 @@ export function usePersonalQueryAnswers() {
         getPersonalAnswerCount,
         markAsBestAnswer,
         unmarkBestAnswer,
+        acceptAnswer,   
+        rejectAnswer,
         submitting,
         error
     };

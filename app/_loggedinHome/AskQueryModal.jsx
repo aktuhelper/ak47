@@ -17,6 +17,7 @@ export default function AskQueryModal({
     currentUserId,
     onQuerySent,
     userData,
+    senderName
 }) {
     const [theme, setTheme] = useState('dark');
     const [category, setCategory] = useState('');
@@ -29,6 +30,9 @@ export default function AskQueryModal({
     const [mounted, setMounted] = useState(false);
     const [paymentAgreed, setPaymentAgreed] = useState(false);
     const [deadline, setDeadline] = useState(null); // { label, hours, pricePaise, urgent }
+   
+    // FIX Warning 5 — declare paymentCancelled state (was referenced but never declared)
+    const [paymentCancelled, setPaymentCancelled] = useState(false);
 
     // A query is paid when the user has selected a deadline tier
     const isPaidQuery = deadline !== null;
@@ -40,6 +44,7 @@ export default function AskQueryModal({
         if (isOpen) setTimeout(() => setMounted(true), 10);
         else setMounted(false);
     }, [isOpen]);
+
 
     const isFormValid =
         deadline !== null &&
@@ -72,10 +77,43 @@ export default function AskQueryModal({
         setErrors({});
         setPaymentAgreed(false);
         setDeadline(null);
+        setPaymentCancelled(false); // also reset this on full form reset
     };
 
     const handleClose = () => {
         if (!isSubmitting) { resetForm(); onClose(); }
+    };
+
+    const buildQueryData = (uploadedFileId, queryStatus, paymentStatus) => ({
+        fromUser: String(currentUserId),
+        toUser: String(receiverData.documentId || receiverData.id),
+        category,
+        title: queryTitle.trim(),
+        description: queryText.trim(),
+        amount_paise: deadline?.pricePaise ?? 0,
+        deadline_hours: deadline?.hours ?? null,
+        deadline_label: deadline?.label ?? null,
+        query_status: queryStatus,
+        payment_status: paymentStatus,
+        ...(uploadedFileId && { attachment: uploadedFileId }),
+    });
+
+    const sendEmailNotification = async (amountPaise) => {
+        if (!receiverData.email) return;
+        await fetch('/api/send-query-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                receiverEmail: receiverData.email,
+                receiverName: receiverData.name || receiverData.username,
+                senderName: userData?.name || userData?.username || senderName || '',
+                queryTitle: queryTitle.trim(),
+                queryDescription: queryText.trim(),
+                deadlineLabel: deadline?.label ?? 'Free',
+                deadlineHours: deadline?.hours ?? null,
+                amountPaise,
+            }),
+        }).catch(err => console.error('Email failed:', err));
     };
 
     const handleSubmit = async (e) => {
@@ -84,22 +122,20 @@ export default function AskQueryModal({
             toast.error('Please fill in all required fields correctly');
             return;
         }
-
         if (!currentUserId) {
             toast.error('User session not found. Please refresh the page.');
             return;
         }
-
         if (!receiverData?.documentId && !receiverData?.id) {
             toast.error('Receiver information is missing. Please try again.');
             return;
         }
 
         setIsSubmitting(true);
-        const loadingToast = toast.loading('Sending your query...');
+        const loadingToast = toast.loading('Saving your query...');
 
         try {
-            // Step 1: Upload attachment if present
+            // 1. Upload attachment if any
             let uploadedFileId = null;
             if (attachment) {
                 try {
@@ -107,70 +143,112 @@ export default function AskQueryModal({
                     if (uploadedFile?.id) uploadedFileId = uploadedFile.id;
                 } catch (uploadError) {
                     console.error('Attachment upload failed:', uploadError);
-                    toast.error('Failed to upload attachment. Continuing without it...', { id: loadingToast });
+                    toast.error('Failed to upload attachment. Continuing without it...');
                 }
             }
 
-            // Step 2: Build and post query
-            const queryData = {
-                fromUser: String(currentUserId),
-                toUser: String(receiverData.documentId || receiverData.id),
-                category: category,
-                title: queryTitle.trim(),
-                description: queryText.trim(),
-                amount_paise: deadline?.pricePaise ?? 0,
-                deadline_hours: deadline?.hours ?? null,
-                deadline_label: deadline?.label ?? null,
-                ...(uploadedFileId && { attachment: uploadedFileId }),
-            };
+            // 2. FREE QUERY — save to Strapi immediately, then send email
+            if (!deadline?.pricePaise || deadline.pricePaise === 0) {
+                const savedQuery = await postToStrapi('personal-queries', buildQueryData(uploadedFileId, 'open', 'free'));
+                const queryDocumentId = savedQuery?.data?.documentId;
+                if (!queryDocumentId) throw new Error('Failed to get query ID from Strapi');
 
-            await postToStrapi('personal-queries', queryData);
+                await sendEmailNotification(0);
+                toast.success('Query sent successfully!', { id: loadingToast });
+                setTimeout(() => { resetForm(); onClose(); if (onQuerySent) onQuerySent(); }, 1000);
+                return;
+            }
 
-            // Step 3: Send email notification (non-blocking — failure does not abort)
+            // 3. PAID QUERY — create Razorpay order FIRST (no Strapi save yet)
+            toast.loading('Opening payment...', { id: loadingToast });
 
-            // Step 3: Send email notification (non-blocking — failure does not abort)
-            if (receiverData.email) {
-                try {
-                    const emailRes = await fetch('/api/send-query-email', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            receiverEmail: receiverData.email,
-                            receiverName: receiverData.name || receiverData.username,
-                            senderName: userData?.name || userData?.username,
-                            queryTitle: queryTitle.trim(),
-                            queryDescription: queryText.trim(),
-                            deadlineLabel: deadline?.label ?? 'Free',
-                            deadlineHours: deadline?.hours ?? null,
-                            amountPaise: deadline?.pricePaise ?? 0,
-                        }),
-                    });
+            const orderRes = await fetch('/api/queries/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amountPaise: deadline.pricePaise,
+                    deadlineHours: deadline.hours,
+                }),
+            });
 
-                    // fetch never throws on 4xx/5xx — must check manually
-                    if (!emailRes.ok) {
-                        const errBody = await emailRes.json().catch(() => ({}));
-                        console.error('Email route error:', emailRes.status, errBody);
+            const orderData = await orderRes.json();
+            if (!orderRes.ok || !orderData.orderId) {
+                throw new Error(orderData.error || 'Failed to create payment order');
+            }
+
+            toast.dismiss(loadingToast);
+
+            // 4. Open Razorpay checkout
+            const rzp = new window.Razorpay({
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: deadline.pricePaise,
+                currency: 'INR',
+                order_id: orderData.orderId,
+                name: 'CampusConnect',
+                description: queryTitle.trim(),
+                prefill: {
+                    name: userData?.name || '',
+                    email: userData?.email || '',
+                },
+
+                handler: async function (response) {
+                    try {
+                        // 5. Verify payment on backend FIRST
+                        const confirmRes = await fetch('/api/queries/confirm-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpaySignature: response.razorpay_signature,
+                            }),
+                        });
+
+                        const confirmData = await confirmRes.json();
+                        if (!confirmRes.ok) throw new Error(confirmData.error || 'Payment verification failed');
+
+                        // 6. Payment verified — NOW save query to Strapi
+                        const savedQuery = await postToStrapi('personal-queries', {
+                            ...buildQueryData(uploadedFileId, 'open', 'paid'),
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                        });
+
+                        const queryDocumentId = savedQuery?.data?.documentId;
+                        if (!queryDocumentId) throw new Error('Failed to save query after payment');
+
+                        // 7. Send email notification
+                        await sendEmailNotification(deadline.pricePaise);
+
+                        toast.success('Payment done! Query sent successfully!');
+                        setTimeout(() => { resetForm(); onClose(); if (onQuerySent) onQuerySent(); }, 1000);
+
+                    } catch (err) {
+                        toast.error(`Payment verification failed: ${err.message}`);
+                    } finally {
+                        setIsSubmitting(false);
                     }
-                } catch (emailError) {
-                    console.error('Email notification failed (network):', emailError);
-                }
-            }
-            toast.success('Your query has been sent successfully!', { id: loadingToast });
+                },
 
-            setTimeout(() => {
-                resetForm();
-                onClose();
-                if (onQuerySent) onQuerySent();
-            }, 1000);
+                modal: {
+                    ondismiss: () => {
+                        setPaymentCancelled(true);
+                        setIsSubmitting(false); // ✅ re-enable form so user can retry
+                        toast.error('Payment cancelled.');
+                    },
+                },
+            });
+
+            rzp.open();
+            // ⚠️ Don't fall through to finally for paid — handler/ondismiss manage isSubmitting
+            return;
 
         } catch (error) {
-            console.error('Error sending query:', error);
-            toast.error(`Failed to send query: ${error.message || 'Unknown error occurred'}`, { id: loadingToast });
-        } finally {
+            console.error('Submit error:', error);
+            toast.error(`Failed: ${error.message || 'Unknown error'}`, { id: loadingToast });
             setIsSubmitting(false);
         }
     };
-
     if (!isOpen || !receiverData) return null;
 
     return (
@@ -215,6 +293,10 @@ export default function AskQueryModal({
                             errors={errors} setErrors={setErrors}
                             deadline={deadline} setDeadline={setDeadline}
                             paymentAgreed={paymentAgreed} setPaymentAgreed={setPaymentAgreed}
+                            onDeadlineChange={(tier) => {
+                                setDeadline(tier);
+                                setPaymentCancelled(false);  // ✅ now works — state is declared above
+                            }}
                         />
 
                         <Footer
@@ -223,6 +305,7 @@ export default function AskQueryModal({
                             isSubmitting={isSubmitting}
                             onCancel={handleClose}
                             onSubmit={handleSubmit}
+                            deadline={deadline}
                         />
 
                     </div>

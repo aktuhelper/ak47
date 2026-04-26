@@ -8,15 +8,20 @@ import ProfileSocialLinks from "./_profileComp/ProfileSocialLinks";
 import EditProfileModal from "./_profileComp/EditProfileModal";
 import VerificationModal from "./_profileComp/VerificationModal";
 import RejectionModal from "./_profileComp/RejectionModal";
+import PartnerRegistrationModal from "./_profileComp/PartnerRegistrationModal";
 import { fetchFromStrapi } from '@/secure/strapi';
+import EarningsModal from "./_profileComp/Earningsmodal";
 
 export default function CompleteProfilePage({ userData, onUpdate }) {
+    const [isEarningsModalOpen, setIsEarningsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
     const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+    const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [liveStats, setLiveStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(true);
+    const [isPartner, setIsPartner] = useState(userData?.isPartner ?? false);
 
     const [profile, setProfile] = useState({
         id: userData?.id || "",
@@ -57,13 +62,10 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
 
     useEffect(() => {
         const fetchStatsFromDatabase = async () => {
-            if (!userData?.documentId) {
-                return;
-            }
+            if (!userData?.documentId) return;
 
             try {
                 setLoadingStats(true);
-
                 const data = await fetchFromStrapi(`user-profiles/${userData.documentId}`);
 
                 const dbStats = {
@@ -74,7 +76,6 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
                 };
 
                 setLiveStats(dbStats);
-
                 setProfile(prev => ({
                     ...prev,
                     queriesAsked: dbStats.totalQueries,
@@ -83,8 +84,12 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
                     helpfulCount: dbStats.helpfulVotes,
                     totalViews: dbStats.totalViews,
                 }));
+
+                if (data.data?.isPartner) {
+                    setIsPartner(true);
+                }
             } catch (error) {
-                // Error handling without logging
+                console.error('❌ Error fetching stats:', error);
             } finally {
                 setLoadingStats(false);
             }
@@ -95,37 +100,27 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
 
     const isOwner = true;
 
-    const handleEditProfile = () => {
-        setIsEditModalOpen(true);
-    };
-
-    const handleAskDoubt = () => {
-        alert("This would navigate to messaging or doubt submission!");
-    };
-
-    const handleOpenVerificationModal = () => {
-        setIsVerificationModalOpen(true);
-    };
-
-    const handleOpenRejectionModal = () => {
-        setIsRejectionModalOpen(true);
-    };
+    const handleEditProfile = () => setIsEditModalOpen(true);
+    const handleAskDoubt = () => alert("This would navigate to messaging or doubt submission!");
+    const handleOpenVerificationModal = () => setIsVerificationModalOpen(true);
+    const handleOpenRejectionModal = () => setIsRejectionModalOpen(true);
 
     const handleVerificationSubmitted = () => {
-        setProfile({
-            ...profile,
-            verificationStatus: 'pending'
-        });
+        setProfile({ ...profile, verificationStatus: 'pending' });
     };
 
     const handleProfileUpdated = async () => {
-        if (onUpdate && typeof onUpdate === 'function') {
-            await onUpdate();
-        }
+        if (onUpdate && typeof onUpdate === 'function') await onUpdate();
+    };
+
+    const handlePartnerRegistered = async () => {
+        setIsPartner(true);
+        if (onUpdate && typeof onUpdate === 'function') await onUpdate();
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+            {/* Banner */}
             <div className="relative w-full h-48 md:h-64 lg:h-80 overflow-hidden bg-muted">
                 <img
                     src={profile.bannerUrl}
@@ -135,6 +130,7 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-background" />
             </div>
 
+            {/* Decorative background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
@@ -152,12 +148,10 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
                                 onOpenVerificationModal={handleOpenVerificationModal}
                                 onOpenRejectionModal={handleOpenRejectionModal}
                                 isSaving={isSaving}
+                                isPartner={isPartner}
+                                onOpenPartnerModal={() => isPartner ? setIsEarningsModalOpen(true) : setIsPartnerModalOpen(true)}
                             />
-
-                            <ProfileStats
-                                profile={profile}
-                                loading={loadingStats}
-                            />
+                            <ProfileStats profile={profile} loading={loadingStats} />
                         </div>
                     </aside>
 
@@ -165,12 +159,10 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <ProfileAbout profile={profile} />
                         </div>
-
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
                             <ProfileEducation profile={profile} />
                             <ProfileBadges profile={profile} />
                         </div>
-
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
                             <ProfileSocialLinks profile={profile} />
                         </div>
@@ -178,6 +170,7 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
                 </div>
             </div>
 
+            {/* Modals */}
             <EditProfileModal
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
@@ -185,19 +178,28 @@ export default function CompleteProfilePage({ userData, onUpdate }) {
                 userData={userData}
                 onProfileUpdated={handleProfileUpdated}
             />
-
             <VerificationModal
                 isOpen={isVerificationModalOpen}
                 onClose={() => setIsVerificationModalOpen(false)}
                 userData={userData}
                 onVerificationSubmitted={handleVerificationSubmitted}
             />
-
             <RejectionModal
                 isOpen={isRejectionModalOpen}
                 onClose={() => setIsRejectionModalOpen(false)}
                 rejectionReason={profile.verificationRejectionReason}
                 onResubmit={() => setIsVerificationModalOpen(true)}
+            />
+            <PartnerRegistrationModal
+                isOpen={isPartnerModalOpen}
+                onClose={() => setIsPartnerModalOpen(false)}
+                userData={userData}
+                onRegistered={handlePartnerRegistered}
+            />
+            <EarningsModal
+                isOpen={isEarningsModalOpen}
+                onClose={() => setIsEarningsModalOpen(false)}
+                userData={userData}
             />
         </div>
     );

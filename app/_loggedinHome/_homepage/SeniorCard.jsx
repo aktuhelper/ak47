@@ -93,7 +93,7 @@ const SeniorCard = ({ senior, currentUserId, isLive, userData }) => {
         queriesPosted: senior.queriesPosted,
         engagement: senior.engagement
     };
-
+  
     return (
         <>
             <div className="group bg-gradient-to-br from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950 border border-gray-200/50 dark:border-zinc-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/10 dark:hover:shadow-red-500/20 hover:-translate-y-2 hover:border-red-500/30 flex flex-col h-full min-w-[320px]">
@@ -247,7 +247,7 @@ const SeniorCard = ({ senior, currentUserId, isLive, userData }) => {
                 userData={userData}
                 currentUserId={currentUserId}
                 onQuerySent={() => {
-                    console.log('Query sent successfully from SeniorCard!');
+
                 }}
             />
         </>

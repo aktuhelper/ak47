@@ -22,33 +22,51 @@ export default function FormArea({
     attachment, setAttachment,
     attachmentPreview, setAttachmentPreview,
     errors, setErrors,
-    // deadline-based pricing props
-    deadline,         // { label, hours, pricePaise, urgent } | null
-    setDeadline,      // setter
-    // legacy fixed-price fallback (used when receiverData.query_price > 0 and no deadline tiers)
+    deadline,
+    setDeadline,
+    onDeadlineChange,
     amountPaise,
     paymentAgreed,
     setPaymentAgreed,
 }) {
+    const isDark = T.bg === '#09090b';
+
     const charCount = queryText.length;
     const titleCharCount = queryTitle.length;
 
-    // Effective amount: deadline tier wins over legacy fixed price
     const effectiveAmountPaise = deadline ? deadline.pricePaise : (amountPaise ?? 0);
-    const amountRupees = effectiveAmountPaise / 100;
-    const platformFee = Math.round(amountRupees * PLATFORM_FEE_PERCENT / 100);
+    const amountRupees = Math.floor(effectiveAmountPaise / 100);
+    const platformFee = Math.floor(amountRupees * PLATFORM_FEE_PERCENT / 100);
     const answererPayout = amountRupees - platformFee;
 
     const isPaidQuery = effectiveAmountPaise > 0;
     const answerDeadline = deadline ? deadline.label : '48 hours';
     const acceptDeadline = '24 hours';
 
-    // ── shared input style helpers ──
+    // ── High-contrast text scale ──
+    const primaryText = isDark ? '#ffffff' : '#0f0f0f';
+    const secondaryText = isDark ? 'rgba(255,255,255,0.75)' : '#374151';
+    const tertiaryText = isDark ? 'rgba(255,255,255,0.45)' : '#6b7280';
+    const mutedText = isDark ? 'rgba(255,255,255,0.3)' : '#9ca3af';
+
+    // ── Semantic color aliases derived from T ──
+    const accentColor = T.pillSelBorder;
+    const accentBg = T.pillSelBg;
+    const accentSoft = T.uploadIconBg;
+    const accentBorder = T.uploadIconBorder;
+    const accentMuted = T.uploadIconColor;
+
+    const successColor = '#34d399';
+    const warningColor = '#f59e0b';
+    const urgentColor = '#f87171';
+    const urgentBg = 'rgba(248,113,113,0.1)';
+
+    // ── Shared input style helpers ──
     const inputStyle = (errKey) => ({
         background: errors[errKey] ? T.inputErrorBg : T.inputBg,
         borderColor: errors[errKey] ? T.inputErrorBorder : T.inputBorder,
-        color: T.textColor,
-        caretColor: '#6366f1',
+        color: primaryText,
+        caretColor: accentColor,
     });
 
     const inputFocus = (e) => {
@@ -75,42 +93,33 @@ export default function FormArea({
             {/* ── Deadline Pricing Selector ── */}
             <div className="aqm-field">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: T.labelColor }}>
-                        Response deadline <span style={{ color: '#f87171' }}>*</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: secondaryText }}>
+                        Response deadline <span style={{ color: urgentColor }}>*</span>
                     </span>
                     {deadline && (
-                        <span style={{
-                            fontSize: 11,
-                            color: '#6366f1',
-                            fontWeight: 600,
-                        }}>
-                            ₹{amountRupees.toFixed(0)} selected
+                        <span style={{ fontSize: 11, color: accentColor, fontWeight: 600 }}>
+                            ₹{amountRupees} selected
                         </span>
                     )}
                 </div>
 
                 {/* Tier cards grid */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: 8,
-                }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                     {DEADLINE_TIERS.map((tier) => {
                         const isSelected = deadline?.hours === tier.hours;
                         return (
                             <div
                                 key={tier.hours}
                                 onClick={() => {
-                                    setDeadline(tier);
+                                    const handler = onDeadlineChange || setDeadline;
+                                    handler(tier);
                                     setErrors({ ...errors, deadline: null });
                                 }}
                                 style={{
                                     border: isSelected
-                                        ? '2px solid #6366f1'
+                                        ? `2px solid ${accentColor}`
                                         : `1px solid ${errors.deadline ? T.inputErrorBorder : T.inputBorder}`,
-                                    background: isSelected
-                                        ? 'rgba(99,102,241,0.08)'
-                                        : T.inputBg,
+                                    background: isSelected ? accentBg : T.inputBg,
                                     borderRadius: 10,
                                     padding: '10px 8px',
                                     cursor: 'pointer',
@@ -119,33 +128,30 @@ export default function FormArea({
                                     userSelect: 'none',
                                 }}
                             >
-                                {/* Time label */}
                                 <div style={{
                                     fontSize: 13,
                                     fontWeight: 600,
-                                    color: isSelected ? '#6366f1' : T.textColor,
+                                    color: isSelected ? accentColor : primaryText,
                                     marginBottom: 3,
                                 }}>
                                     {tier.label}
                                 </div>
 
-                                {/* Price */}
                                 <div style={{
                                     fontSize: 15,
                                     fontWeight: 700,
-                                    color: isSelected ? '#6366f1' : T.textColor,
+                                    color: isSelected ? accentColor : primaryText,
                                     marginBottom: 4,
                                 }}>
-                                    ₹{(tier.pricePaise / 100).toFixed(0)}
+                                    ₹{Math.floor(tier.pricePaise / 100)}
                                 </div>
 
-                                {/* Urgency badge */}
                                 {tier.urgent ? (
                                     <span style={{
                                         fontSize: 10,
                                         fontWeight: 600,
-                                        color: '#f87171',
-                                        background: 'rgba(248,113,113,0.1)',
+                                        color: urgentColor,
+                                        background: urgentBg,
                                         borderRadius: 4,
                                         padding: '2px 6px',
                                         display: 'inline-block',
@@ -155,7 +161,7 @@ export default function FormArea({
                                 ) : (
                                     <span style={{
                                         fontSize: 10,
-                                        color: T.charCountColor,
+                                        color: mutedText,
                                         display: 'inline-block',
                                     }}>
                                         Standard
@@ -173,80 +179,79 @@ export default function FormArea({
                     gap: 5,
                     marginTop: 8,
                     fontSize: 11,
-                    color: T.charCountColor,
+                    color: tertiaryText,
                 }}>
-                    <Clock size={11} color={T.charCountColor} style={{ flexShrink: 0 }} />
+                    <Clock size={11} color={tertiaryText} style={{ flexShrink: 0 }} />
                     Shorter deadlines are priced higher — mentor is compensated for urgency
                 </div>
 
                 {errors.deadline && (
-                    <div className="aqm-error-msg" style={{ marginTop: 6 }}>
+                    <div className="aqm-error-msg" style={{ marginTop: 6, color: T.inputErrorBorder }}>
                         <AlertCircle size={12} />
                         {errors.deadline}
                     </div>
                 )}
             </div>
 
-            {/* ── Payment Summary Card (shown once deadline is selected) ── */}
+            {/* ── Payment Summary Card ── */}
             {isPaidQuery && (
                 <div style={{
                     background: T.cardBg ?? T.inputBg,
-                    border: `1px solid ${T.inputBorder}`,
+                    border: `1px solid ${T.cardBorder ?? T.inputBorder}`,
                     borderRadius: 12,
                     padding: '14px 16px',
                     marginBottom: 18,
                 }}>
-                    {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                        <IndianRupee size={14} color="#6366f1" />
-                        <span style={{ fontSize: 13, fontWeight: 600, color: T.labelColor }}>
+                        <IndianRupee size={14} color={accentMuted} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: secondaryText }}>
                             Payment Summary
                         </span>
                         <span style={{
                             marginLeft: 'auto',
                             fontSize: 11,
                             fontWeight: 600,
-                            color: '#6366f1',
-                            background: 'rgba(99,102,241,0.12)',
+                            color: accentColor,
+                            background: accentSoft,
                             borderRadius: 6,
                             padding: '2px 8px',
+                            border: `1px solid ${accentBorder}`,
                         }}>
                             Razorpay Protected
                         </span>
                     </div>
 
-                    {/* Amount rows */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 12, color: T.charCountColor }}>You pay</span>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: T.textColor }}>
-                                ₹{amountRupees.toFixed(2)}
+                            <span style={{ fontSize: 12, color: tertiaryText }}>You pay</span>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: primaryText }}>
+                                ₹{amountRupees}
                             </span>
                         </div>
 
-                        <div style={{ borderTop: `1px dashed ${T.inputBorder}` }} />
+                        <div style={{ borderTop: `1px dashed ${T.divider}` }} />
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 12, color: T.charCountColor }}>Mentor receives (if answered)</span>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: '#34d399' }}>
-                                ₹{answererPayout.toFixed(2)}
+                            <span style={{ fontSize: 12, color: tertiaryText }}>Mentor receives (if answered)</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: successColor }}>
+                                ₹{answererPayout}
                             </span>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 12, color: T.charCountColor }}>
+                            <span style={{ fontSize: 12, color: tertiaryText }}>
                                 Platform fee ({PLATFORM_FEE_PERCENT}%)
                             </span>
-                            <span style={{ fontSize: 12, color: T.charCountColor }}>
-                                ₹{platformFee.toFixed(2)}
+                            <span style={{ fontSize: 12, color: mutedText }}>
+                                ₹{platformFee}
                             </span>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 12, color: T.charCountColor }}>Refund if unanswered</span>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: '#f59e0b' }}>
-                                ₹{answererPayout.toFixed(2)} back to you
+                            <span style={{ fontSize: 12, color: tertiaryText }}>Refund if unanswered</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: warningColor }}>
+                                ₹{answererPayout} back to you
                             </span>
                         </div>
 
@@ -254,47 +259,37 @@ export default function FormArea({
                 </div>
             )}
 
-            {/* ── Deadline info row (shown once deadline is selected) ── */}
+            {/* ── Deadline info row ── */}
             {isPaidQuery && (
                 <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
 
                     <div style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        background: T.inputBg,
-                        border: `1px solid ${T.inputBorder}`,
-                        borderRadius: 10,
-                        padding: '10px 12px',
+                        flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                        background: T.inputBg, border: `1px solid ${T.inputBorder}`,
+                        borderRadius: 10, padding: '10px 12px',
                     }}>
-                        <Clock size={14} color="#6366f1" style={{ flexShrink: 0 }} />
+                        <Clock size={14} color={accentMuted} style={{ flexShrink: 0 }} />
                         <div>
-                            <div style={{ fontSize: 10, color: T.charCountColor, marginBottom: 2 }}>
+                            <div style={{ fontSize: 10, color: tertiaryText, marginBottom: 2 }}>
                                 Mentor must answer within
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: T.textColor }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: primaryText }}>
                                 {answerDeadline}
                             </div>
                         </div>
                     </div>
 
                     <div style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        background: T.inputBg,
-                        border: `1px solid ${T.inputBorder}`,
-                        borderRadius: 10,
-                        padding: '10px 12px',
+                        flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                        background: T.inputBg, border: `1px solid ${T.inputBorder}`,
+                        borderRadius: 10, padding: '10px 12px',
                     }}>
-                        <ShieldCheck size={14} color="#34d399" style={{ flexShrink: 0 }} />
+                        <ShieldCheck size={14} color={successColor} style={{ flexShrink: 0 }} />
                         <div>
-                            <div style={{ fontSize: 10, color: T.charCountColor, marginBottom: 2 }}>
+                            <div style={{ fontSize: 10, color: tertiaryText, marginBottom: 2 }}>
                                 Auto-accepted after
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: T.textColor }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: primaryText }}>
                                 {acceptDeadline} of answer
                             </div>
                         </div>
@@ -315,10 +310,10 @@ export default function FormArea({
             {/* ── Title ── */}
             <div className="aqm-field">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: T.labelColor }}>
-                        Title <span style={{ color: '#f87171' }}>*</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: secondaryText }}>
+                        Title <span style={{ color: urgentColor }}>*</span>
                     </span>
-                    <span style={{ fontSize: 11, color: titleCharCount > 100 ? '#f87171' : T.charCountColor }}>
+                    <span style={{ fontSize: 11, color: titleCharCount > 100 ? urgentColor : mutedText }}>
                         {titleCharCount}/100
                     </span>
                 </div>
@@ -336,7 +331,7 @@ export default function FormArea({
                     onBlur={e => inputBlur(e, 'queryTitle')}
                 />
                 {errors.queryTitle && (
-                    <div className="aqm-error-msg">
+                    <div className="aqm-error-msg" style={{ color: T.inputErrorBorder }}>
                         <AlertCircle size={12} />
                         {errors.queryTitle}
                     </div>
@@ -346,10 +341,10 @@ export default function FormArea({
             {/* ── Query text ── */}
             <div className="aqm-field">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: T.labelColor }}>
-                        Your Query <span style={{ color: '#f87171' }}>*</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: secondaryText }}>
+                        Your Query <span style={{ color: urgentColor }}>*</span>
                     </span>
-                    <span style={{ fontSize: 11, color: charCount > 1000 ? '#f87171' : T.charCountColor }}>
+                    <span style={{ fontSize: 11, color: charCount > 1000 ? urgentColor : mutedText }}>
                         {charCount}/1000
                     </span>
                 </div>
@@ -367,7 +362,7 @@ export default function FormArea({
                     onBlur={e => inputBlur(e, 'queryText')}
                 />
                 {errors.queryText && (
-                    <div className="aqm-error-msg">
+                    <div className="aqm-error-msg" style={{ color: T.inputErrorBorder }}>
                         <AlertCircle size={12} />
                         {errors.queryText}
                     </div>
@@ -392,25 +387,20 @@ export default function FormArea({
                 gap: 7,
                 marginTop: 4,
                 padding: '9px 12px',
-                background: 'rgba(99,102,241,0.07)',
+                background: accentSoft,
                 borderRadius: 9,
-                border: '1px solid rgba(99,102,241,0.18)',
+                border: `1px solid ${accentBorder}`,
             }}>
-                <Lock size={12} color="#6366f1" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: T.charCountColor, lineHeight: 1.5 }}>
-                    This is a <strong style={{ color: T.labelColor }}>private query</strong> — only you and the mentor can see it.
+                <Lock size={12} color={accentMuted} style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 11, color: tertiaryText, lineHeight: 1.5 }}>
+                    This is a <strong style={{ color: secondaryText }}>private query</strong> — only you and the mentor can see it.
                 </span>
             </div>
 
-            {/* ── Payment agreement checkbox (shown once deadline/price is chosen) ── */}
+            {/* ── Payment agreement checkbox ── */}
             {isPaidQuery && (
                 <div style={{ marginTop: 14 }}>
-                    <label style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 10,
-                        cursor: 'pointer',
-                    }}>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
                         <input
                             type="checkbox"
                             checked={paymentAgreed}
@@ -420,26 +410,26 @@ export default function FormArea({
                             }}
                             style={{
                                 marginTop: 3,
-                                accentColor: '#6366f1',
+                                accentColor: accentColor,
                                 width: 15,
                                 height: 15,
                                 flexShrink: 0,
                                 cursor: 'pointer',
                             }}
                         />
-                        <span style={{ fontSize: 12, color: T.charCountColor, lineHeight: 1.6 }}>
+                        <span style={{ fontSize: 12, color: tertiaryText, lineHeight: 1.6 }}>
                             I understand that{' '}
-                            <strong style={{ color: T.labelColor }}>₹{amountRupees.toFixed(2)}</strong> will
+                            <strong style={{ color: secondaryText }}>₹{amountRupees}</strong> will
                             be held in Razorpay. If the mentor answers within{' '}
-                            <strong style={{ color: T.labelColor }}>{answerDeadline}</strong>, they receive{' '}
-                            <strong style={{ color: '#34d399' }}>₹{answererPayout.toFixed(2)}</strong>.
+                            <strong style={{ color: secondaryText }}>{answerDeadline}</strong>, they receive{' '}
+                            <strong style={{ color: successColor }}>₹{answererPayout}</strong>.
                             If they don't answer,{' '}
-                            <strong style={{ color: '#f59e0b' }}>₹{answererPayout.toFixed(2)}</strong> is
-                            refunded to me. Platform retains {PLATFORM_FEE_PERCENT}% in both cases.
+                            <strong style={{ color: warningColor }}>₹{answererPayout}</strong> is
+                            refunded to me in 5-7 Business Days via razorpay. Platform retains {PLATFORM_FEE_PERCENT}% in both cases.
                         </span>
                     </label>
                     {errors.paymentAgreed && (
-                        <div className="aqm-error-msg" style={{ marginTop: 6 }}>
+                        <div className="aqm-error-msg" style={{ marginTop: 6, color: T.inputErrorBorder }}>
                             <AlertCircle size={12} />
                             {errors.paymentAgreed}
                         </div>

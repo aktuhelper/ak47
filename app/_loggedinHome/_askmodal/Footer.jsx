@@ -1,7 +1,15 @@
 import React from 'react';
 import { Send, Loader2 } from 'lucide-react';
 
-export default function Footer({ T, isFormValid, isSubmitting, onCancel, onSubmit }) {
+export default function Footer({ T, isFormValid, isSubmitting, onCancel, onSubmit, deadline }) {
+    const isDark = T.bg === '#09090b';
+
+    const cancelText = isDark ? 'rgba(255,255,255,0.55)' : '#4b5563';
+    const cancelHoverText = isDark ? 'rgba(255,255,255,0.85)' : '#111827';
+
+    const isPaid = deadline?.pricePaise > 0;
+    const amountLabel = isPaid ? `₹${Math.floor(deadline.pricePaise / 100)}` : null;
+
     return (
         <div
             className="aqm-footer"
@@ -11,14 +19,14 @@ export default function Footer({ T, isFormValid, isSubmitting, onCancel, onSubmi
             <button
                 type="button"
                 className="aqm-cancel-btn"
-                style={{ borderColor: T.cancelBorder, color: T.cancelColor }}
+                style={{ borderColor: T.cancelBorder, color: cancelText }}
                 onMouseEnter={e => {
                     e.currentTarget.style.borderColor = T.cancelHoverBorder;
-                    e.currentTarget.style.color = T.cancelHoverColor;
+                    e.currentTarget.style.color = cancelHoverText;
                 }}
                 onMouseLeave={e => {
                     e.currentTarget.style.borderColor = T.cancelBorder;
-                    e.currentTarget.style.color = T.cancelColor;
+                    e.currentTarget.style.color = cancelText;
                 }}
                 onClick={onCancel}
                 disabled={isSubmitting}
@@ -41,7 +49,7 @@ export default function Footer({ T, isFormValid, isSubmitting, onCancel, onSubmi
                 ) : (
                     <>
                         <Send size={15} />
-                        Send Query
+                        {isPaid ? `Pay ${amountLabel} & Send` : 'Send Query'}
                     </>
                 )}
             </button>

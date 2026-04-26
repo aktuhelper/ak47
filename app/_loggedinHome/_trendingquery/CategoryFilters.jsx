@@ -2,11 +2,11 @@ const cn = (...classes) => classes.filter(Boolean).join(' ');
 
 export default function CategoryFilters({ activeCategory, onCategoryChange }) {
     const categories = [
-        { id: 'academics', label: 'Academics' },
+        { id: 'academics', label: 'Academic' },
         { id: 'career', label: 'Career' },
         { id: 'college-life', label: 'College Life' },
    
-        { id: 'general', label: 'General' },
+        { id: 'general', label: 'General Query' },
     ];
 
     return (

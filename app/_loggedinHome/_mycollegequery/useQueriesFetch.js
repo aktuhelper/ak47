@@ -33,7 +33,7 @@ export function useQueriesFetch({
         // Check if userData has minimum required field (college)
         // branch and year are optional - visibility filters handle their absence
         if (!userData?.college) {
-           
+            console.warn('⚠️ Missing required userData.college');
             setLoading(false);
             return;
         }

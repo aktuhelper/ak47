@@ -9,6 +9,8 @@ const TIPS = [
 ];
 
 export default function Sidebar({ T, receiverData }) {
+    const isDark = T.bg === '#09090b';
+
     const initials = (receiverData.name || receiverData.username || 'U')
         .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -24,7 +26,13 @@ export default function Sidebar({ T, receiverData }) {
     return (
         <div
             className="aqm-sidebar"
-            style={{ background: T.sidebarBg, borderRightColor: T.border }}
+            style={{
+                background: isDark ? '#000000' : T.sidebarBg,
+                borderRightColor: T.border,
+                width: 240,
+                minWidth: 240,
+                maxWidth: 240,
+            }}
         >
             {/* Noise texture */}
             <div className="aqm-sidebar-noise" />
