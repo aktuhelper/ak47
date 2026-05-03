@@ -60,12 +60,12 @@ const AskQueryPage = ({ userData }) => {
                 ...(uploadedFileIds.length > 0 && { attachments: uploadedFileIds })
             };
 
-            console.log('📤 Sending payload:', JSON.stringify(payload, null, 2));
+            
 
             // ✅ Use secure API wrapper instead of direct axios call
             const response = await postToStrapi('queries', payload);
 
-            console.log('✅ Query created successfully:', response);
+            
             return response;
 
         } catch (error) {
@@ -102,11 +102,11 @@ const AskQueryPage = ({ userData }) => {
                 userDocumentId: userData.documentId
             };
 
-            console.log('📝 Query data being sent:', queryData);
+            
 
             const response = await createQuery(queryData, files);
 
-            console.log('🎉 Query posted successfully:', response);
+           
             toast.success('Query posted successfully!');
 
             // Reset form

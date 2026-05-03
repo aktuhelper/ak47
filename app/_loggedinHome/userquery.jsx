@@ -76,14 +76,13 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
                 const newQueries = personalQueries.filter(q => q.isNew);
 
                 if (newQueries.length > 0) {
-                    console.log('📖 Auto-marking all new queries as read:', newQueries.length);
-
+                  
                     // Mark all new queries as read
                     for (const query of newQueries) {
                         await markAsRead(query.documentId);
                     }
 
-                    console.log('✅ All new queries marked as read');
+                  
 
                     // 🔥 Update count after marking as read
                     const updatedCount = getNewQueriesCount();
@@ -100,21 +99,16 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
 
     // ⭐ Handle query click to mark as read (keeping this for individual query clicks)
     const handleQueryClick = async (query) => {
-        console.log('🖱️ Query clicked:', {
-            documentId: query.documentId,
-            isPersonalQuery: query.isPersonalQuery,
-            isNew: query.isNew,
-            title: query.title
-        });
+      
 
         if (query.isPersonalQuery && query.isNew) {
-            console.log('🔔 Marking personal query as read:', query.documentId);
+           
             const success = await markAsRead(query.documentId);
 
             if (success) {
-                console.log('✅ Query marked as read successfully');
+             
                 const updatedCount = getNewQueriesCount();
-                console.log('📊 New count after marking:', updatedCount);
+                
 
                 // 🔥 Update count after marking individual query as read
                 setNewPersonalQueriesCount(updatedCount);
@@ -125,9 +119,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
                 console.log('❌ Failed to mark query as read');
             }
         } else {
-            console.log('⏭️ Skipping mark as read:', {
-                reason: !query.isPersonalQuery ? 'Not a personal query' : 'Already read'
-            });
+        
         }
     };
 
@@ -165,10 +157,10 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
                     .filter(Boolean) || []
             )];
 
-            console.log('📝 User answered these queries:', queryIds);
+          
             setUserAnsweredQueryIds(queryIds);
         } catch (err) {
-            console.error('❌ Failed to fetch user answers:', err);
+           
         }
     };
 
@@ -181,7 +173,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
 
     // 🔥 NEW: Combined refresh function for ALL data
     const handleRefreshAll = async () => {
-        console.log('🔄 Refreshing all queries (regular + personal)...');
+      
 
         // Refresh both regular queries and personal queries in parallel
         await Promise.all([
@@ -189,7 +181,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
             refreshPersonalQueries()
         ]);
 
-        console.log('✅ All queries refreshed successfully');
+      
     };
 
     // Sorting function
@@ -220,13 +212,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
     // ✅ FIXED: Simplified category filtering with exact match
     const filteredAndSortedQueries = sortQueries(
         getQueriesForFilter().filter((query) => {
-            console.log('🔍 Filtering query:', {
-                title: query.title,
-                category: query.category,
-                activeCategory: activeCategory,
-                activeFilter: activeFilter,
-                answerCount: query.answerCount
-            });
+          
 
             // Search filter
             if (searchQuery) {
@@ -234,7 +220,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
                 const matchesTitle = query.title?.toLowerCase().includes(searchLower);
                 const matchesDescription = query.description?.toLowerCase().includes(searchLower);
                 if (!matchesTitle && !matchesDescription) {
-                    console.log('❌ Failed search filter');
+                 
                     return false;
                 }
             }
@@ -242,11 +228,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
             // ✅ Category filter - Apply to ALL tabs with exact match
             if (activeCategory) {
                 const matches = query.category === activeCategory;
-                console.log('🔍 Category filter:', {
-                    queryCategory: query.category,
-                    activeCategory: activeCategory,
-                    matches: matches
-                });
+              
 
                 if (!matches) {
                     console.log('❌ Failed category filter');
@@ -256,7 +238,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
 
             // Skip other filters for personal/sent queries
             if (activeFilter === 'personal-query' || activeFilter === 'sent-queries') {
-                console.log('✅ Passed personal/sent query filter');
+              
                 return true; // Category already filtered above
             }
 
@@ -267,7 +249,7 @@ export default function UserQueriesPage({ userData, onNewQueriesCountChange }) {
 
             if (activeFilter === 'my-answers') {
                 const hasAnswered = userAnsweredQueryIds.includes(query.documentId);
-                console.log('🔍 My answers filter:', hasAnswered);
+               
                 if (!hasAnswered) {
                     console.log('❌ Failed my-answers filter');
                     return false;

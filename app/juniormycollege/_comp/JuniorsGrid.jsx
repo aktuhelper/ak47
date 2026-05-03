@@ -12,7 +12,7 @@ export default function JuniorsGrid({
     if (!juniors || juniors.length === 0) return null;
 
     // Optional: Debug log to see online users
-    console.log(`🔍 ${isSeniorPage ? 'Seniors' : 'Juniors'}Grid - Online users:`, onlineUsers?.length || 0);
+   
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
