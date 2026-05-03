@@ -41,8 +41,7 @@ const Page = () => {
         // Clean up the status string (remove extra spaces and convert to lowercase)
         const status = (latestRequest.statuss || latestRequest.status || '').trim().toLowerCase()
 
-        console.log('📋 Latest verification request:', latestRequest)
-        console.log('📋 Status:', status)
+       
 
         // Return standardized status
         if (status === 'pending') return 'pending'
@@ -86,7 +85,7 @@ const Page = () => {
             }
 
             try {
-                console.log('📊 Fetching user data for:', userEmail)
+              
                 setLoadingUserData(true)
                 setError(null)
 
@@ -94,11 +93,10 @@ const Page = () => {
                     `user-profiles?filters[email][$eq]=${encodeURIComponent(userEmail)}&populate=*`
                 )
 
-                console.log('🔍 Raw Strapi Response:', JSON.stringify(data, null, 2))
-
+         
                 if (data?.data && data.data.length > 0) {
                     const user = data.data[0]
-                    console.log('🔍 User object:', user)
+                   
 
                     const userData = user.attributes || user
 
@@ -118,13 +116,11 @@ const Page = () => {
                         profileImageUrl = userData.profilePic;
                     }
 
-                    console.log('🖼️ Profile Image URL:', profileImageUrl)
-
+                    
                     const verificationStatus = getVerificationStatus(userData.verification_requests)
-                    console.log('🔐 Verification Status:', verificationStatus)
-
+              
                     const verificationRejectionReason = getRejectionReason(userData.verification_requests)
-                    console.log('📝 Rejection Reason:', verificationRejectionReason)
+                  
 
                     const formattedUser = {
                         id: user.id,
@@ -159,17 +155,17 @@ const Page = () => {
 
                     localStorage.setItem('userDocumentId', user.documentId)
                     localStorage.setItem('userEmail', userData.email)
-                    console.log('📥 Stored userDocumentId and userEmail in localStorage')
+                 
 
                     try {
-                        console.log('🎖️ Calculating badges...')
+                        
                         await calculateAndUpdateBadges(formattedUser)
-                        console.log('✅ Badges calculated successfully')
+                        
                     } catch (badgeError) {
                         console.error('❌ Error calculating badges:', badgeError)
                     }
 
-                    console.log('✅ User data fetched:', formattedUser)
+            
                     setUserData(formattedUser)
                 } else {
                     throw new Error('User profile not found')
@@ -189,7 +185,7 @@ const Page = () => {
         if (!userEmail) return
 
         try {
-            console.log('🔄 Refreshing user data...')
+          
             setLoadingUserData(true)
 
             // ✅ USE SECURE API FUNCTION
@@ -222,15 +218,14 @@ const Page = () => {
                     profileImageUrl = userData.profilePic;
                 }
 
-                console.log('🖼️ Refreshed Profile Image URL:', profileImageUrl)
+             
 
                 // ✅ Get updated verification status from verification_requests relation
                 const verificationStatus = getVerificationStatus(userData.verification_requests)
-                console.log('🔐 Updated Verification Status:', verificationStatus)
-
+              
                 // ✅ Get updated rejection reason if status is rejected
                 const verificationRejectionReason = getRejectionReason(userData.verification_requests)
-                console.log('📝 Updated Rejection Reason:', verificationRejectionReason)
+             
 
                 const formattedUser = {
                     id: user.id,
@@ -266,7 +261,6 @@ const Page = () => {
                 localStorage.setItem('userDocumentId', user.documentId)
                 localStorage.setItem('userEmail', userData.email)
 
-                console.log('✅ User data refreshed:', formattedUser)
                 setUserData(formattedUser)
             }
         } catch (err) {
