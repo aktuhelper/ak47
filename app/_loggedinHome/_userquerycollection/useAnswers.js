@@ -20,8 +20,6 @@ export function useAnswers() {
                 user_profile: userDocumentId
             });
 
-  
-
 
             const newCount = await updateQueryAnswerCount(queryDocumentId);
             
