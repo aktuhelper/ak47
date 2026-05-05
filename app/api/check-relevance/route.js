@@ -5,7 +5,7 @@ const MINIMUM_QUALITY_SCORE = 6;
 const MIN_WORD_COUNT = 15;
 const MAX_INPUT_LENGTH = 5000;
 const GEMINI_MODEL = "gemini-2.0-flash";
-const GEMINI_TIMEOUT_MS = 8000;
+const GEMINI_TIMEOUT_MS = 15000;
 
 const CONSTRUCTIVE_GUIDANCE =
     "Please provide a detailed, constructive answer with proper explanation and context. Casual or one-line responses are not accepted.";
