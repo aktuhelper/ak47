@@ -52,10 +52,13 @@ export default function PartnerRegistrationModal({ isOpen, onClose, userData, on
                 }),
             });
 
-            if (!res.ok) throw new Error('Failed to save payout account');
+            if (!res.ok) {
+                const body = await res.text(); // ← get the actual error message
+                throw new Error(`Payout account save failed [${res.status}]: ${body}`);
+            }
 
             // 2. Mark user as partner in user-profiles
-            await fetch('/api/strapi', {
+            const res2 = await fetch('/api/strapi', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -65,11 +68,17 @@ export default function PartnerRegistrationModal({ isOpen, onClose, userData, on
                 }),
             });
 
+            if (!res2.ok) {
+                const body2 = await res2.text(); // ← get the actual error message
+                throw new Error(`User profile update failed [${res2.status}]: ${body2}`);
+            }
+
             setStep(3);
             if (onRegistered) onRegistered();
 
         } catch (err) {
-            setError("Something went wrong. Please try again.");
+            // Show the actual error message instead of generic text
+            setError(err.message || "Something went wrong. Please try again.");
             console.error("Partner registration error:", err);
         } finally {
             setIsSubmitting(false);
@@ -148,10 +157,10 @@ export default function PartnerRegistrationModal({ isOpen, onClose, userData, on
                             <div className="rounded-xl bg-muted/40 border border-border p-4 space-y-2.5">
                                 <p className="text-xs font-semibold text-foreground uppercase tracking-wide">How it works</p>
                                 {[
-                                    { emoji: "💬", text: "User sends you a paid query with a set amount" },
-                                    { emoji: "✍️", text: "You answer within the time limit" },
-                                    { emoji: "✅", text: "User accepts → you get 90% instantly" },
-                                    { emoji: "❌", text: "User rejects → you still get 20% for effort" },
+                                    { text: "User sends you a paid query with a set amount" },
+                                    { text: "You answer within the time limit" },
+                                    {  text: "User accepts → you get 90% instantly" },
+                                    {  text: "User rejects → you still get 20% for effort" },
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                                         <span className="text-base leading-none mt-0.5">{item.emoji}</span>
@@ -268,7 +277,7 @@ export default function PartnerRegistrationModal({ isOpen, onClose, userData, on
                         ) : step === 3 ? (
                             "Done ✓"
                         ) : (
-                            "🚀 Register as Partner"
+                            " Register as Partner"
                         )}
                     </button>
                 </div>
