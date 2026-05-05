@@ -23,8 +23,10 @@ export const AddPersonalAnswerModal = ({
     const [checkingRelevance, setCheckingRelevance] = useState(false);
     const [isPartner, setIsPartner] = useState(true);
     const [isPartnerChecked, setIsPartnerChecked] = useState(false);
-    // Add this with your other useState declarations
+    // ✅ FIX: Tracks whether AI check passed — user must click Submit AGAIN to actually post
+    const [relevancePassed, setRelevancePassed] = useState(false);
     const openedAt = useRef(null);
+
     const { timeLeft, isExpired } = useDeadlineCountdown(
         query.createdAt,
         query.deadline_hours
@@ -44,8 +46,10 @@ export const AddPersonalAnswerModal = ({
             setAnswerText("");
         }
         setRelevanceCheck(null);
+        setRelevancePassed(false);
         setCheckingRelevance(false);
-        openedAt.current = Date.now(); // ✅ add this line
+        openedAt.current = Date.now();
+
         const isPaidQuery = (query?.amount_paise ?? 0) > 0;
         if (isOpen && isPaidQuery && userData?.documentId && !isEdit) {
             fetch('/api/strapi', {
@@ -82,42 +86,11 @@ export const AddPersonalAnswerModal = ({
         isExpired ||
         !isPartner ||
         checkingRelevance ||
+        // ✅ FIX: block if relevance check ran but failed
         (relevanceCheck !== null && !relevanceCheck.isRelevant);
 
-    const handleSubmit = async () => {
-        if (!answerText.trim() || !userData?.documentId) return;
-
-        const wordCount = answerText.trim().split(/\s+/).filter(Boolean).length;
-        if (wordCount < 15) {
-            toast.error(`Answer is too short. Please write at least 15 words. (${wordCount}/15)`);
-            return;
-        }
-
-        setCheckingRelevance(true);
-        setRelevanceCheck(null);
-        try {
-            const result = await checkAnswerRelevance(
-                query.title,
-                query.description,
-                answerText
-            );
-            setRelevanceCheck(result);
-            if (!result.isRelevant) {
-                setCheckingRelevance(false);
-                return;
-            }
-        } catch (err) {
-            console.error("Relevance check failed:", err);
-            toast.error("Could not verify answer relevance. Please try again.");
-            setCheckingRelevance(false);
-            return;
-        }
-        setCheckingRelevance(false);
-        const timeSpent = Date.now() - openedAt.current;
-        if (timeSpent < 30000) {
-            toast.error("Please take more time to write a thoughtful answer.");
-            return;
-        }
+    // ✅ FIX: Extracted actual submit logic so it can be called cleanly after check passes
+    const doSubmit = async () => {
         const querySenderDocId =
             query.fromUser?.documentId ||
             query.user_profile?.documentId ||
@@ -174,30 +147,93 @@ export const AddPersonalAnswerModal = ({
             return result;
         };
 
-        try {
-            const result = await toast.promise(submitAction(), {
-                loading: isEdit ? 'Saving changes...' : 'Posting answer...',
-                success: isEdit ? 'Answer updated successfully!' : 'Answer posted successfully!',
-                error: (err) => err.message || 'Failed to submit answer. Please try again.',
-            });
+        const result = await toast.promise(submitAction(), {
+            loading: isEdit ? 'Saving changes...' : 'Posting answer...',
+            success: isEdit ? 'Answer updated successfully!' : 'Answer posted successfully!',
+            error: (err) => err.message || 'Failed to submit answer. Please try again.',
+        });
 
-            if (onAnswerSubmitted && result?.newCount !== undefined) {
-                onAnswerSubmitted(result.newCount);
+        if (onAnswerSubmitted && result?.newCount !== undefined) {
+            onAnswerSubmitted(result.newCount);
+        }
+
+        setAnswerText("");
+        setRelevanceCheck(null);
+        setRelevancePassed(false);
+        onClose();
+    };
+
+    const handleSubmit = async () => {
+        if (!answerText.trim() || !userData?.documentId) return;
+
+        const currentWordCount = answerText.trim().split(/\s+/).filter(Boolean).length;
+        if (currentWordCount < 15) {
+            toast.error(`Answer is too short. Please write at least 15 words. (${currentWordCount}/15)`);
+            return;
+        }
+
+        // ✅ FIX: Time check happens FIRST — before any AI call
+        // Previously this fired AFTER the AI check, giving a confusing rejection after a green pass
+        const timeSpent = Date.now() - openedAt.current;
+        if (timeSpent < 30000) {
+            const secondsLeft = Math.ceil((30000 - timeSpent) / 1000);
+            toast.error(`Please take more time to write a thoughtful answer. Wait ${secondsLeft}s more.`);
+            return;
+        }
+
+        if (relevancePassed && relevanceCheck?.isRelevant) {
+            try {
+                await doSubmit();
+            } catch (err) {
+                console.error("❌ Failed to submit personal answer:", err);
+            }
+            return;
+        }
+
+        // --- First click: run relevance check ---
+        setCheckingRelevance(true);
+        setRelevanceCheck(null);
+        setRelevancePassed(false);
+
+        try {
+            const result = await checkAnswerRelevance(
+                query.title,
+                query.description,
+                answerText
+            );
+            setRelevanceCheck(result);
+
+            if (!result.isRelevant) {
+                // Failed — show feedback banner, stop here
+                setCheckingRelevance(false);
+                return;
             }
 
-            setAnswerText("");
-            setRelevanceCheck(null);
-            onClose();
+            // ✅ FIX: Passed — mark as passed, stop here, do NOT call doSubmit()
+            // The green "Answer looks great!" banner now shows a "Confirm & Post" CTA
+            // and the main button label changes so user knows to click once more
+            setRelevancePassed(true);
+            setCheckingRelevance(false);
 
         } catch (err) {
-            console.error("❌ Failed to submit personal answer:", err);
+            console.error("Relevance check failed:", err);
+            toast.error("Could not verify answer relevance. Please try again.");
+            setCheckingRelevance(false);
         }
     };
 
     const querySender = query.fromUser || query.user;
 
+    // ✅ FIX: Button label reflects current state clearly
+    const submitButtonLabel = () => {
+        if (checkingRelevance) return <><Loader2 className="w-3 h-3 animate-spin" />Checking...</>;
+        if (submitting) return <><Loader2 className="w-3 h-3 animate-spin" />Saving...</>;
+        if (relevancePassed && relevanceCheck?.isRelevant) return <><Send className="w-3 h-3" />Confirm &amp; Post</>;
+        if (isEdit) return <><Send className="w-3 h-3" />Save Changes</>;
+        return <><Send className="w-3 h-3" />Post Answer</>;
+    };
+
     return (
-        // FIX 1: was `<` — missing `div` tag name
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={onClose}
@@ -294,7 +330,6 @@ export const AddPersonalAnswerModal = ({
                                         You need to register as a partner and add your UPI ID to answer
                                         paid queries and receive payments.
                                     </p>
-                                    {/* FIX 2: was a bare `href=` attribute — restored the opening `<a` tag */}
                                     <a
                                         href="#"
                                         className="inline-block mt-2 text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:opacity-80"
@@ -320,15 +355,19 @@ export const AddPersonalAnswerModal = ({
                         value={answerText}
                         onChange={(e) => {
                             setAnswerText(e.target.value);
-                            if (relevanceCheck !== null) setRelevanceCheck(null);
+                            // ✅ FIX: Reset relevance state when user edits after a check
+                            // so they can't pass check then silently change the answer before submitting
+                            if (relevanceCheck !== null) {
+                                setRelevanceCheck(null);
+                                setRelevancePassed(false);
+                            }
                         }}
                         onPaste={(e) => e.preventDefault()}
                         onCopy={(e) => e.preventDefault()}
                         onCut={(e) => e.preventDefault()}
                         onDrop={(e) => e.preventDefault()}
                         onContextMenu={(e) => e.preventDefault()}
-                        
-                        className={`w-full h-48 md:h-40 p-3 bg-zinc-100 dark:bg-zinc-800 border rounded-lg text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${relevanceCheck && !relevanceCheck.isRelevant
+                        className={`w-full h-48 md:h-40 p-3 bg-zinc-100 dark:bg-zinc-800 border rounded-lg text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors resize-none ${relevanceCheck && !relevanceCheck.isRelevant
                             ? 'border-red-400 dark:border-red-600 focus:ring-red-400'
                             : relevanceCheck?.isRelevant
                                 ? 'border-green-400 dark:border-green-600 focus:ring-green-400'
@@ -379,7 +418,7 @@ export const AddPersonalAnswerModal = ({
                         </div>
                     )}
 
-                    {/* QUALITY BLOCK (score ≤ 6, not a safety issue) */}
+                    {/* QUALITY BLOCK */}
                     {relevanceCheck && relevanceCheck.qualityBlock && !relevanceCheck.safetyBlock && (
                         <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                             <div className="flex items-start gap-2">
@@ -389,7 +428,6 @@ export const AddPersonalAnswerModal = ({
                                         <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
                                             Answer quality too low to submit
                                         </p>
-                                        {/* Quality score badge */}
                                         {typeof relevanceCheck.qualityScore === "number" && (
                                             <span className="text-xs font-bold px-2 py-0.5 bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded-full">
                                                 {relevanceCheck.qualityScore}/10
@@ -411,7 +449,7 @@ export const AddPersonalAnswerModal = ({
                         </div>
                     )}
 
-                    {/* GENERIC IRRELEVANT (no qualityBlock, no safetyBlock) */}
+                    {/* GENERIC IRRELEVANT */}
                     {relevanceCheck && !relevanceCheck.isRelevant && !relevanceCheck.qualityBlock && !relevanceCheck.safetyBlock && (
                         <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                             <div className="flex items-start gap-2">
@@ -433,20 +471,23 @@ export const AddPersonalAnswerModal = ({
                         </div>
                     )}
 
-                    {/* PASS — relevant and quality score > 6 */}
-                    {relevanceCheck?.isRelevant && (
-                        <div className="mt-3 flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-                                <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                                Answer looks great — submitting now...
+                    {/* ✅ FIX: PASS banner — now clearly tells user to click "Confirm & Post" */}
+                    {relevanceCheck?.isRelevant && relevancePassed && (
+                        <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+                                    <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                                    Answer passed quality check! Click <strong>Confirm &amp; Post</strong> to submit.
+                                </div>
+                                {typeof relevanceCheck.qualityScore === "number" && (
+                                    <span className="text-xs font-bold px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
+                                        {relevanceCheck.qualityScore}/10
+                                    </span>
+                                )}
                             </div>
-                            {typeof relevanceCheck.qualityScore === "number" && (
-                                <span className="text-xs font-bold px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
-                                    {relevanceCheck.qualityScore}/10
-                                </span>
-                            )}
                         </div>
                     )}
+
                     {/* PRIVACY NOTE */}
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 flex items-center gap-1">
                         <Lock className="w-3 h-3" />
@@ -466,27 +507,14 @@ export const AddPersonalAnswerModal = ({
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitDisabled}
-                            className={`px-4 py-1.5 text-white text-sm rounded-lg flex items-center gap-1 transition-all ${isSubmitDisabled
+                            className={`px-4 py-1.5 text-white text-sm rounded-lg flex items-center gap-1.5 transition-all ${isSubmitDisabled
                                 ? 'bg-zinc-400 cursor-not-allowed'
-                                : 'bg-purple-600 hover:bg-purple-700'
+                                : relevancePassed
+                                    ? 'bg-green-600 hover:bg-green-700'
+                                    : 'bg-purple-600 hover:bg-purple-700'
                                 }`}
                         >
-                            {checkingRelevance ? (
-                                <>
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                    Checking...
-                                </>
-                            ) : submitting ? (
-                                <>
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Send className="w-3 h-3" />
-                                    {isEdit ? "Save Changes" : "Post Answer"}
-                                </>
-                            )}
+                            {submitButtonLabel()}
                         </button>
                     </div>
                 </div>{/* END BODY */}
