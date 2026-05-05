@@ -1,0 +1,25 @@
+name: Auto Accept Queries
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # runs every 15 minutes
+  workflow_dispatch:          # allows manual trigger from GitHub UI
+
+jobs:
+  auto-accept:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger auto-accept cron
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "${{ secrets.APP_URL }}/api/cron/auto-accept" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          
+          echo "Response status: $response"
+          
+          if [ "$response" != "200" ]; then
+            echo "❌ Cron failed with status $response"
+            exit 1
+          fi
+          
+          echo "✅ Cron completed successfully"
