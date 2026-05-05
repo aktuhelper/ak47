@@ -2,8 +2,8 @@ name: Auto Accept Queries
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # runs every 15 minutes
-  workflow_dispatch:          # allows manual trigger from GitHub UI
+    - cron: '0 * * * *'  # runs every 1 hour
+  workflow_dispatch:       # allows manual trigger from GitHub UI
 
 jobs:
   auto-accept:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Trigger auto-accept cron
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" \
+          response=$(curl -L -s -o /dev/null -w "%{http_code}" \
             -X GET "${{ secrets.APP_URL }}/api/cron/auto-accept" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
           
