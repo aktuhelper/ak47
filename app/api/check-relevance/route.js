@@ -45,7 +45,59 @@ const SPAM_PATTERNS = [
     /(\b\w+\b)(\s+\1){4,}/i,
 ];
 
-// Detects answers with too few unique words or mostly non-alphabetic tokens
+// ── Detection Functions ────────────────────────────────────────────────────
+
+/**
+ * Detects circular/tautological answers that just restate the question.
+ * e.g. Q: "What is an OS?" A: "Operating system is a system which is a system"
+ * 
+ * Uses TWO signals together to avoid false positives on legitimate answers
+ * that naturally share vocabulary with the question:
+ *  1. Word overlap ratio > 0.8 (answer mostly reuses question words)
+ *  2. Very low unique word ratio in the answer itself (< 0.5) — meaning it's
+ *     not just topically related but genuinely repetitive/circular
+ */
+function isCircularAnswer(questionText, answerText) {
+    // Extract meaningful words (length > 3) from the question
+    const qWords = new Set(
+        questionText.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+    );
+
+    const aWords = answerText.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+    if (aWords.length === 0 || qWords.size === 0) return false;
+
+    // Signal 1: How many answer words are just recycled question words?
+    const overlapCount = aWords.filter(w => qWords.has(w)).length;
+    const overlapRatio = overlapCount / aWords.length;
+
+    // Signal 2: How repetitive is the answer within itself?
+    const uniqueAWords = new Set(aWords);
+    const uniquenessRatio = uniqueAWords.size / aWords.length;
+
+    // Circular = mostly question words AND internally repetitive
+    return overlapRatio > 0.8 && uniquenessRatio < 0.5;
+}
+
+/**
+ * Detects answers where a single word dominates excessively.
+ * e.g. "system system system system system system system system"
+ * Catches distributed repetition that SPAM_PATTERNS misses (non-consecutive).
+ */
+function hasExcessiveRepetition(text) {
+    const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+    if (words.length < 5) return false;
+
+    const freq = {};
+    for (const w of words) freq[w] = (freq[w] || 0) + 1;
+    const maxFreq = Math.max(...Object.values(freq));
+
+    // Any single word appears more than 40% of the time → spam
+    return maxFreq / words.length > 0.4;
+}
+
+/**
+ * Detects answers with too few unique words or mostly non-alphabetic tokens.
+ */
 function isGibberish(text) {
     if (!text) return false;
     const words = text.trim().split(/\s+/).filter(Boolean);
@@ -134,7 +186,6 @@ function getQualityGuidance(score) {
 
 // ── Gemini response parser ─────────────────────────────────────────────────
 function parseGeminiResponse(raw) {
-    // ── Guard: detect truncated/incomplete JSON before attempting parse ──
     const trimmed = raw.trim();
     const looksIncomplete =
         !trimmed.includes("}") ||
@@ -201,7 +252,6 @@ async function callGemini(prompt) {
                 signal: controller.signal,
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
-                    // ── FIX: 256 gives enough headroom for compact JSON without truncation ──
                     generationConfig: { temperature: 0.1, maxOutputTokens: 256 },
                 }),
             }
@@ -283,7 +333,19 @@ export async function POST(req) {
             });
         }
 
-        // 6b. Gibberish gate
+        // 6b. Excessive repetition gate — catches distributed word spam
+        // that SPAM_PATTERNS misses (non-consecutive repeats)
+        if (hasExcessiveRepetition(cleanAnswer)) {
+            return NextResponse.json({
+                isRelevant: false,
+                qualityScore: 1,
+                qualityBlock: true,
+                reason: "Answer contains excessive word repetition.",
+                guidance: "Please write a genuine answer without repeating the same words over and over.",
+            });
+        }
+
+        // 6c. Gibberish gate
         if (isGibberish(cleanAnswer)) {
             return NextResponse.json({
                 isRelevant: false,
@@ -291,6 +353,19 @@ export async function POST(req) {
                 qualityBlock: true,
                 reason: "Answer appears to be gibberish or random text.",
                 guidance: "Please write a genuine, meaningful answer that addresses the question.",
+            });
+        }
+
+        // 6d. Circular / tautological answer gate
+        // Catches answers like "OS is a system which is a system that is a system"
+        // Must run AFTER gibberish check (gibberish has priority for cleaner messaging)
+        if (isCircularAnswer(cleanQuestion, cleanAnswer)) {
+            return NextResponse.json({
+                isRelevant: false,
+                qualityScore: 2,
+                qualityBlock: true,
+                reason: "Your answer just restates the question without actually explaining anything.",
+                guidance: "Please provide a real explanation. Define what it is, how it works, or give a concrete example — don't just repeat the question's words back.",
             });
         }
 
@@ -325,19 +400,33 @@ export async function POST(req) {
             return NextResponse.json({ message: "API key not configured" }, { status: 500 });
         }
 
-        // 10. Build prompt — compact format minimises output tokens needed
-        const prompt = `You are a strict answer quality checker. Evaluate the answer against the question.
+        // 10. Build prompt — hardened to explicitly penalise circular/tautological answers
+        const prompt = `You are a strict answer quality and factual accuracy checker.
 
 Reply with ONLY: {"s":<score>,"r":<true|false>}
 No spaces, no markdown, no explanation. Example: {"s":7,"r":true}
 
-Scoring (be strict):
+Scoring rules (be very strict):
 - s = integer 1-10
 - r = true ONLY if s >= 7, else false
 
-Score 1-3: random/gibberish/unrelated/repeats question
-Score 4-6: vague, partial, lacks depth
-Score 7-10: clear, relevant, explained, helpful
+Score 1-3 if ANY of these are true:
+  - Answer just repeats or paraphrases the question without explaining anything new
+  - Circular definitions: "X is X" or "X is a thing that does X"
+  - Answer is factually WRONG or MISLEADING about the topic
+  - Answer describes a completely different concept than what was asked
+  - Answer uses correct-sounding technical words but applies them to the wrong domain
+  - Answer contains no real information beyond what was already in the question
+
+Score 4-6 if:
+  - Answer is vague, partial, or lacks sufficient depth
+  - Answer is mostly correct but missing key facts
+  - Answer touches the topic but doesn't actually explain it well
+
+Score 7-10 if ALL of these are true:
+  - Answer is factually accurate and correct
+  - Answer genuinely explains, defines, or provides information beyond the question
+  - Includes how something works, why it exists, concrete examples, or meaningful context
 
 Q: "${cleanQuestion}"
 D: "${cleanDescription || "N/A"}"
@@ -374,7 +463,6 @@ A: "${cleanAnswer}"`;
         const parsed = parseGeminiResponse(raw);
 
         if (!parsed) {
-            // ── FIX: graceful fallback instead of hard 502 on parse failure ──
             console.error("All parse strategies failed. Raw:", raw);
             return NextResponse.json({
                 isRelevant: true,

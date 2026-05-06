@@ -1,9 +1,9 @@
-name: Auto Accept Queries
+name: Auto Cron Jobs
 
 on:
   schedule:
-    - cron: '0 * * * *'  # runs every 1 hour
-  workflow_dispatch:       # allows manual trigger from GitHub UI
+    - cron: '*/30 * * * *'  # every 30 mins — sweet spot
+  workflow_dispatch:
 
 jobs:
   auto-accept:
@@ -14,12 +14,24 @@ jobs:
           response=$(curl -L -s -o /dev/null -w "%{http_code}" \
             -X GET "${{ secrets.APP_URL }}/api/cron/auto-accept" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
-          
           echo "Response status: $response"
-          
           if [ "$response" != "200" ]; then
-            echo "❌ Cron failed with status $response"
+            echo "❌ Auto-accept failed with status $response"
             exit 1
           fi
-          
-          echo "✅ Cron completed successfully"
+          echo "✅ Auto-accept completed"
+
+  expire-queries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger expire-queries cron
+        run: |
+          response=$(curl -L -s -o /dev/null -w "%{http_code}" \
+            -X GET "${{ secrets.APP_URL }}/api/cron/expire-queries" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          echo "Response status: $response"
+          if [ "$response" != "200" ]; then
+            echo "❌ Expire-queries failed with status $response"
+            exit 1
+          fi
+          echo "✅ Expire-queries completed"
