@@ -2,7 +2,7 @@ name: Auto Cron Jobs
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # every 30 mins — sweet spot
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,14 +11,23 @@ jobs:
     steps:
       - name: Trigger auto-accept cron
         run: |
-          response=$(curl -L -s -o /dev/null -w "%{http_code}" \
+          response=$(curl -s -w "\n%{http_code}" \
             -X GET "${{ secrets.APP_URL }}/api/cron/auto-accept" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
-          echo "Response status: $response"
-          if [ "$response" != "200" ]; then
-            echo "❌ Auto-accept failed with status $response"
+
+          body=$(echo "$response" | head -n -1)
+          status=$(echo "$response" | tail -n 1)
+
+          echo "Response Body:"
+          echo "$body"
+
+          echo "Response Status: $status"
+
+          if [ "$status" != "200" ]; then
+            echo "❌ Auto-accept failed"
             exit 1
           fi
+
           echo "✅ Auto-accept completed"
 
   expire-queries:
@@ -26,12 +35,21 @@ jobs:
     steps:
       - name: Trigger expire-queries cron
         run: |
-          response=$(curl -L -s -o /dev/null -w "%{http_code}" \
+          response=$(curl -s -w "\n%{http_code}" \
             -X GET "${{ secrets.APP_URL }}/api/cron/expire-queries" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
-          echo "Response status: $response"
-          if [ "$response" != "200" ]; then
-            echo "❌ Expire-queries failed with status $response"
+
+          body=$(echo "$response" | head -n -1)
+          status=$(echo "$response" | tail -n 1)
+
+          echo "Response Body:"
+          echo "$body"
+
+          echo "Response Status: $status"
+
+          if [ "$status" != "200" ]; then
+            echo "❌ Expire-queries failed"
             exit 1
           fi
+
           echo "✅ Expire-queries completed"
