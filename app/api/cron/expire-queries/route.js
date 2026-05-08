@@ -12,8 +12,9 @@ async function getStrapiDirect(endpoint) {
     });
     if (!res.ok) {
         const body = await res.text();
-        console.error(`[strapi] HTTP ${res.status} — ${url}`);
-        console.error(`[strapi] Body: ${body}`);
+        console.error(`[strapi] HTTP ${res.status}`);
+        console.error(`[strapi] URL: ${url}`);
+        console.error(`[strapi] Response: ${body.slice(0, 300)}`);
         throw new Error(`Strapi fetch failed: ${endpoint}`);
     }
     return res.json();
