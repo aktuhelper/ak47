@@ -2,7 +2,7 @@
 import razorpay from '@/lib/razorpay';
 import crypto from 'crypto';
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN;
+const STRAPI_TOKEN = process.env.STRAPI_API_TOKENI;
 const PLATFORM_FEE_PERCENT = 20;
 const SOFT_LOCK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 async function getStrapiDirect(endpoint) {
