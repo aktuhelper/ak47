@@ -208,10 +208,16 @@ export default function AskQueryModal({
                         if (!confirmRes.ok) throw new Error(confirmData.error || 'Payment verification failed');
 
                         // 6. Payment verified — NOW save query to Strapi
+                        // 6. Payment verified — NOW save query to Strapi
+                        const deadlineAt = new Date(
+                            Date.now() + deadline.hours * 60 * 60 * 1000
+                        ).toISOString();
+
                         const savedQuery = await postToStrapi('personal-queries', {
                             ...buildQueryData(uploadedFileId, 'open', 'paid'),
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
+                            deadline_at: deadlineAt,  // ← this is what the cron needs
                         });
 
                         const queryDocumentId = savedQuery?.data?.documentId;
