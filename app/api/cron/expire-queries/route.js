@@ -6,10 +6,16 @@ const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN;
 const PLATFORM_FEE_PERCENT = 20;
 const SOFT_LOCK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 async function getStrapiDirect(endpoint) {
-    const res = await fetch(`${STRAPI_URL}/api/${endpoint}`, {
+    const url = `${STRAPI_URL}/api/${endpoint}`;
+    const res = await fetch(url, {
         headers: { Authorization: `Bearer ${STRAPI_TOKEN}` },
     });
-    if (!res.ok) throw new Error(`Strapi fetch failed: ${endpoint}`);
+    if (!res.ok) {
+        const body = await res.text();
+        console.error(`[strapi] HTTP ${res.status} — ${url}`);
+        console.error(`[strapi] Body: ${body}`);
+        throw new Error(`Strapi fetch failed: ${endpoint}`);
+    }
     return res.json();
 }
 async function updateStrapiDirect(endpoint, data) {
