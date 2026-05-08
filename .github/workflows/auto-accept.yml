@@ -53,3 +53,4 @@ jobs:
           fi
 
           echo "✅ Expire-queries completed"
+          echo "✅ Expire-queries completed"
