@@ -2,7 +2,7 @@
 import razorpay from '@/lib/razorpay';
 import crypto from 'crypto';
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN;  
+const STRAPI_TOKEN = process.env.STRAPI_API_TOKEN;
 const PLATFORM_FEE_PERCENT = 20;
 const SOFT_LOCK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 async function getStrapiDirect(endpoint) {
@@ -57,9 +57,8 @@ export async function GET(req) {
 
         await recoverStuckSoftLocks('processing_expire', 'open');
 
-        // ✅ FIX 3: populate=* so fromUser is available for the refund toUser field
         const res = await getStrapiDirect(
-            `personal-queries?filters[query_status][$eq]=open&filters[deadline_at][$lt]=${now}&filters[amount_paise][$gt]=0&populate=*&publicationState=preview`
+            `personal-queries?filters[query_status][$eq]=open&filters[deadline_at][$lt]=${now}&filters[amount_paise][$gt]=0&populate=*`
         );
 
         const queries = res?.data || [];
@@ -73,9 +72,8 @@ export async function GET(req) {
             try {
                 console.log(`[expire] Checking ${qid}`);
 
-                // ✅ FIX: populate=* on re-fetch too
                 const latestRes = await getStrapiDirect(
-                    `personal-queries/${qid}?populate=*&publicationState=preview`
+                    `personal-queries/${qid}?populate=*`
                 );
                 const latest = latestRes?.data;
 
@@ -86,12 +84,11 @@ export async function GET(req) {
 
                 const amountPaise = latest.amount_paise;
                 const razorpayPaymentId = latest.razorpay_payment_id;
-                const fromUserDocumentId = latest.fromUser?.documentId; // ✅ FIX 3: student who paid
+                const fromUserDocumentId = latest.fromUser?.documentId;
 
-                // ✅ FIX 5: On expiry mentor did nothing — full refund minus platform fee only
-                // Split: Platform 20%, User refund 80% (no mentor consolation on expiry)
                 const platformPaise = Math.round((amountPaise * PLATFORM_FEE_PERCENT) / 100);
                 const refundPaise = amountPaise - platformPaise; // 80% back to user
+
                 // Check if refund transaction already exists
                 const existingRefund = await getStrapiDirect(
                     `transactions?filters[personal_query][documentId][$eq]=${qid}&filters[type][$eq]=refund`
@@ -120,7 +117,7 @@ export async function GET(req) {
                     type: 'refund',
                     statuss: 'pending',
                     personal_query: qid,
-                    toUser: fromUserDocumentId, // ✅ FIX 3: who receives the refund
+                    toUser: fromUserDocumentId,
                     note: `Auto-expired refund ₹${Math.floor(refundPaise / 100)} — payment ID: ${razorpayPaymentId || 'N/A'}`,
                 });
 
@@ -157,7 +154,7 @@ export async function GET(req) {
                 if (refundTxId) {
                     await updateStrapiDirect(`transactions/${refundTxId}`, {
                         statuss: refundStatus,
-                        ...(refundId && { razorpay_refund_id: refundId }), // ✅ save refund ID
+                        ...(refundId && { razorpay_refund_id: refundId }),
                         note: `Auto-expired refund ₹${Math.floor(refundPaise / 100)} — payment ID: ${razorpayPaymentId || 'N/A'}${refundId ? ` | refund ID: ${refundId}` : ' | pending admin action'}`,
                     });
                 }
@@ -217,7 +214,7 @@ async function recoverStuckSoftLocks(stuckStatus, recoveryStatus) {
     try {
         const cutoff = new Date(Date.now() - SOFT_LOCK_TIMEOUT_MS).toISOString();
         const res = await getStrapiDirect(
-            `personal-queries?filters[query_status][$eq]=${stuckStatus}&filters[processing_started_at][$lt]=${cutoff}&publicationState=preview`
+            `personal-queries?filters[query_status][$eq]=${stuckStatus}&filters[processing_started_at][$lt]=${cutoff}`
         );
         const stuck = res?.data || [];
         if (stuck.length > 0) {
