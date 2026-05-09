@@ -29,8 +29,7 @@ export async function POST(req) {
         const {
             razorpayOrderId,
             razorpayPaymentId,
-            razorpaySignature,
-            queryDocumentId,  // ← pass this from frontend
+            razorpaySignature,  
         } = await req.json();
 
         if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
