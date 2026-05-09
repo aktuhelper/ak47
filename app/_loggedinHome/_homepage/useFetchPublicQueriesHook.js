@@ -50,11 +50,12 @@ export const useFetchPublicQueries = (userData = null) => {
     const PAGE_SIZE = 10;
 
     // ✅ Fetch queries with pagination and visibility filtering
+    // FIX #1: Removed `publicQueries.length` from deps — it was a stale closure
+    // causing unnecessary re-creation of this callback on every query list change.
     const fetchQueries = useCallback(async (pageNum = 1, append = false) => {
         try {
             setLoading(true);
             setError(null);
-            console.log(`🔍 Fetching public queries - Page ${pageNum}...`);
 
             // ⭐ Build query params with visibility filters
             const params = new URLSearchParams();
@@ -74,14 +75,8 @@ export const useFetchPublicQueries = (userData = null) => {
             // ============================================
             // VISIBILITY FILTERS (if userData provided)
             // ============================================
-            if (userData && userData.college) {
-                console.log('👤 User data provided, applying visibility filters:', {
-                    college: userData.college,
-                    branch: userData.branch,
-                    course: userData.course,
-                    year: userData.year
-                });
 
+            if (userData) {
                 // Condition 1: visibility = "public" (NO college filter)
                 params.append('filters[$or][0][visibility][$eq]', 'public');
 
@@ -90,6 +85,8 @@ export const useFetchPublicQueries = (userData = null) => {
                 params.append('filters[$or][1][$and][1][user_profile][college][$eq]', userData.college);
 
                 // Condition 3: visibility = "branch" AND same branch/course AND same college
+                // FIX #3: Always use index [2] for branch/course and index [3] for seniors
+                // to avoid collision when neither branch nor course is present.
                 if (userData.branch) {
                     // BTech/MTech with branches: Match by branch
                     params.append('filters[$or][2][$and][0][visibility][$eq]', 'branch');
@@ -104,14 +101,15 @@ export const useFetchPublicQueries = (userData = null) => {
                 }
 
                 // Condition 4: visibility = "seniors" AND same college AND user.year > creator.year
+                // FIX #3: Always use index [3] for seniors regardless of branch/course presence,
+                // preventing silent overwrite of the branch/course filter at index [2].
                 const userYearNumber = getYearNumber(userData.year);
 
                 if (userYearNumber && userYearNumber > 1) {
-                    const seniorIndex = (userData.branch || userData.course) ? 3 : 2;
-                    params.append(`filters[$or][${seniorIndex}][$and][0][visibility][$eq]`, 'seniors');
-                    params.append(`filters[$or][${seniorIndex}][$and][1][user_profile][college][$eq]`, userData.college);
+                    params.append('filters[$or][3][$and][0][visibility][$eq]', 'seniors');
+                    params.append('filters[$or][3][$and][1][user_profile][college][$eq]', userData.college);
 
-                    // Get all junior year strings
+                    // Get all junior year strings (years below the current user's year)
                     const juniorYears = [];
                     for (let i = 1; i < userYearNumber; i++) {
                         if (i === 1) juniorYears.push('1st Year', '1st', '1');
@@ -122,35 +120,25 @@ export const useFetchPublicQueries = (userData = null) => {
 
                     // Build nested $or for junior years
                     juniorYears.forEach((year, index) => {
-                        params.append(`filters[$or][${seniorIndex}][$and][2][$or][${index}][user_profile][year][$eq]`, year);
+                        params.append(`filters[$or][3][$and][2][$or][${index}][user_profile][year][$eq]`, year);
                     });
                 }
             } else {
                 // If no userData, only show public queries
-                console.log('🌍 No user data, showing only public queries');
                 params.append('filters[visibility][$eq]', 'public');
             }
 
             const queryString = params.toString();
             const endpoint = `queries?${queryString}`;
-            console.log('📡 API Endpoint:', endpoint);
 
             // 🔒 Use secure API wrapper
             const data = await fetchFromStrapi(endpoint);
-
-            console.log('📊 Pagination info:', {
-                page: data.meta?.pagination?.page,
-                pageSize: data.meta?.pagination?.pageSize,
-                pageCount: data.meta?.pagination?.pageCount,
-                total: data.meta?.pagination?.total
-            });
 
             // ⭐ Format queries
             const formattedQueries = (data.data || []).map(query => {
                 const userProfile = query.user_profile;
 
                 if (!userProfile) {
-                    console.warn('⚠️ No user_profile for query:', query.id);
                     return formatQueryWithAnonymousUser(query);
                 }
 
@@ -188,14 +176,6 @@ export const useFetchPublicQueries = (userData = null) => {
             setTotalPages(pagination?.pageCount || 0);
             setHasMore((pagination?.page || 1) < (pagination?.pageCount || 0));
 
-            console.log('✅ Queries loaded:', {
-                currentPage: pagination?.page,
-                totalPages: pagination?.pageCount,
-                hasMore: (pagination?.page || 1) < (pagination?.pageCount || 0),
-                queriesLoaded: formattedQueries.length,
-                totalQueries: append ? publicQueries.length + formattedQueries.length : formattedQueries.length
-            });
-
             return formattedQueries;
 
         } catch (err) {
@@ -205,33 +185,25 @@ export const useFetchPublicQueries = (userData = null) => {
         } finally {
             setLoading(false);
         }
-    }, [publicQueries.length, userData]);
+    }, [userData]); // FIX #1: Only depend on userData, not publicQueries.length
 
     // ✅ Load more queries (next page)
     const loadMore = useCallback(() => {
         if (loading || !hasMore) return;
-        console.log('📄 Loading more queries...');
         fetchQueries(page + 1, true);
     }, [loading, hasMore, page, fetchQueries]);
 
     // ✅ Increment view count using custom backend endpoint
     const incrementViewCount = useCallback(async (queryDocumentId, userId) => {
         try {
-            console.log('👁️ Calling backend to increment view:', { queryDocumentId, userId });
-
             // 🔒 Use secure API wrapper
             const endpoint = `/api/queries/${queryDocumentId}/increment-view`;
             const responseData = await postToStrapi(endpoint, {
                 userId: userId || null
             });
 
-            const { viewCount, alreadyViewed, reason } = responseData.data;
-
-            if (alreadyViewed) {
-                console.log(`⏭️ View not counted: ${reason}`);
-            } else {
-                console.log('✅ View count incremented to:', viewCount);
-            }
+            // FIX #4: Removed unused `reason` variable to eliminate lint warning
+            const { viewCount, alreadyViewed } = responseData.data;
 
             // Update local state with server's viewCount
             setPublicQueries(prev =>
@@ -261,10 +233,9 @@ export const useFetchPublicQueries = (userData = null) => {
     }, []);
 
     // ✅ Refresh queries (re-fetch from start)
+    // FIX #2: Removed redundant setPage(1)/setHasMore(true) — fetchQueries(1, false)
+    // already resets everything correctly via its own state updates.
     const refreshQueries = useCallback(async () => {
-        console.log('🔄 Refreshing public queries...');
-        setPage(1);
-        setHasMore(true);
         return await fetchQueries(1, false);
     }, [fetchQueries]);
 
@@ -275,7 +246,6 @@ export const useFetchPublicQueries = (userData = null) => {
 
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) {
-                console.log('🔽 Reached bottom, loading more...');
                 loadMore();
             }
         });
@@ -336,6 +306,8 @@ const formatAttachments = (attachments) => {
 };
 
 // Format user profile
+// FIX #5: branch falls back to null instead of 'Unknown Branch' —
+// avoids misleading value for courses (MCA/BCA/MBA) that have no branch.
 const formatUserProfile = (userProfile, profileImageUrl) => {
     const fallbackAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${userProfile.id}`;
     const avatar = profileImageUrl || fallbackAvatar;
@@ -350,7 +322,7 @@ const formatUserProfile = (userProfile, profileImageUrl) => {
         avatar: avatar,
         college: userProfile.college || 'Unknown College',
         course: userProfile.course || 'Unknown Course',
-        branch: userProfile.branch || 'Unknown Branch',
+        branch: userProfile.branch || null, // FIX #5: null instead of 'Unknown Branch'
         year: userProfile.year || '1st Year',
         email: userProfile.email || '',
         isVerified: userProfile.isVerified || false,
@@ -393,7 +365,7 @@ const formatQueryWithAnonymousUser = (query) => {
             avatar: anonymousAvatar,
             college: 'Unknown College',
             course: 'Unknown Course',
-            branch: 'Unknown Branch',
+            branch: null, // FIX #5: null instead of 'Unknown Branch'
             year: '1st Year',
             email: '',
             isVerified: false,
