@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { useProtectedRoute } from '@/hooks/useProtectedRoute'
-import PageSkeleton from './PageSkeleton'        // ← replaces LoadingScreen for profile loading
+import PageSkeleton from './Pageskeleton'        // ← replaces LoadingScreen for profile loading
 import LoadingScreen from '../_loggedinHome/LoadingScreen'  // ← kept only for auth check
 import Sidebar from '../_loggedinHome/sidebar'
 import HomePagee from '../_loggedinHome/hero'
