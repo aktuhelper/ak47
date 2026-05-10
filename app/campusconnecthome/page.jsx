@@ -1,7 +1,8 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { useProtectedRoute } from '@/hooks/useProtectedRoute'
-import LoadingScreen from '../_loggedinHome/LoadingScreen'
+import PageSkeleton from './PageSkeleton'        // ← replaces LoadingScreen for profile loading
+import LoadingScreen from '../_loggedinHome/LoadingScreen'  // ← kept only for auth check
 import Sidebar from '../_loggedinHome/sidebar'
 import HomePagee from '../_loggedinHome/hero'
 import AskQueryPage from '../_loggedinHome/AskQueryPage'
@@ -10,277 +11,205 @@ import UserQueries from '../_loggedinHome/userquery'
 import MyCollegePage from '../_loggedinHome/mycollege'
 import CompleteProfilePage from '../_loggedinHome/profile'
 import { fetchFromStrapi } from '@/secure/strapi'
-import { calculateAndUpdateBadges } from '../_loggedinHome/badges/page';
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337"
+import { calculateAndUpdateBadges } from '../_loggedinHome/badges/page'
+
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'
+const CACHE_KEY = 'userData_cache'
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+const USER_PROFILE_POPULATE = 'populate=*'
+
+const getVerificationStatus = (verificationRequests) => {
+    if (!verificationRequests || verificationRequests.length === 0) return null
+
+    const sorted = [...verificationRequests].sort((a, b) => {
+        return new Date(b.createdAt || b.submittedAt) - new Date(a.createdAt || a.submittedAt)
+    })
+
+    const status = (sorted[0].statuss || sorted[0].status || '').trim().toLowerCase()
+
+    if (status === 'pending') return 'pending'
+    if (status === 'approved') return 'approved'
+    if (status === 'rejected') return 'rejected'
+    return null
+}
+
+const getRejectionReason = (verificationRequests) => {
+    if (!verificationRequests || verificationRequests.length === 0) return null
+
+    const sorted = [...verificationRequests].sort((a, b) => {
+        return new Date(b.createdAt || b.submittedAt) - new Date(a.createdAt || a.submittedAt)
+    })
+
+    const latest = sorted[0]
+    const status = (latest.statuss || latest.status || '').trim().toLowerCase()
+    return status === 'rejected' ? (latest.rejectionReason || null) : null
+}
+
+const buildProfileImageUrl = (userData) => {
+    if (userData.profileImage) {
+        const profileImage = userData.profileImage.data || userData.profileImage
+        if (profileImage) {
+            const imageData = profileImage.attributes || profileImage
+            if (imageData.url) {
+                return imageData.url.startsWith('http')
+                    ? imageData.url
+                    : `${STRAPI_URL}${imageData.url}`
+            }
+        }
+    }
+    return userData.profilePic || null
+}
+
+const formatUser = (raw) => {
+    const userData = raw.attributes || raw
+    const profileImageUrl = buildProfileImageUrl(userData)
+
+    return {
+        id: raw.id,
+        documentId: raw.documentId,
+        bio: userData.bio || '',
+        enrollmentYear: userData.enrollmentYear || new Date().getFullYear(),
+        graduationYear: userData.graduationYear,
+        name: userData.name || '',
+        username: userData.username || '',
+        isVerified: userData?.isVerified ?? false,
+        verificationStatus: getVerificationStatus(userData.verification_requests),
+        verificationRejectionReason: getRejectionReason(userData.verification_requests),
+        isMentor: userData?.isMentor ?? false,
+        superMentor: userData?.superMentor ?? false,
+        eliteMentor: userData?.eliteMentor ?? false,
+        activeParticipant: userData?.activeParticipant ?? false,
+        bannerUrl: userData?.bannerUrl,
+        email: userData.email || '',
+        college: userData.college || '',
+        course: userData.course || '',
+        branch: userData.branch || null,
+        year: userData.year || '',
+        interests: userData.interests || [],
+        profilePic: profileImageUrl || '/logo_192.png',
+        profileImageUrl: profileImageUrl || '/logo_192.png',
+        totalQueries: userData?.totalQueries ?? 0,
+        totalAnswersGiven: userData?.totalAnswersGiven ?? 0,
+        bestAnswers: userData?.bestAnswers ?? 0,
+        helpfulVotes: userData?.helpfulVotes ?? 0,
+        totalViews: userData?.totalViews ?? 0,
+    }
+}
 
 const Page = () => {
     const [activeTab, setActiveTab] = useState('home')
     const { isRegistered, checkingRegistration, user } = useProtectedRoute()
     const userEmail = user ? (user.email || user.given_name || user.id) : null
 
-    // User data state
     const [userData, setUserData] = useState(null)
-    const [loadingUserData, setLoadingUserData] = useState(true)
+    const [loadingUserData, setLoadingUserData] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
     const [error, setError] = useState(null)
 
-    // Helper function to get verification status from user's verification_requests relation
-    const getVerificationStatus = (verificationRequests) => {
-        if (!verificationRequests || verificationRequests.length === 0) {
-            return null
-        }
-
-        // Sort by createdAt to get the most recent request
-        const sortedRequests = [...verificationRequests].sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.submittedAt)
-            const dateB = new Date(b.createdAt || b.submittedAt)
-            return dateB - dateA // Most recent first
-        })
-
-        const latestRequest = sortedRequests[0]
-
-        // Clean up the status string (remove extra spaces and convert to lowercase)
-        const status = (latestRequest.statuss || latestRequest.status || '').trim().toLowerCase()
-
-       
-
-        // Return standardized status
-        if (status === 'pending') return 'pending'
-        if (status === 'approved') return 'approved'
-        if (status === 'rejected') return 'rejected'
-
-        return null
-    }
-
-    // Helper function to get rejection reason from verification requests
-    const getRejectionReason = (verificationRequests) => {
-        if (!verificationRequests || verificationRequests.length === 0) {
-            return null
-        }
-
-        // Sort by createdAt to get the most recent request
-        const sortedRequests = [...verificationRequests].sort((a, b) => {
-            const dateA = new Date(a.createdAt || a.submittedAt)
-            const dateB = new Date(b.createdAt || b.submittedAt)
-            return dateB - dateA // Most recent first
-        })
-
-        const latestRequest = sortedRequests[0]
-        const status = (latestRequest.statuss || latestRequest.status || '').trim().toLowerCase()
-
-        // Only return rejection reason if status is rejected
-        if (status === 'rejected') {
-            return latestRequest.rejectionReason || null
-        }
-
-        return null
-    }
-
-    // Fetch user data after registration is confirmed
     useEffect(() => {
         const fetchUserData = async () => {
-            // ✅ FIX 1: Don't set loadingUserData(false) when conditions aren't met
-            // Keep it true so the LoadingScreen stays visible
-            if (!isRegistered || !userEmail) {
-                return  // ← Removed setLoadingUserData(false)
+            if (!isRegistered || !userEmail) return
+
+            setError(null)
+
+            // Step 1 — check cache first
+            let hasCache = false
+            try {
+                const raw = localStorage.getItem(CACHE_KEY)
+                if (raw) {
+                    const { data, ts, email } = JSON.parse(raw)
+                    const isRecent = Date.now() - ts < CACHE_TTL
+                    const isSameUser = email === userEmail
+
+                    if (isRecent && isSameUser && data) {
+                        setUserData(data)
+                        setLoadingUserData(false)
+                        hasCache = true
+                    }
+                }
+            } catch {
+                localStorage.removeItem(CACHE_KEY)
             }
 
-            try {
-              
-                setLoadingUserData(true)
-                setError(null)
+            if (!hasCache) setLoadingUserData(true)
 
+            try {
                 const data = await fetchFromStrapi(
-                    `user-profiles?filters[email][$eq]=${encodeURIComponent(userEmail)}&populate=*`
+                    `user-profiles?filters[email][$eq]=${encodeURIComponent(userEmail)}&${USER_PROFILE_POPULATE}`
                 )
 
-         
                 if (data?.data && data.data.length > 0) {
-                    const user = data.data[0]
-                   
+                    const raw = data.data[0]
+                    const formattedUser = formatUser(raw)
 
-                    const userData = user.attributes || user
+                    localStorage.setItem('userDocumentId', raw.documentId)
+                    localStorage.setItem('userEmail', formattedUser.email)
 
-                    let profileImageUrl = null;
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({
+                        data: formattedUser,
+                        ts: Date.now(),
+                        email: userEmail
+                    }))
 
-                    if (userData.profileImage) {
-                        const profileImage = userData.profileImage.data || userData.profileImage;
-                        if (profileImage) {
-                            const imageData = profileImage.attributes || profileImage;
-                            profileImageUrl = imageData.url?.startsWith('http')
-                                ? imageData.url
-                                : `${STRAPI_URL}${imageData.url}`;
-                        }
-                    }
-
-                    if (!profileImageUrl && userData.profilePic) {
-                        profileImageUrl = userData.profilePic;
-                    }
-
-                    
-                    const verificationStatus = getVerificationStatus(userData.verification_requests)
-              
-                    const verificationRejectionReason = getRejectionReason(userData.verification_requests)
-                  
-
-                    const formattedUser = {
-                        id: user.id,
-                        documentId: user.documentId,
-                        bio: userData.bio || "",
-                        enrollmentYear: userData.enrollmentYear || new Date().getFullYear(),
-                        graduationYear: userData.graduationYear,
-                        name: userData.name || '',
-                        username: userData.username || '',
-                        isVerified: userData?.isVerified ?? false,
-                        verificationStatus: verificationStatus,
-                        verificationRejectionReason: verificationRejectionReason,
-                        isMentor: userData?.isMentor ?? false,
-                        superMentor: userData?.superMentor ?? false,
-                        eliteMentor: userData?.eliteMentor ?? false,
-                        activeParticipant: userData?.activeParticipant ?? false,
-                        bannerUrl: userData?.bannerUrl,
-                        email: userData.email || '',
-                        college: userData.college || '',
-                        course: userData.course || '',
-                        branch: userData.branch || null,
-                        year: userData.year || '',
-                        interests: userData.interests || [],
-                        profilePic: profileImageUrl || '/logo_192.png',
-                        profileImageUrl: profileImageUrl || '/logo_192.png',
-                        totalQueries: userData?.totalQueries ?? 0,
-                        totalAnswersGiven: userData?.totalAnswersGiven ?? 0,
-                        bestAnswers: userData?.bestAnswers ?? 0,
-                        helpfulVotes: userData?.helpfulVotes ?? 0,
-                        totalViews: userData?.totalViews ?? 0,
-                    }
-
-                    localStorage.setItem('userDocumentId', user.documentId)
-                    localStorage.setItem('userEmail', userData.email)
-                 
-
-                    try {
-                        
-                        await calculateAndUpdateBadges(formattedUser)
-                        
-                    } catch (badgeError) {
-                        console.error('❌ Error calculating badges:', badgeError)
-                    }
-
-            
+                    calculateAndUpdateBadges(formattedUser).catch(() => { })
                     setUserData(formattedUser)
                 } else {
                     throw new Error('User profile not found')
                 }
             } catch (err) {
-                console.error('❌ Error fetching user data:', err)
-                setError(err.message)
+                if (!hasCache) setError(err.message)
             } finally {
-                setLoadingUserData(false)  // ✅ Only runs after a real fetch attempt
+                setLoadingUserData(false)
             }
         }
 
         fetchUserData()
     }, [isRegistered, userEmail])
-    // Function to refresh user data (for profile updates)
+
     const refreshUserData = async () => {
         if (!userEmail) return
 
         try {
-          
-            setLoadingUserData(true)
+            setRefreshing(true)
 
-            // ✅ USE SECURE API FUNCTION
             const data = await fetchFromStrapi(
-                `user-profiles?filters[email][$eq]=${encodeURIComponent(userEmail)}&populate=*`
+                `user-profiles?filters[email][$eq]=${encodeURIComponent(userEmail)}&${USER_PROFILE_POPULATE}`
             )
 
             if (data?.data && data.data.length > 0) {
-                const user = data.data[0]
+                const raw = data.data[0]
+                const formattedUser = formatUser(raw)
 
-                // Strapi 5 doesn't use attributes wrapper
-                const userData = user.attributes || user
+                localStorage.setItem('userDocumentId', raw.documentId)
+                localStorage.setItem('userEmail', formattedUser.email)
 
-                // ✅ Get profile image URL - check both profileImage relation and profilePic field
-                let profileImageUrl = null;
-
-                // First, try to get from profileImage relation
-                if (userData.profileImage) {
-                    const profileImage = userData.profileImage.data || userData.profileImage;
-                    if (profileImage) {
-                        const imageData = profileImage.attributes || profileImage;
-                        profileImageUrl = imageData.url?.startsWith('http')
-                            ? imageData.url
-                            : `${STRAPI_URL}${imageData.url}`;
-                    }
-                }
-
-                // If profileImage relation is null, use profilePic field
-                if (!profileImageUrl && userData.profilePic) {
-                    profileImageUrl = userData.profilePic;
-                }
-
-             
-
-                // ✅ Get updated verification status from verification_requests relation
-                const verificationStatus = getVerificationStatus(userData.verification_requests)
-              
-                // ✅ Get updated rejection reason if status is rejected
-                const verificationRejectionReason = getRejectionReason(userData.verification_requests)
-             
-
-                const formattedUser = {
-                    id: user.id,
-                    documentId: user.documentId,
-                    enrollmentYear: userData.enrollmentYear || new Date().getFullYear(),
-                    graduationYear: userData.graduationYear,
-                    bio: userData.bio || "",
-                    name: userData.name || '',
-                    username: userData.username || '',
-                    isVerified: userData?.isVerified ?? false,
-                    verificationStatus: verificationStatus, // ✅ Use calculated status
-                    verificationRejectionReason: verificationRejectionReason, // ✅ Use extracted reason
-                    isMentor: userData?.isMentor ?? false,
-                    superMentor: userData?.superMentor ?? false,
-                    eliteMentor: userData?.eliteMentor ?? false,
-                    activeParticipant: userData?.activeParticipant ?? false,
-                    email: userData.email || '',
-                    college: userData.college || '',
-                    course: userData.course || '',
-                    branch: userData.branch || null,
-                    year: userData.year || '',
-                    interests: userData.interests || [],
-                    bannerUrl: userData?.bannerUrl,
-                    profilePic: profileImageUrl || '/logo_192.png',
-                    profileImageUrl: profileImageUrl || '/logo_192.png',
-                    totalAnswersGiven: userData?.totalAnswersGiven ?? 0,
-                    bestAnswers: userData?.bestAnswers ?? 0,
-                    helpfulVotes: userData?.helpfulVotes ?? 0,
-                    totalViews: userData?.totalViews ?? 0,
-                }
-
-                // ✅ CORRECT LOCATION: Store in localStorage AFTER formatting user data
-                localStorage.setItem('userDocumentId', user.documentId)
-                localStorage.setItem('userEmail', userData.email)
+                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                    data: formattedUser,
+                    ts: Date.now(),
+                    email: userEmail
+                }))
 
                 setUserData(formattedUser)
             }
-        } catch (err) {
-            console.error('❌ Error refreshing user data:', err)
+        } catch {
+            // Silently fail — user still has their current data
         } finally {
-            setLoadingUserData(false)
+            setRefreshing(false)
         }
     }
 
-    // Show loading screen while checking registration or fetching user data
+    // Only block on Kinde auth — show LoadingScreen for this unavoidable wait
     if (checkingRegistration || isRegistered === null || isRegistered === false) {
         return <LoadingScreen message="Verifying your access..." />
     }
 
+    // Show skeleton instead of blank screen or spinner — LCP fires on skeleton content
     if (loadingUserData || !userData) {
-        return <LoadingScreen message="Loading your profile..." />
+        return <PageSkeleton />
     }
 
-    // Show error if data fetch failed
-    if (error || !userData) {
+    if (error && !userData) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
                 <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-lg shadow-lg">
@@ -298,7 +227,6 @@ const Page = () => {
         )
     }
 
-    // User is registered and data is loaded, show the page
     return (
         <>
             <Sidebar

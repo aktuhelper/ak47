@@ -165,7 +165,7 @@ export default function Navbar() {
                     submenu: [
                         { title: "1st Year", href: "/pyq/mca/1st-year" },
                         { title: "2nd Year", href: "/pyq/mca/2nd-year" },
-                     
+
                     ]
                 },
             ]
@@ -521,7 +521,13 @@ export default function Navbar() {
                                             </div>
                                             <div className="p-2">
                                                 <div className="my-2 border-t border-theme"></div>
-                                                <LogoutLink className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all group w-full">
+                                                <LogoutLink
+                                                    onClick={() => {
+                                                        localStorage.removeItem('userData_cache')
+                                                        localStorage.removeItem('userDocumentId')
+                                                        localStorage.removeItem('userEmail')
+                                                    }}
+                                                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all group w-full">
                                                     <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/40 flex items-center justify-center group-hover:bg-red-200 dark:group-hover:bg-red-800/50 transition-colors">
                                                         <X className="w-4 h-4 text-red-600 dark:text-red-400" />
                                                     </div>
@@ -613,7 +619,13 @@ export default function Navbar() {
                                                 </div>
                                             </div>
                                             <div className="space-y-1">
-                                                <LogoutLink className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-500/80 hover:bg-red-600 transition backdrop-blur-sm w-full">
+                                                <LogoutLink
+                                                    onClick={() => {
+                                                        localStorage.removeItem('userData_cache')
+                                                        localStorage.removeItem('userDocumentId')
+                                                        localStorage.removeItem('userEmail')
+                                                    }}
+                                                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-500/80 hover:bg-red-600 transition backdrop-blur-sm w-full">
                                                     <X className="w-4 h-4" />
                                                     <span className="font-medium text-sm">Logout</span>
                                                 </LogoutLink>
