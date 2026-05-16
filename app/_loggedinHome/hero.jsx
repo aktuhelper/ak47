@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PageHeader from '../_loggedinHome/_homepage/PageHeader';
 import StudentsSection from '../_loggedinHome/_homepage/StudentsSection';
 import AskQueryModal from './AskQueryModal';
@@ -28,7 +28,10 @@ export default function HomePagee({ userData }) {
     // Next Badge Modal state
     const [showNextBadgeModal, setShowNextBadgeModal] = useState(false);
     const [nextBadgeData, setNextBadgeData] = useState(null);
-
+    const studentsCache = useRef({
+        data: null,
+        fetchedAt: null
+    });
     // ✅ Use the custom hook for queries with infinite scrolling (pass userData for visibility filtering)
     const {
         publicQueries,
@@ -161,7 +164,7 @@ export default function HomePagee({ userData }) {
             skills: user.interests || [],
             isActive: false,
             answeredQueries: user.answeredQueries || 0,
-       
+
             helpfulAnswers: user.helpfulAnswers || 0,
             views: user.views || user.totalViews || 0,
             queriesPosted: user.queriesPosted || user.queriesAsked || 0,
@@ -191,78 +194,90 @@ export default function HomePagee({ userData }) {
 
     // 🔒 Fetch students data using secure API - Updated to handle Passout as seniors
     useEffect(() => {
+        let isMounted = true; // ✅ track if component is mounted
+
         const fetchStudents = async () => {
             if (!userData || !userData.college || !userData.year) {
-                setLoading(false);
+                if (isMounted) setLoading(false);
+                return;
+            }
+
+            const CACHE_TTL = 5 * 60 * 1000;
+            const now = Date.now();
+            if (
+                studentsCache.current.data &&
+                now - studentsCache.current.fetchedAt < CACHE_TTL
+            ) {
+                const cached = studentsCache.current.data;
+                if (isMounted) {
+                    setSameCollegeSeniors(cached.sameCollegeSeniors);
+                    setSameCollegeJuniors(cached.sameCollegeJuniors);
+                    setOtherCollegeSeniors(cached.otherCollegeSeniors);
+                    setOtherCollegeJuniors(cached.otherCollegeJuniors);
+                    setLoading(false);
+                }
                 return;
             }
 
             try {
-                setLoading(true);
+                if (isMounted) setLoading(true);
                 const currentYearNum = extractYearNumber(userData.year);
+                const collegeEncoded = encodeURIComponent(userData.college);
+                const courseEncoded = encodeURIComponent(userData.course);
 
-                // 🔒 Use secure API wrapper
-                const data = await fetchFromStrapi('user-profiles?populate=*&pagination[limit]=100');
+                const baseFields = 'fields[0]=name&fields[1]=username&fields[2]=profilePic&fields[3]=college&fields[4]=course&fields[5]=branch&fields[6]=year&fields[7]=isVerified&fields[8]=isMentor&fields[9]=superMentor&fields[10]=eliteMentor&fields[11]=activeParticipant&fields[12]=totalViews&fields[13]=helpfulCount&fields[14]=queriesAsked&fields[15]=totalQueries&populate[profileImage][fields][0]=url';
 
-                const allUsers = data.data || [];
+                const [scRes, ocRes] = await Promise.all([
+                    fetchFromStrapi(`user-profiles?${baseFields}&filters[college][$eq]=${collegeEncoded}&filters[course][$eq]=${courseEncoded}&pagination[limit]=50`),
+                    fetchFromStrapi(`user-profiles?${baseFields}&filters[college][$ne]=${collegeEncoded}&filters[course][$eq]=${courseEncoded}&pagination[limit]=50`),
+                ]);
 
-                const sameCollege = [];
-                const otherCollege = [];
+                let scUsers = (scRes.data || []).map(formatUserData);
+                let ocUsers = (ocRes.data || []).map(formatUserData);
 
-                allUsers.forEach(user => {
-                    if (user.id === currentUserId || user.documentId === currentUserId) return;
+                if (scUsers.length < 3) {
+                    const scFallbackRes = await fetchFromStrapi(
+                        `user-profiles?${baseFields}&filters[college][$eq]=${collegeEncoded}&pagination[limit]=50`
+                    );
+                    scUsers = (scFallbackRes.data || []).map(formatUserData);
+                }
 
-                    const formattedUser = formatUserData(user);
-                    const userYearNum = extractYearNumber(user.year);
-                    const isSameCollege = user.college === userData.college;
+                if (ocUsers.length < 3) {
+                    const ocFallbackRes = await fetchFromStrapi(
+                        `user-profiles?${baseFields}&filters[college][$ne]=${collegeEncoded}&pagination[limit]=50`
+                    );
+                    ocUsers = (ocFallbackRes.data || []).map(formatUserData);
+                }
 
-                    if (isSameCollege) {
-                        sameCollege.push({ ...formattedUser, yearNum: userYearNum });
-                    } else {
-                        otherCollege.push({ ...formattedUser, yearNum: userYearNum });
-                    }
-                });
+                const result = {
+                    sameCollegeSeniors: scUsers.filter(u => extractYearNumber(u.year) > currentYearNum).slice(0, 6),
+                    sameCollegeJuniors: scUsers.filter(u => extractYearNumber(u.year) < currentYearNum).slice(0, 6),
+                    otherCollegeSeniors: ocUsers.filter(u => extractYearNumber(u.year) > currentYearNum).slice(0, 6),
+                    otherCollegeJuniors: ocUsers.filter(u => extractYearNumber(u.year) < currentYearNum).slice(0, 6),
+                };
 
-                // ✅ Seniors: Anyone with yearNum > currentYearNum (includes Passout students with yearNum = 5)
-                setSameCollegeSeniors(
-                    sameCollege
-                        .filter(u => u.yearNum > currentYearNum)
-                        .map(({ yearNum, ...user }) => user)
-                        .slice(0, 6)
-                );
+                studentsCache.current = { data: result, fetchedAt: now };
 
-                // ✅ Juniors: Anyone with yearNum < currentYearNum
-                setSameCollegeJuniors(
-                    sameCollege
-                        .filter(u => u.yearNum < currentYearNum)
-                        .map(({ yearNum, ...user }) => user)
-                        .slice(0, 6)
-                );
-
-                setOtherCollegeSeniors(
-                    otherCollege
-                        .filter(u => u.yearNum > currentYearNum)
-                        .map(({ yearNum, ...user }) => user)
-                        .slice(0, 6)
-                );
-
-                setOtherCollegeJuniors(
-                    otherCollege
-                        .filter(u => u.yearNum < currentYearNum)
-                        .map(({ yearNum, ...user }) => user)
-                        .slice(0, 6)
-                );
+                if (isMounted) {
+                    setSameCollegeSeniors(result.sameCollegeSeniors);
+                    setSameCollegeJuniors(result.sameCollegeJuniors);
+                    setOtherCollegeSeniors(result.otherCollegeSeniors);
+                    setOtherCollegeJuniors(result.otherCollegeJuniors);
+                    setLoading(false);
+                }
 
             } catch (error) {
-                // Error silently handled
-            } finally {
-                setLoading(false);
+                console.log('Error fetching students:', error);
+                if (isMounted) setLoading(false);
             }
         };
 
         fetchStudents();
-    }, [userData, currentUserId]);
 
+        return () => {
+            isMounted = false; // ✅ cleanup on unmount
+        };
+    }, [userData, currentUserId]);;// ← closing bracket was missing before
     // ✅ Update online status when onlineUsers changes
     useEffect(() => {
         if (sameCollegeSeniors.length > 0) {
@@ -307,7 +322,7 @@ export default function HomePagee({ userData }) {
 
     // Modal handlers
     const handleAskQuery = (receiver) => {
-      
+
         setSelectedReceiver(receiver);
         setIsModalOpen(true);
     };
@@ -482,8 +497,8 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/seniormycollege"
                             students={sameCollegeSeniors}
                             currentUserId={currentUserId}
-                                onAskQuery={handleAskQuery}
-                                userData={userData}
+                            onAskQuery={handleAskQuery}
+                            userData={userData}
                             emptyMessage="No seniors found in your college"
                         />
 
@@ -493,8 +508,8 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/juniormycollege"
                             students={sameCollegeJuniors}
                             currentUserId={currentUserId}
-                                onAskQuery={handleAskQuery}
-                                userData={userData}
+                            onAskQuery={handleAskQuery}
+                            userData={userData}
                             emptyMessage="No juniors found in your college"
                         />
 
@@ -504,8 +519,8 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/seniorfromothercollege"
                             students={otherCollegeSeniors}
                             currentUserId={currentUserId}
-                                onAskQuery={handleAskQuery}
-                                  userData={userData}
+                            onAskQuery={handleAskQuery}
+                            userData={userData}
                             emptyMessage="No seniors found from other colleges"
                         />
 
@@ -515,14 +530,14 @@ export default function HomePagee({ userData }) {
                             viewAllLink="/juniorothercollege"
                             students={otherCollegeJuniors}
                             currentUserId={currentUserId}
-                                onAskQuery={handleAskQuery}
-                                userData={userData} 
+                            onAskQuery={handleAskQuery}
+                            userData={userData}
                             emptyMessage="No juniors found from other colleges"
                         />
                     </div>
                 )}
             </div>
-          
+
             {/* Ask Query Modal */}
             <AskQueryModal
                 isOpen={isModalOpen}
@@ -531,7 +546,7 @@ export default function HomePagee({ userData }) {
                 currentUserId={currentUserId}
                 onQuerySent={handleQuerySent}
                 userData={userData}
-                senderName={userData?.name || userData?.username || ''} 
+                senderName={userData?.name || userData?.username || ''}
             />
 
             {/* Next Badge Modal */}
